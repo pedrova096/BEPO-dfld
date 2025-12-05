@@ -1,0 +1,66 @@
+local PlayerStater = require("lib.stater.stater")
+local Msg = require("lib.msg")
+
+local StatesEnum = PlayerStater.StatesEnum
+
+go.property("velocity", 80)
+go.property("lives", 3)
+
+function init(self)
+	self.stater = PlayerStater:new({
+		stats = {
+			velocity = self.velocity,
+			lives = self.lives,
+		}
+	})
+end
+
+function final(self)
+end
+
+function fixed_update(self, dt)
+	self.stater:update(dt)
+end
+
+local function on_move_pressed(self, message)
+	local direction = message.direction
+	self.stater:set_direction(direction)
+
+	if self.stater.movement_active then
+		return
+	end
+
+	self.stater.movement_active = true
+	self.stater:apply_transition(StatesEnum.Move, {
+		direction = direction,
+	})
+end
+
+local function on_move_released(self, message)
+	self.stater.movement_active = false
+
+	if self.stater.movement_active then
+		self.stater:apply_transition(StatesEnum.Idle, {})
+	end
+end
+
+local function on_apply_damage(self, message)
+	self.stater:apply_transition(StatesEnum.Hurt, {
+		damage = message.damage,
+		direction = message.direction,
+		force = message.force,
+	})
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Player.MOVE_PRESSED then
+		on_move_pressed(self, message)
+	elseif message_id == Msg.Player.MOVE_RELEASED then
+		on_move_released(self, message)
+	elseif message_id == Msg.APPLY_DAMAGE then
+		on_apply_damage(self, message)
+	end
+end
+
+function on_reload(self)
+end

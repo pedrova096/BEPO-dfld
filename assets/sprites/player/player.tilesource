@@ -1,0 +1,29 @@
+image: "/assets/sprites/player/player.png"
+tile_width: 24
+tile_height: 24
+animations {
+  id: "hurt"
+  start_tile: 9
+  end_tile: 12
+  fps: 12
+}
+animations {
+  id: "idle"
+  start_tile: 1
+  end_tile: 4
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 12
+}
+animations {
+  id: "move"
+  start_tile: 5
+  end_tile: 8
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 12
+}
+animations {
+  id: "roll"
+  start_tile: 13
+  end_tile: 16
+  fps: 12
+}

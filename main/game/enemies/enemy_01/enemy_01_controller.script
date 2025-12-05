@@ -1,0 +1,35 @@
+local Msg = require("lib.msg")
+local EnemyStater = require("lib.stater.enemy_stater")
+
+go.property("lives", 3)
+go.property("velocity", 80)
+
+function init(self)
+	self.stater = EnemyStater:new({
+		stats = {
+			lives = self.lives,
+			velocity = self.velocity,
+		}
+	})
+end
+
+function final(self)
+end
+
+function update(self, dt)
+end
+
+function fixed_update(self, dt)
+end
+
+local function on_apply_damage(self, message)
+	self.stater:apply_transition(StatesEnum.Hurt, {
+		damage = message.damage,
+	})
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.APPLY_DAMAGE then
+		on_apply_damage(self, message)
+	end
+end

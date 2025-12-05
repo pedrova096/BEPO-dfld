@@ -1,0 +1,51 @@
+image: "/assets/sprites/tiles/tiles.png"
+tile_width: 48
+tile_height: 48
+tile_margin: 1
+collision: "/assets/sprites/tiles/tiles.png"
+convex_hulls {
+  index: 0
+  count: 4
+  collision_group: ""
+}
+convex_hulls {
+  index: 4
+  count: 4
+  collision_group: "wall"
+}
+convex_hulls {
+  index: 8
+  count: 4
+  collision_group: "wall"
+}
+convex_hulls {
+  index: 12
+  count: 5
+  collision_group: "wall"
+}
+convex_hulls {
+  index: 17
+  count: 5
+  collision_group: "wall"
+}
+convex_hulls {
+  index: 22
+  count: 5
+  collision_group: "wall"
+}
+convex_hulls {
+  index: 27
+  count: 5
+  collision_group: "wall"
+}
+convex_hulls {
+  index: 32
+  count: 4
+  collision_group: "wall"
+}
+convex_hulls {
+  index: 36
+  count: 4
+  collision_group: "wall"
+}
+collision_groups: "wall"
