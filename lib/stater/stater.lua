@@ -1,5 +1,6 @@
 local States = require("lib.stater.states.index")
 local Msg = require("lib.msg")
+local Table = require("utils.table")
 
 local M = {}
 
@@ -66,7 +67,7 @@ function M:apply_transition(next_state, data)
   local current_state = self.state
   local transitions = self.Transitions[current_state]
 
-  if not transitions or not table.contains(transitions, next_state) then
+  if not transitions or not Table.contains(transitions, next_state) then
     print("Invalid transition from " .. current_state .. " to " .. next_state)
     return
   end

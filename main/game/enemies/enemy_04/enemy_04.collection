@@ -35,6 +35,7 @@ embedded_instances {
   "  data: 7.0\\n"
   "  data: 10.0\\n"
   "}\\n"
+  "locked_rotation: true\\n"
   "\"\n"
   "}\n"
   ""

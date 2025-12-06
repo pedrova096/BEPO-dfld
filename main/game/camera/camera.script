@@ -1,0 +1,122 @@
+local Utils = require("utils.utils")
+local Msg = require("lib.msg")
+local VMath = require("utils.vmath")
+
+local Urls = {
+	Camera = "#camera",
+}
+
+local CameraStates = {
+	Idle = hash("idle"),
+	Follow = hash("follow"),
+	Shake = hash("shake"),
+}
+
+local function setup_camera()
+	local zoom = Utils.get_zoom_level()
+	go.set(Urls.Camera, "orthographic_zoom", zoom)
+end
+
+function init(self)
+	msg.post(Urls.Camera, "acquire_camera_focus")
+	msg.post("@render:", "use_camera_projection")
+
+	setup_camera()
+	-- On mount, the screen size is not ready yet, so we wait for the render script to be ready
+	timer.delay(0.1, false, function() setup_camera() end)
+
+	window.set_listener(function(self, event, data)
+		if event == window.WINDOW_EVENT_RESIZED then
+			-- TODO: setup_camera()
+		end
+	end)
+	
+	self.state = CameraStates.Idle
+end
+
+local function shake_pipe(self, dt)
+	if self.state ~= CameraStates.Shake then return end
+
+	self.shake_payload.duration = self.shake_payload.duration - dt
+
+	local original_position = self.shake_payload.original_position
+	local prev_state = self.shake_payload.prev_state
+
+	if self.shake_payload.duration <= 0 then
+		self.state = prev_state
+		self.shake_payload = nil
+		go.set_position(original_position)
+		return
+	end
+
+	local shake_magnitude = self.shake_payload.magnitude
+
+	local shake_offset = original_position + VMath.random_vector3(-shake_magnitude, shake_magnitude)
+
+	go.set_position(shake_offset)
+end
+
+---@package
+---@param self camera.script
+---@param dt number
+function fixed_update(self, dt)
+	shake_pipe(self, dt)
+end
+
+local function on_camera_follow(self, sender)
+	go.set_parent(".", sender)
+	-- go.set_position(vmath.vector3(-640, -410, 0))
+	self.state = CameraStates.Follow
+end
+
+local function on_camera_unfollow(self, sender)
+	go.set_parent("camera", nil, true)
+	self.state = CameraStates.Idle
+end
+
+local function on_camera_shake(self, sender, message)
+	local shake_duration = message.shake_duration
+	local shake_magnitude = message.shake_magnitude
+
+	if self.state == CameraStates.Shake then
+		self.shake_payload.duration = shake_duration
+		self.shake_payload.magnitude = shake_magnitude
+		return
+	end
+
+	self.shake_payload = {
+		duration = shake_duration,
+		magnitude = shake_magnitude,
+		prev_state = self.state,
+		original_position = go.get_position(),
+	}
+
+	self.state = CameraStates.Shake
+end
+
+local function on_camera_shake_interrupt(self, sender, message)
+	if self.state ~= CameraStates.Shake then return end
+
+	local original_position = self.shake_payload.original_position
+	local prev_state = self.shake_payload.prev_state
+
+	self.state = prev_state
+	go.set_position(original_position)
+	self.shake_payload = nil
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Camera.CAMERA_FOLLOW then
+		on_camera_follow(self, sender)
+	elseif message_id == Msg.Camera.CAMERA_UNFOLLOW then
+		on_camera_unfollow(self, sender)
+	elseif message_id == Msg.Camera.SHAKE then
+		on_camera_shake(self, sender, message)
+	elseif message_id == Msg.Camera.SHAKE_INTERRUPT then
+		on_camera_shake_interrupt(self, sender, message)
+	end
+end
+
+function on_reload(self)
+	setup_camera()
+end

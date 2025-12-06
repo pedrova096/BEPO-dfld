@@ -1,0 +1,148 @@
+local UtilsGUI = require("utils.utils_gui")
+local Msg = require("lib.msg")
+
+local ActionIds = {
+	TouchMulti = hash("touch_multi"),
+	Touch = hash("touch"),
+}
+
+local Urls = {
+	GameController = "/controller",
+	PlayerController = "/player/root#controller",
+	MoveZone = "move_zone",
+	MovePad = "move_pad",
+	MoveController = "move_controller",
+	Button = "button",
+	Footer = "footer",
+}
+
+local ActionStates = {
+	Idle = hash("idle"),
+	Pressed = hash("pressed"),
+}
+
+function init(self)
+  msg.post(".", "acquire_input_focus")
+
+
+	local move_pad_node = gui.get_node(Urls.MovePad)
+	local move_controller_node = gui.get_node(Urls.MoveController)
+	local button_node = gui.get_node(Urls.Button)
+
+	self.original_move_pad_position = gui.get_position(move_pad_node)
+	self.original_move_controller_position = gui.get_position(move_controller_node)
+	
+	self.move_zone_action = {
+		touch_id = nil,
+		state = ActionStates.Idle,
+		position = vmath.vector3(0),
+	}
+	self.button_action = {
+		touch_id = nil,
+		state = ActionStates.Idle,
+		position = vmath.vector3(0),
+		original_position = gui.get_position(button_node),
+	}
+
+	self.direction_keyboard = vmath.vector3(0)
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Learn more: https://defold.com/manuals/message-passing/
+	-- Remove this function if not needed
+end
+
+local MAX_MOVE_CONTROLLER_DISTANCE = 20
+
+local function input_move_zone(self, touched)
+  local touch_position = vmath.vector3(touched.x, touched.y, 1)
+	local move_pad_node = gui.get_node(Urls.MovePad)
+	local move_controller_node = gui.get_node(Urls.MoveController)
+	local footer_node = gui.get_node(Urls.Footer)
+
+	if self.move_zone_action.state == ActionStates.Idle and touched.pressed then
+		self.move_zone_action.state = ActionStates.Pressed
+		self.move_zone_action.touch_id = touched.id
+		self.move_zone_action.position = touch_position
+
+		local position = touch_position - gui.get_position(footer_node)
+
+    gui.set_position(move_pad_node, position)
+    gui.set_position(move_controller_node, position)
+    return
+	end
+
+	if self.move_zone_action.state == ActionStates.Pressed and touched.released then
+		self.move_zone_action.state = ActionStates.Idle
+		self.move_zone_action.touch_id = nil
+		self.move_zone_action.position = vmath.vector3(0)
+
+		gui.set_position(move_pad_node, self.original_move_pad_position)
+		gui.set_position(move_controller_node, self.original_move_controller_position)
+
+		msg.post(Urls.PlayerController, Msg.Player.MOVE_RELEASED)
+		return
+	end
+
+	if self.move_zone_action.state == ActionStates.Pressed then
+		local delta = touch_position - self.move_zone_action.position
+		local distance = vmath.length(delta)
+		local direction = distance > 0 and vmath.normalize(delta) or vmath.vector3(0)
+
+		if distance > MAX_MOVE_CONTROLLER_DISTANCE then
+			delta = direction * MAX_MOVE_CONTROLLER_DISTANCE
+		end
+
+		local move_pad_position = gui.get_position(move_pad_node)
+		gui.set_position(move_controller_node, move_pad_position + delta)
+
+		msg.post(Urls.PlayerController, Msg.Player.MOVE_PRESSED, {
+			direction = direction,
+			force = distance,
+		})
+	end
+end
+
+local function input_button(self, touched)
+end
+
+function on_input(self, action_id, action)
+	local handled = false
+	if action_id == ActionIds.TouchMulti or action_id == ActionIds.Touch then
+		local move_zone_node = gui.get_node(Urls.MoveZone)
+		local button_node = gui.get_node(Urls.Button)
+
+		local touched = UtilsGUI.get_touched_by_node(move_zone_node, action)
+		if touched then
+			 input_move_zone(self,touched)
+			 handled = true
+		end
+
+		local touched = UtilsGUI.get_touched_by_node(button_node, action)
+		if touched then
+			input_button(self,touched)
+			handled = true
+		end
+	end
+
+	return handled
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end

@@ -3,16 +3,30 @@ instances {
   id: "stage_01"
   prototype: "/main/game/stages/stage_01/stage_01.go"
   position {
-    y: 480.0
+    x: -168.0
+    y: 288.0
+  }
+}
+instances {
+  id: "camera"
+  prototype: "/main/game/camera/camera.go"
+  position {
+    z: 2.0
   }
 }
 collection_instances {
-  id: "player_composer"
+  id: "player"
   collection: "/main/game/player/player_composer.collection"
   position {
-    x: 136.0
-    y: 191.0
     z: 1.0
   }
 }
 scale_along_z: 0
+embedded_instances {
+  id: "ui"
+  data: "components {\n"
+  "  id: \"ui\"\n"
+  "  component: \"/main/game/ui/ui.gui\"\n"
+  "}\n"
+  ""
+}

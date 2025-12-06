@@ -3,7 +3,7 @@ local Msg = require("lib.msg")
 
 local StatesEnum = PlayerStater.StatesEnum
 
-go.property("velocity", 80)
+go.property("velocity", 60)
 go.property("lives", 3)
 
 function init(self)
@@ -37,11 +37,11 @@ local function on_move_pressed(self, message)
 end
 
 local function on_move_released(self, message)
-	self.stater.movement_active = false
-
 	if self.stater.movement_active then
 		self.stater:apply_transition(StatesEnum.Idle, {})
 	end
+	
+	self.stater.movement_active = false
 end
 
 local function on_apply_damage(self, message)

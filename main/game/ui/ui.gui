@@ -1,0 +1,69 @@
+script: "/main/game/ui/ui_controller.gui_script"
+textures {
+  name: "ui"
+  texture: "/assets/sprites/ui/ui.atlas"
+}
+nodes {
+  position {
+    y: 200.0
+  }
+  size {
+    x: 360.0
+    y: 200.0
+  }
+  type: TYPE_BOX
+  id: "footer"
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_NW
+  inherit_alpha: true
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 315.0
+    y: -120.0
+  }
+  type: TYPE_BOX
+  texture: "ui/button"
+  id: "button"
+  parent: "footer"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  size {
+    x: 216.0
+    y: 200.0
+  }
+  type: TYPE_BOX
+  id: "move_zone"
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_NW
+  parent: "footer"
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 51.0
+    y: -120.0
+  }
+  type: TYPE_BOX
+  texture: "ui/move_pad"
+  id: "move_pad"
+  parent: "move_zone"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 51.0
+    y: -120.0
+  }
+  type: TYPE_BOX
+  texture: "ui/move_controller"
+  id: "move_controller"
+  parent: "move_zone"
+  size_mode: SIZE_MODE_AUTO
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

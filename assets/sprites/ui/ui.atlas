@@ -1,0 +1,10 @@
+images {
+  image: "/assets/sprites/ui/button.png"
+}
+images {
+  image: "/assets/sprites/ui/move_controller.png"
+}
+images {
+  image: "/assets/sprites/ui/move_pad.png"
+}
+extrude_borders: 2
