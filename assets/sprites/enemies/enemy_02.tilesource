@@ -4,7 +4,13 @@ tile_height: 32
 animations {
   id: "attack"
   start_tile: 10
-  end_tile: 10
+  end_tile: 11
+  fps: 12
+}
+animations {
+  id: "dead"
+  start_tile: 12
+  end_tile: 15
   fps: 12
 }
 animations {
