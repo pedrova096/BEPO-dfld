@@ -11,7 +11,7 @@ instances {
   id: "camera"
   prototype: "/main/game/camera/camera.go"
   position {
-    z: 2.0
+    z: 100.0
   }
 }
 collection_instances {

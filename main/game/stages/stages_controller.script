@@ -1,0 +1,60 @@
+local Msg = require("lib.msg")
+local Stager = require("utils.stager.stager")
+local Stages = require("utils.stager.stages_config")
+
+local Urls = {
+	Factory01 = hash("#cfactory enemy_01"),
+	Factory02 = hash("#cfactory enemy_02"),
+	Factory03 = hash("#cfactory_enemy_03"),
+	Factory04 = hash("#cfactory_enemy_04"),
+}
+
+local TILE_SIZE = 48
+
+go.property("stage_name", hash("Stage01")) -- Stage01
+go.property("stage_width", 7)
+go.property("stage_height", 11)
+
+function init(self)
+	local stage_width = self.stage_width * TILE_SIZE
+	local stage_height = self.stage_height * TILE_SIZE
+
+	pprint("Initializing stage: " .. self.stage_name, "size => width: " .. stage_width .. ", height: " .. stage_height)
+	self.stager = Stager:new({
+		config = Stages[self.stage_name],
+		bounds = {
+			min = vmath.vector3(-stage_width / 2, -stage_height / 2, 0),
+			max = vmath.vector3(stage_width / 2, stage_height / 2, 0),
+		},
+		factories = {
+			enemy_01 = Urls.Factory01,
+			enemy_02 = Urls.Factory02,
+			enemy_03 = Urls.Factory03,
+			enemy_04 = Urls.Factory04,
+		},
+		debug = true,
+	})
+end
+
+function fixed_update(self, dt)
+	self.stager:update(dt)
+end
+
+local function on_enemy_killed(self, enemy)
+	self.stager:on_enemy_killed(enemy)
+end
+
+local function on_stage_ended(self, message)
+	print("Stage ended")
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Game.ENEMY_KILLED then
+		on_enemy_killed(self, message.enemy)
+	elseif message_id == Msg.Game.STAGE_ENDED then
+		on_stage_ended(self, message)
+	end
+end
+
+function on_reload(self)
+end

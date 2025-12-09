@@ -2,6 +2,10 @@ components {
   id: "stage_01"
   component: "/main/game/stages/stage_01/stage_01.tilemap"
 }
+components {
+  id: "controller"
+  component: "/main/game/stages/stages_controller.script"
+}
 embedded_components {
   id: "wall"
   type: "collisionobject"
@@ -14,5 +18,29 @@ embedded_components {
   "mask: \"player\"\n"
   "mask: \"bullet\"\n"
   "mask: \"enemy\"\n"
+  ""
+}
+embedded_components {
+  id: "cfactory_enemy_01"
+  type: "collectionfactory"
+  data: "prototype: \"/main/game/enemies/enemy_01/enemy_01.collection\"\n"
+  ""
+}
+embedded_components {
+  id: "cfactory_enemy_02"
+  type: "collectionfactory"
+  data: "prototype: \"/main/game/enemies/enemy_02/enemy_02.collection\"\n"
+  ""
+}
+embedded_components {
+  id: "cfactory_enemy_03"
+  type: "collectionfactory"
+  data: "prototype: \"/main/game/enemies/enemy_03/enemy_03.collection\"\n"
+  ""
+}
+embedded_components {
+  id: "cfactory_enemy_04"
+  type: "collectionfactory"
+  data: "prototype: \"/main/game/enemies/enemy_04/enemy_04.collection\"\n"
   ""
 }
