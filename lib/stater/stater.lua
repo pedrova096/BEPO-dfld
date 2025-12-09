@@ -3,6 +3,7 @@ local Msg = require("lib.msg")
 local Table = require("utils.table")
 
 local M = {}
+M.__index = M
 
 local StatesEnum = {
   Move = hash("move"),
@@ -29,14 +30,14 @@ local DefaultUrls = {
 }
 
 function M:new(config)
-  self = setmetatable({}, { __index = M })
-  self.stats = config.stats or {}
-  self.direction = config.direction or vmath.vector3(0)
-  self.urls = config.urls or DefaultUrls
-  self.facing = config.facing or 1
-  self.movement_active = false
-  self:_set_state(StatesEnum.Idle)
-  return self
+  local instance = setmetatable({}, self)
+  instance.stats = config.stats or {}
+  instance.direction = config.direction or vmath.vector3(0)
+  instance.urls = config.urls or DefaultUrls
+  instance.facing = config.facing or 1
+  instance.movement_active = false
+  instance:_set_state(StatesEnum.Idle)
+  return instance
 end
 
 function M:_set_state(state, payload)
@@ -82,6 +83,7 @@ function M:apply_transition(next_state, data)
     next_state = next_state,
   })
 end
+
 ---@param options.delay number - delay in seconds
 ---@param options.state userdata - state to transition to
 ---@param options.payload table - payload to transition to
@@ -96,10 +98,8 @@ function M:state_timer(options)
   end)
 end
 
-
 function M:update(dt)
   local current_lifecycle = self.LifeCycle[self.state]
-  
   if current_lifecycle.update then
     current_lifecycle.update(self, dt)
   end

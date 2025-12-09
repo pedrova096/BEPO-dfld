@@ -1,25 +1,25 @@
 local Msg = require("lib.msg")
 local EnemyStater = require("lib.stater.enemy_stater")
+local Entity = require("utils.entity")
 
-go.property("lives", 3)
+local StatesEnum = EnemyStater.StatesEnum
+
+go.property("health", 9)
 go.property("velocity", 80)
 
 function init(self)
 	self.stater = EnemyStater:new({
 		stats = {
-			lives = self.lives,
+			health = self.health,
 			velocity = self.velocity,
 		}
 	})
-end
 
-function final(self)
-end
-
-function update(self, dt)
+	Entity.hide_entity()
 end
 
 function fixed_update(self, dt)
+	self.stater:update(dt)
 end
 
 local function on_apply_damage(self, message)
@@ -28,8 +28,14 @@ local function on_apply_damage(self, message)
 	})
 end
 
+local function on_spawned(self, message)
+	self.stater:apply_transition(StatesEnum.Spawn, {})
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
+	elseif message_id == Msg.Enemy.SPAWNED then
+		on_spawned(self, message)
 	end
 end

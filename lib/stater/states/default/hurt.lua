@@ -1,3 +1,4 @@
+local LimitStateTimer = require("lib.stater.limit_state_timer")
 local VMath = require("utils.vmath")
 
 local M = {}
@@ -20,12 +21,11 @@ end
 
 function M:update(dt)
   self.payload.limit_timer:update(dt)
-  
+
   if self.payload.limit_timer:is_expired() then
-    local next_state = self.movement_active and StatesEnum.Move or StatesEnum.Idle
+    local next_state = self.movement_active and self.StatesEnum.Move or self.StatesEnum.Idle
     self:apply_transition(next_state, {})
   end
-
 end
 
 function M:exit()
