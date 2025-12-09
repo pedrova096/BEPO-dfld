@@ -1,5 +1,5 @@
 image: "/assets/sprites/enemies/enemies_03.png"
-tile_width: 20
+tile_width: 24
 tile_height: 32
 animations {
   id: "attack"
@@ -14,6 +14,12 @@ animations {
   fps: 12
 }
 animations {
+  id: "hurt"
+  start_tile: 6
+  end_tile: 9
+  fps: 12
+}
+animations {
   id: "idle"
   start_tile: 1
   end_tile: 1
@@ -22,6 +28,13 @@ animations {
   id: "move"
   start_tile: 2
   end_tile: 5
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 12
+}
+animations {
+  id: "spawn"
+  start_tile: 16
+  end_tile: 17
   playback: PLAYBACK_LOOP_FORWARD
   fps: 12
 }
