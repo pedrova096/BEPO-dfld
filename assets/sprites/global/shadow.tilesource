@@ -1,0 +1,16 @@
+image: "/assets/sprites/global/shadow.png"
+tile_width: 18
+tile_height: 14
+animations {
+  id: "default"
+  start_tile: 1
+  end_tile: 1
+}
+animations {
+  id: "selected"
+  start_tile: 2
+  end_tile: 4
+  playback: PLAYBACK_LOOP_PINGPONG
+  fps: 8
+}
+extrude_borders: 2

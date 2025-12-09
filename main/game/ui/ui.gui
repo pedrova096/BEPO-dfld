@@ -21,8 +21,12 @@ nodes {
 }
 nodes {
   position {
-    x: 315.0
+    x: 282.0
     y: -120.0
+  }
+  scale {
+    x: 1.5
+    y: 1.5
   }
   type: TYPE_BOX
   texture: "ui/button"
@@ -45,7 +49,7 @@ nodes {
 }
 nodes {
   position {
-    x: 51.0
+    x: 93.0
     y: -120.0
   }
   type: TYPE_BOX
@@ -56,7 +60,7 @@ nodes {
 }
 nodes {
   position {
-    x: 51.0
+    x: 93.0
     y: -120.0
   }
   type: TYPE_BOX
