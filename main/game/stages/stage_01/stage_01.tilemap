@@ -424,7 +424,7 @@ layers {
   }
 }
 layers {
-  id: "layer"
+  id: "walls"
   z: 0.0
   cell {
     x: 0
