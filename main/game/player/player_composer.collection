@@ -1,9 +1,18 @@
 name: "player_composer"
+instances {
+  id: "weapon"
+  prototype: "/main/game/player/weapon/weapon.go"
+  position {
+    y: 1.0
+    z: 2.0
+  }
+}
 scale_along_z: 0
 embedded_instances {
   id: "root"
   children: "shadow"
   children: "visual"
+  children: "weapon"
   data: "components {\n"
   "  id: \"controller\"\n"
   "  component: \"/main/game/player/player_controller.script\"\n"

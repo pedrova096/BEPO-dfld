@@ -5,12 +5,14 @@ local StatesEnum = PlayerStater.StatesEnum
 
 go.property("velocity", 60)
 go.property("lives", 3)
+go.property("ammo_capacity", 6)
 
 function init(self)
 	self.stater = PlayerStater:new({
 		stats = {
 			velocity = self.velocity,
 			lives = self.lives,
+			ammo_capacity = self.ammo_capacity,
 		}
 	})
 end
@@ -40,7 +42,7 @@ local function on_move_released(self, message)
 	if self.stater.movement_active then
 		self.stater:apply_transition(StatesEnum.Idle, {})
 	end
-	
+
 	self.stater.movement_active = false
 end
 

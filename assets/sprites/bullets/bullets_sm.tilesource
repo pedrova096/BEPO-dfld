@@ -1,0 +1,14 @@
+image: "/assets/sprites/bullets/bullets_sm.png"
+tile_width: 16
+tile_height: 16
+animations {
+  id: "default"
+  start_tile: 1
+  end_tile: 1
+}
+animations {
+  id: "disappear"
+  start_tile: 1
+  end_tile: 3
+  fps: 10
+}
