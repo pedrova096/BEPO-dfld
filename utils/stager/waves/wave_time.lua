@@ -24,7 +24,7 @@ end
 function M:_check_completion_pipe()
   -- Check completion: time's up and all enemies dead
   if not self:has_finished_spawning() then return false end
-  if self:get_active_enemies() > 0 then return false end
+  if self:get_active_enemies_count() > 0 then return false end
 
   self.completed = true
 

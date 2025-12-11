@@ -1,12 +1,14 @@
 local Msg = require("lib.msg")
+local VMath = require("utils.vmath")
 local Stager = require("utils.stager.stager")
 local Stages = require("utils.stager.stages_config")
 
 local Urls = {
-	Factory01 = hash("#cfactory enemy_01"),
-	Factory02 = hash("#cfactory enemy_02"),
-	Factory03 = hash("#cfactory_enemy_03"),
-	Factory04 = hash("#cfactory_enemy_04"),
+	PlayerController = "/player/root#controller",
+	Factory01 = "#cfactory enemy_01",
+	Factory02 = "#cfactory enemy_02",
+	Factory03 = "#cfactory_enemy_03",
+	Factory04 = "#cfactory_enemy_04",
 }
 
 local TILE_SIZE = 48
@@ -36,8 +38,36 @@ function init(self)
 	})
 end
 
+local function target_enemies_pipe(self, dt)
+	local active_enemies = self.stager:get_active_enemies()
+	local player_position = VMath.z_one(go.get_position(Urls.PlayerController))
+	-- map id,position
+	local enemy_positions = {}
+	for _, enemy in ipairs(active_enemies) do
+		local position = VMath.z_one(go.get_position(enemy.id)) + vmath.vector3(0, 12, 0) -- TODO: this should be a map
+		local delta = position - player_position
+		table.insert(enemy_positions, {
+			id = enemy.id,
+			position = position,
+			delta = delta,
+			distance = vmath.length(delta),
+			direction = vmath.normalize(delta)
+		})
+	end
+
+	-- Sort enemies by distance to player
+	table.sort(enemy_positions, function(a, b)
+		return a.distance < b.distance
+	end)
+
+	msg.post(Urls.PlayerController, Msg.Player.TARGET_ENEMIES, {
+		enemies = enemy_positions,
+	})
+end
+
 function fixed_update(self, dt)
 	self.stager:update(dt)
+	target_enemies_pipe(self, dt)
 end
 
 local function on_enemy_killed(self, enemy)

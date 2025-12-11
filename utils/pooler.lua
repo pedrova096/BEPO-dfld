@@ -1,17 +1,24 @@
 local Table = require("utils.table")
 
+---@class Pooler
+---@field pool_size number
+---@field available table
+---@field in_use table
+---@field factory fun(i: number): any Function that creates a pooled item.
 local M = {}
+M.__index = M
 
----Create a new object pool.
----The pool tracks two collections:
----- `available`: items that are currently free and can be acquired.
----- `in_use`: items that are currently checked‑out (acquired).
----@param pool_size number Maximum number of items the pool can hold.
+---@class PoolerOptions
+---@field pool_size number
+---@field factory fun(i: number): any Function that creates a pooled item.
+
+---@param opts PoolerOptions
 ---@return table pool A new pool instance.
-function M.new(pool_size)
+function M.new(opts)
   local instance = setmetatable({}, M)
 
-  instance.pool_size = pool_size
+  instance.pool_size = opts.pool_size
+  instance.factory = opts.factory
   ---Items that are currently not in use and can be acquired.
   instance.available = {}
   ---Items that are currently checked‑out by the caller.
@@ -22,11 +29,10 @@ end
 
 ---Pre‑populate the pool with items created by the given factory.
 ---This is typically called once at startup to "warm" the pool.
----@param factory fun(i: number): any Function that creates a pooled item.
 ---@return table self Returns the pool instance for chaining.
-function M:spawn(factory)
+function M:spawn()
   for i = 1, self.pool_size do
-    local item = factory(i)
+    local item = self.factory(i)
     table.insert(self.available, item)
   end
 
@@ -56,7 +62,7 @@ function M:push()
   local item = table.remove(self.in_use, 1)
 
   if not item then
-    return nil,nil
+    return nil, nil
   end
 
   table.insert(self.available, item)
@@ -67,7 +73,7 @@ end
 ---If the item is not currently in use, this is a no‑op.
 ---@param item T The specific item to release.
 function M:push_item(item)
-  local _, removed = Table.remove_value(self.in_use, item)
+  local removed = Table.remove_value(self.in_use, item)
 
   if not removed then
     return
@@ -127,6 +133,20 @@ function M:find_index(callback)
     if callback(item) then
       return i
     end
+  end
+end
+
+function M:set_size(size)
+  local old_size = self.pool_size
+  self.pool_size = size
+
+  if old_size < size then
+    for i = old_size + 1, size do
+      local item = self.factory(i)
+      table.insert(self.available, item)
+    end
+  else
+    -- TODO: Find a way to remove items from the pool.
   end
 end
 

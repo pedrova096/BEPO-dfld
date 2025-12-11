@@ -23,3 +23,9 @@ title = BEPO
 default_texture_min_filter = nearest
 default_texture_mag_filter = nearest
 
+[physics]
+debug = 0
+debug_alpha = 0.5
+gravity_y = 0.0
+scale = 0.1
+

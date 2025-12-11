@@ -96,8 +96,14 @@ end
 
 ---Get the active enemies count
 ---@return number
-function M:get_active_enemies()
+function M:get_active_enemies_count()
   return #self.active_enemies
+end
+
+---Get the active enemies
+---@return table
+function M:get_active_enemies()
+  return self.active_enemies
 end
 
 ---Check if the wave is complete. Override in subclass if needed.

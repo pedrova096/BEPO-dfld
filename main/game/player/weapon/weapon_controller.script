@@ -1,50 +1,95 @@
+local Msg = require("lib.msg")
+local VMath = require("utils.vmath")
+local Weapon = require("utils.weapon.weapon")
+local WeaponConfigs = require("utils.weapon.configs")
+
+local TriggerStatusEnum = {
+	Pressed = hash("pressed"),
+	Released = hash("released"),
+}
+
+local Urls = {
+	BulletSmFactory = "#bullet_sm_factory",
+	Sprite = "#sprite",
+}
+
+go.property("trigger_status", hash("released"))
+
 function init(self)
-	-- Add initialization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	self.weapon = Weapon:new({
+		id = "pistol",
+		config = WeaponConfigs.WeaponConfigs.Pistol,
+		bullet = {
+			config = WeaponConfigs.BulletConfigs.Pistol,
+			factory_url = Urls.BulletSmFactory,
+		},
+		target = hash("enemy"),
+	})
+
+	self.trigger_payload = {}
 end
 
-function final(self)
-	-- Add finalization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
-end
+local function trigger_weapon_pipe(self, dt)
+	if self.trigger_status ~= TriggerStatusEnum.Pressed then return end
+	if self.weapon:is_reloading() then return end
 
-function update(self, dt)
-	-- Add update code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	self.weapon:fire(self.trigger_payload)
 end
 
 function fixed_update(self, dt)
-	-- This function is called if 'Fixed Update Frequency' is enabled in the Engine section of game.project
-	-- Can be coupled with fixed updates of the physics simulation if 'Use Fixed Timestep' is enabled in
-	-- Physics section of game.project
-	-- Add update code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	self.weapon:update(dt)
+
+	trigger_weapon_pipe(self, dt)
+end
+
+local function on_trigger_weapon(self, message)
+	self.trigger_status = TriggerStatusEnum.Pressed
+	self.trigger_payload = message or {}
+	self.trigger_payload.position = VMath.z_one(go.get_world_position())
+end
+
+local function on_release_weapon(self, message)
+	self.trigger_status = TriggerStatusEnum.Released
+	self.trigger_payload = nil
+end
+
+local function on_bullet_finished(self, message)
+	self.weapon:on_bullet_finished(message.id)
+end
+
+local function on_set_capacity(self, message)
+	self.weapon:set_capacity(message.ammo_capacity, message.pool_size)
+end
+
+local function on_reload_started(self, message)
+	sprite.play_flipbook(Urls.Sprite, "reload")
+	go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.1, 0)
+end
+
+local function on_reload_completed(self, message)
+	go.cancel_animations(".", "euler.z")
+	go.set(".", "euler.z", 0)
+	sprite.play_flipbook(Urls.Sprite, "idle")
+end
+
+local function on_fire_weapon(self, message)
+	sprite.play_flipbook(Urls.Sprite, "fire")
 end
 
 function on_message(self, message_id, message, sender)
-	-- Add message-handling code here
-	-- Learn more: https://defold.com/manuals/message-passing/
-	-- Remove this function if not needed
-end
-
-function on_input(self, action_id, action)
-	-- Add input-handling code here. The game object this script is attached to
-	-- must have acquired input focus:
-	--
-	--    msg.post(".", "acquire_input_focus")
-	--
-	-- All mapped input bindings will be received. Mouse and touch input will
-	-- be received regardless of where on the screen it happened.
-	-- Learn more: https://defold.com/manuals/input/
-	-- Remove this function if not needed
-end
-
-function on_reload(self)
-	-- Add reload-handling code here
-	-- Learn more: https://defold.com/manuals/hot-reload/
-	-- Remove this function if not needed
+	if message_id == Msg.Weapon.TRIGGER_WEAPON then
+		on_trigger_weapon(self, message)
+	elseif message_id == Msg.Weapon.RELEASE_WEAPON then
+		on_release_weapon(self, message)
+	elseif message_id == Msg.Weapon.SET_CAPACITY then
+		on_set_capacity(self, message)
+	elseif message_id == Msg.Bullet.BULLET_FINISHED then
+		on_bullet_finished(self, message)
+	elseif message_id == Msg.Weapon.RELOAD_STARTED then
+		on_reload_started(self, message)
+	elseif message_id == Msg.Weapon.RELOAD_COMPLETED then
+		on_reload_completed(self, message)
+	elseif message_id == Msg.Weapon.FIRE_WEAPON then
+		on_fire_weapon(self, message)
+	end
 end

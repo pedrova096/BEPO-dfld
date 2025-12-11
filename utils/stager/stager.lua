@@ -6,6 +6,7 @@ local EnemySelector = require("utils.stager.enemy_selector")
 ---@field config StagesConfig
 ---@field bounds { min: vector3, max: vector3 }
 ---@field factories table<string, url>
+---@field debug boolean
 
 ---@class StagerDependencies
 ---@field spawner Spawner?
@@ -136,6 +137,11 @@ function M:on_enemy_killed(enemy_id)
   if not self.current_wave then return end
 
   self.current_wave:on_enemy_killed(enemy_id)
+end
+
+function M:get_active_enemies()
+  if not self.current_wave then return {} end
+  return self.current_wave:get_active_enemies()
 end
 
 return M

@@ -1,6 +1,16 @@
 local Player = {
   MOVE_PRESSED = hash("move_pressed"),
   MOVE_RELEASED = hash("move_released"),
+  TARGET_ENEMIES = hash("target_enemies"),
+}
+
+local Weapon = {
+  TRIGGER_WEAPON = hash("trigger_weapon"),
+  FIRE_WEAPON = hash("fire_weapon"),
+  RELEASE_WEAPON = hash("release_weapon"),
+  SET_CAPACITY = hash("set_capacity"),
+  RELOAD_STARTED = hash("reload_started"),
+  RELOAD_COMPLETED = hash("reload_completed"),
 }
 
 local Camera = {
@@ -13,6 +23,12 @@ local Camera = {
 local Enemy = {
   SPAWNED = hash("enemy_spawned"),
   KILLED = hash("enemy_killed"),
+}
+
+local Bullet = {
+  BULLET_FIRED = hash("bullet_fired"),
+  BULLET_HIT = hash("bullet_hit"),
+  BULLET_FINISHED = hash("bullet_finished"),
 }
 
 local Stager = {
@@ -32,8 +48,11 @@ return {
   Enemy = Enemy,
   Game = Game,
   Player = Player,
+  Weapon = Weapon,
   Stager = Stager,
+  Bullet = Bullet,
   -- Globals
   APPLY_DAMAGE = hash("apply_damage"),
   STATE_TRANSITION = hash("state_transition"),
+  TRIGGER_RESPONSE = hash("trigger_response")
 }

@@ -23,7 +23,7 @@ end
 -- Check completion: budget exhausted and all enemies dead
 function M:_check_completion_pipe()
   if not self:has_finished_spawning() then return false end
-  if self:get_active_enemies() > 0 then return false end
+  if self:get_active_enemies_count() > 0 then return false end
 
   self.completed = true
 

@@ -1,7 +1,17 @@
 local PlayerStater = require("lib.stater.stater")
 local Msg = require("lib.msg")
+local VMath = require("utils.vmath")
+local DebugDraw = require("utils.debug_draw")
 
 local StatesEnum = PlayerStater.StatesEnum
+
+local Urls = {
+	Weapon = "weapon#controller"
+}
+local TriggerStatusEnum = {
+	Pressed = hash("pressed"),
+	Released = hash("released"),
+}
 
 go.property("velocity", 60)
 go.property("lives", 3)
@@ -15,13 +25,51 @@ function init(self)
 			ammo_capacity = self.ammo_capacity,
 		}
 	})
+
+	self.target_enemies = {}
+	msg.post(Urls.Weapon, Msg.Weapon.SET_CAPACITY, {
+		ammo_capacity = self.ammo_capacity,
+		pool_size = self.ammo_capacity + 2,
+	})
 end
 
-function final(self)
+local function get_target_enemy(self)
+	local player_position = go.get_position()
+
+	for i = 1, 3 do
+		local enemy = self.target_enemies[i]
+		if enemy then
+			DebugDraw.draw_line(player_position, enemy.position, vmath.vector4(1, 0, 0, 1))
+			local result = physics.raycast(player_position, enemy.position, { hash("wall"), hash("obstacle") })
+			if not result then
+				return enemy
+			end
+		end
+	end
+
+	return nil
+end
+
+local function target_enemies_pipe(self, dt)
+	local enemy = get_target_enemy(self)
+
+	if not enemy then
+		local trigger_status = go.get(Urls.Weapon, "trigger_status")
+		if trigger_status == TriggerStatusEnum.Pressed then
+			msg.post(Urls.Weapon, Msg.Weapon.RELEASE_WEAPON)
+		end
+
+		return
+	end
+
+	msg.post(Urls.Weapon, Msg.Weapon.TRIGGER_WEAPON, {
+		direction = enemy.direction
+	})
 end
 
 function fixed_update(self, dt)
 	self.stater:update(dt)
+	target_enemies_pipe(self, dt)
 end
 
 local function on_move_pressed(self, message)
@@ -54,6 +102,10 @@ local function on_apply_damage(self, message)
 	})
 end
 
+local function on_target_enemies(self, message)
+	self.target_enemies = message.enemies
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Player.MOVE_PRESSED then
 		on_move_pressed(self, message)
@@ -61,6 +113,8 @@ function on_message(self, message_id, message, sender)
 		on_move_released(self, message)
 	elseif message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
+	elseif message_id == Msg.Player.TARGET_ENEMIES then
+		on_target_enemies(self, message)
 	end
 end
 
