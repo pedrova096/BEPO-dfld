@@ -28,6 +28,10 @@ function init(self)
 
   self.smoothing_speed = 6
   self.smoothed_steer_direction = vmath.vector3(0, -1, 0)
+
+  self.safe_distance = 60
+  self.safe_distance_direction = 1
+  self.safe_change_direction_frame_count = 0
 end
 
 function final(self)
@@ -107,6 +111,19 @@ local function draw_weights_pipe(self, dt)
   self.was_target_on_sight = self.target_on_sight
 
   local steer_direction = vmath.normalize(avg_target_direction - avg_obstacle_direction)
+
+
+  local distance = vmath.length(position - target_position)
+
+  if distance < self.safe_distance then
+    steer_direction = VMath.rotate_direction(steer_direction, math.rad(90) * self.safe_distance_direction)
+    if vmath.length(avg_obstacle_direction) > 0.95 and self.safe_change_direction_frame_count == 0 then
+      self.safe_distance_direction = -self.safe_distance_direction
+      self.safe_change_direction_frame_count = 20
+    end
+
+    self.safe_change_direction_frame_count = math.max(0, self.safe_change_direction_frame_count - 1)
+  end
 
   local alpha = 1 - math.exp(-dt * self.smoothing_speed)
   self.smoothed_steer_direction = vmath.lerp(alpha, self.smoothed_steer_direction, steer_direction)
