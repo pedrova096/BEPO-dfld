@@ -16,6 +16,7 @@ function init(self)
 	})
 
 	Entity.hide_entity()
+	label.set_text("root#label", "" .. go.get_id())
 end
 
 function fixed_update(self, dt)
@@ -23,8 +24,14 @@ function fixed_update(self, dt)
 end
 
 local function on_apply_damage(self, message)
+	if self.stater:is(StatesEnum.Hurt) then return end
+
+	local direction, damage, force = message.direction, message.damage, message.force
+
 	self.stater:apply_transition(StatesEnum.Hurt, {
-		damage = message.damage,
+		damage = damage,
+		direction = vmath.vector3(direction.x, -direction.y, 0),
+		force = force,
 	})
 end
 

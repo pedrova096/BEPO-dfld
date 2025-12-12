@@ -45,7 +45,7 @@ function M:_set_state(state, payload)
   self.payload = payload
 
   local life_cycle = self.LifeCycle[state]
-  life_cycle.enter(self, payload)
+  life_cycle.enter(self, self.payload)
 end
 
 function M:set_facing(direction_x)
@@ -74,7 +74,7 @@ function M:apply_transition(next_state, data)
   end
 
   local current_lifecycle = self.LifeCycle[current_state]
-  current_lifecycle.exit(self)
+  current_lifecycle.exit(self, self.payload)
 
   self:_set_state(next_state, data)
 

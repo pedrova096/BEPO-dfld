@@ -4,13 +4,13 @@ local Table = require("utils.table")
 ---@field pool_size number
 ---@field available table
 ---@field in_use table
----@field factory fun(i: number): any Function that creates a pooled item.
+---@field spawner fun(i: number): any Function that creates a pooled item.
 local M = {}
 M.__index = M
 
 ---@class PoolerOptions
 ---@field pool_size number
----@field factory fun(i: number): any Function that creates a pooled item.
+---@field spawner fun(i: number): any Function that creates a pooled item.
 
 ---@param opts PoolerOptions
 ---@return table pool A new pool instance.
@@ -18,7 +18,7 @@ function M.new(opts)
   local instance = setmetatable({}, M)
 
   instance.pool_size = opts.pool_size
-  instance.factory = opts.factory
+  instance.spawner = opts.spawner
   ---Items that are currently not in use and can be acquired.
   instance.available = {}
   ---Items that are currently checked‑out by the caller.
@@ -32,7 +32,7 @@ end
 ---@return table self Returns the pool instance for chaining.
 function M:spawn()
   for i = 1, self.pool_size do
-    local item = self.factory(i)
+    local item = self.spawner(i)
     table.insert(self.available, item)
   end
 
@@ -142,7 +142,7 @@ function M:set_size(size)
 
   if old_size < size then
     for i = old_size + 1, size do
-      local item = self.factory(i)
+      local item = self.spawner(i)
       table.insert(self.available, item)
     end
   else

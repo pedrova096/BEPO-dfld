@@ -6,14 +6,16 @@
 
 ---@class WeaponConfig
 ---@field fire_interval number    -- seconds between shots
----@field ammo_capacity number    -- magazine size
+---@field ammo_capacity number?    -- magazine size
 ---@field reload_time number      -- seconds to fully reload
 ---@field accuracy number         -- 0..1 scalar that tightens base cone
 ---@field bullet_config BulletConfig
+
 ---@class WeaponFirePayload
----@field direction vector3?
----@field position vector3?
----@field bullet_config BulletConfig?
+---@field direction vector3
+---@field position vector3
+---@field force number
+---@field speed number
 ---@field spread number?
 
 ---@class ShotgunWeaponConfig : WeaponConfig
@@ -58,9 +60,7 @@
 
 ---@class Bullet
 ---@field id number
----@field config BulletConfig
 ---@field active boolean
----@field direction number
----@field position vector3|nil
+---@field object_id string|userdata
 
 return {}

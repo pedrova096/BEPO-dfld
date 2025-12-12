@@ -8,7 +8,7 @@ local Weapon = {
   TRIGGER_WEAPON = hash("trigger_weapon"),
   FIRE_WEAPON = hash("fire_weapon"),
   RELEASE_WEAPON = hash("release_weapon"),
-  SET_CAPACITY = hash("set_capacity"),
+  SET_PROPERTIES = hash("set_properties"),
   RELOAD_STARTED = hash("reload_started"),
   RELOAD_COMPLETED = hash("reload_completed"),
 }

@@ -1,4 +1,5 @@
 local Msg = require("lib.msg")
+local VMath = require("utils.vmath")
 local Entity = require("utils.entity")
 
 go.property("id", 0)
@@ -31,25 +32,31 @@ end
 
 local function on_bullet_fired(self, message)
 	enabled_bullet()
-	
-	self.config = message.config
-	self.config.direction = message.direction
 
+	self.config = message
 	local velocity = self.config.direction * self.config.speed
-	go.set_position(message.position)
+	local position = VMath.z_extends(self.config.position, 3)
+	go.set_position(position)
 	go.set(Urls.Body, "linear_velocity", velocity)
 end
 
 local function on_trigger_response(self, message)
-	if message.enter then
-		go.set(Urls.Body, "linear_velocity", vmath.vector3(0))
-		sprite.play_flipbook(Urls.Sprite, "disappear", function()
-			msg.post(self.owner_id, Msg.Bullet.BULLET_FINISHED, { id = self.id })
-			disabled_bullet()
-		end)
+	if not message.enter then return end
 
-		self.config = nil
+	if message.other_group == hash("enemy") then
+		msg.post(message.other_id, Msg.APPLY_DAMAGE, {
+			damage = self.config.damage,
+			direction = self.config.direction,
+			force = self.config.force,
+		})
 	end
+
+	go.set(Urls.Body, "linear_velocity", vmath.vector3(0))
+	sprite.play_flipbook(Urls.Sprite, "disappear", function()
+		msg.post(self.owner_id, Msg.Bullet.BULLET_FINISHED, { id = self.id })
+		disabled_bullet()
+		-- self.config = nil
+	end)
 end
 
 function on_message(self, message_id, message, sender)

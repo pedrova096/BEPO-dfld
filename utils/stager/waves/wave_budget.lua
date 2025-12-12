@@ -33,10 +33,11 @@ end
 -- Spawn enemies: try to spawn if we can
 function M:_spawn_enemies_pipe()
   if not self:is_spawn_timer_done() then return end
+  if self:get_remaining() <= 0 then return end
 
-  for i = 1, self.spawn_concurrent do
-    if #self.active_enemies >= self.spawn_concurrent then break end
+  local spawn_count = self.spawn_concurrent + math.random(-1, 1)
 
+  for i = 1, spawn_count do
     local remaining = self.budget - self.spent
 
     local enemy = self.enemy_selector:select_affordable(self.config.enemies, remaining)

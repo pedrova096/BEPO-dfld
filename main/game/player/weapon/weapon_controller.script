@@ -57,13 +57,13 @@ local function on_bullet_finished(self, message)
 	self.weapon:on_bullet_finished(message.id)
 end
 
-local function on_set_capacity(self, message)
-	self.weapon:set_capacity(message.ammo_capacity, message.pool_size)
+local function on_set_properties(self, message)
+	self.weapon:set_properties(message)
 end
 
 local function on_reload_started(self, message)
 	sprite.play_flipbook(Urls.Sprite, "reload")
-	go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.1, 0)
+	go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.15, 0)
 end
 
 local function on_reload_completed(self, message)
@@ -81,8 +81,8 @@ function on_message(self, message_id, message, sender)
 		on_trigger_weapon(self, message)
 	elseif message_id == Msg.Weapon.RELEASE_WEAPON then
 		on_release_weapon(self, message)
-	elseif message_id == Msg.Weapon.SET_CAPACITY then
-		on_set_capacity(self, message)
+	elseif message_id == Msg.Weapon.SET_PROPERTIES then
+		on_set_properties(self, message)
 	elseif message_id == Msg.Bullet.BULLET_FINISHED then
 		on_bullet_finished(self, message)
 	elseif message_id == Msg.Weapon.RELOAD_STARTED then
