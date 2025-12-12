@@ -23,6 +23,7 @@ animations {
   id: "idle"
   start_tile: 1
   end_tile: 1
+  playback: PLAYBACK_LOOP_FORWARD
 }
 animations {
   id: "move"

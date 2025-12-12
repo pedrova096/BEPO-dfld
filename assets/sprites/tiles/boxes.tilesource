@@ -18,4 +18,3 @@ convex_hulls {
   collision_group: "wall"
 }
 collision_groups: "wall"
-extrude_borders: 2

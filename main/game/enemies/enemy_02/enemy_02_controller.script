@@ -1,11 +1,127 @@
+local DebugDraw = require("utils.debug_draw")
+local VMath = require("utils.vmath")
+
 function init(self)
-	-- Initialization for enemy 02
+  local weight_count = 12
+
+  ---@class Weight
+  ---@field angle number
+  ---@field weight { obstacle: number, target: number }
+  ---@field direction vector3
+  self.rays = {}
+
+  local angle_step = 360 / weight_count
+
+  for i = 0, weight_count - 1 do
+    local angle = angle_step * i
+    table.insert(self.rays, {
+      angle = angle,
+      weight = { obstacle = 0, target = 0 },
+      direction = VMath.rotate_direction(vmath.vector3(0, 1, 0), math.rad(angle)),
+    })
+  end
+
+  self.inner_padding = 10
+  self.range = 20
+  self.target_on_sight = false
+  self.steer_bias = math.random() * 2 - 1
+
+  self.smoothing_speed = 6
+  self.smoothed_steer_direction = vmath.vector3(0, -1, 0)
 end
 
 function final(self)
 end
 
+local function get_target_weight(self, direction, target_position, position)
+  -- Dot product is a value between -1 and 1
+  local dot = vmath.dot(direction, vmath.normalize(target_position - position))
+  -- -- So we normalize it to a value between 0 and 1
+  -- dot = (dot + 1) * 0.5
+  if dot < 0.55 then
+    return 0
+  end
+  -- rounded to 4 decimal places
+  dot = math.floor(dot * 10000) / 10000
+  return dot
+end
+
+local function draw_weights_pipe(self, dt)
+  local position = go.get_position() + vmath.vector3(0, 14, 0)
+  local target_position = vmath.vector3(0, 0, position.z)
+  for i, ray in ipairs(self.rays) do
+    if true then
+      local direction = ray.direction
+      local start_point = position + direction * self.inner_padding
+      local end_point = start_point + direction * self.range
+      DebugDraw.draw_line(start_point, end_point, vmath.vector4(0, 0, 0, 0.6))
+
+      local obstacle_raycast = physics.raycast(start_point, end_point, { hash("wall"), hash("obstacle") })
+      if obstacle_raycast then
+        ray.weight.obstacle = 1 - obstacle_raycast.fraction
+      else
+        ray.weight.obstacle = 0
+      end
+
+
+      ray.weight.target = get_target_weight(self, direction, target_position, position)
+
+      if ray.weight.target then
+        start_point = VMath.z_extends(start_point, start_point.z + 1)
+        local hit_point = start_point + direction * self.range * ray.weight.target
+        DebugDraw.draw_line(start_point, hit_point, vmath.vector4(0, 0, 1, 1))
+      end
+
+      if ray.weight.obstacle then
+        start_point = VMath.z_extends(start_point, start_point.z + 1)
+        local hit_point = start_point + direction * self.range * math.abs(ray.weight.obstacle)
+        DebugDraw.draw_line(start_point, hit_point, vmath.vector4(1, 0, 0, 1))
+      end
+    end
+  end
+
+  local avg_target_direction = vmath.vector3(0, 0, 0)
+  local avg_obstacle_direction = vmath.vector3(0, 0, 0)
+  for i, ray in ipairs(self.rays) do
+    avg_target_direction = avg_target_direction + ray.direction * ray.weight.target
+    avg_obstacle_direction = avg_obstacle_direction + ray.direction * ray.weight.obstacle
+  end
+  avg_target_direction = vmath.normalize(avg_target_direction / #self.rays)
+  avg_obstacle_direction = vmath.length(avg_obstacle_direction) > 0.5 and
+      vmath.normalize(avg_obstacle_direction / #self.rays) or vmath.vector3(0, 0, 0)
+
+  local target_point = position + avg_target_direction * self.inner_padding * 2 + vmath.vector3(1, 0, 0)
+  DebugDraw.draw_circle(target_point, 4, vmath.vector4(0, 0, 1, 1))
+  local obstacle_point = position - avg_obstacle_direction * self.inner_padding * 2 + vmath.vector3(-1, 0, 0)
+  DebugDraw.draw_circle(obstacle_point, 4, vmath.vector4(1, 0, 0, 1))
+
+  local dot = vmath.dot(avg_target_direction, avg_obstacle_direction)
+  self.target_on_sight = dot < 0.55 -- this means there's an obstacle in the way
+
+  if not self.target_on_sight then
+    avg_target_direction = VMath.rotate_direction(avg_target_direction, math.rad(45) * self.steer_bias)
+    local new_target_point = position + avg_target_direction * self.inner_padding * 2 + vmath.vector3(1, 0, 0)
+    DebugDraw.draw_circle(new_target_point, 4, vmath.vector4(0, 1, 1, 1))
+  end
+
+  self.was_target_on_sight = self.target_on_sight
+
+  local steer_direction = vmath.normalize(avg_target_direction - avg_obstacle_direction)
+
+  local alpha = 1 - math.exp(-dt * self.smoothing_speed)
+  self.smoothed_steer_direction = vmath.lerp(alpha, self.smoothed_steer_direction, steer_direction)
+  steer_direction = vmath.length(self.smoothed_steer_direction) > 0.0001 and
+      vmath.normalize(self.smoothed_steer_direction) or vmath.vector3(0, 0, 0)
+
+  local steer_target_point = position + steer_direction * self.inner_padding * 2 + vmath.vector3(1, 0, 0)
+
+  DebugDraw.draw_circle(steer_target_point, 4, vmath.vector4(0, 1, 0, 1))
+
+  go.set("#body", "linear_velocity", steer_direction * 20)
+end
+
 function update(self, dt)
+  draw_weights_pipe(self, dt)
 end
 
 function fixed_update(self, dt)

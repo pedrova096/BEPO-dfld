@@ -1,7 +1,7 @@
 name: "main"
 instances {
-  id: "stage_01"
-  prototype: "/main/game/stages/stage_01/stage_01.go"
+  id: "stage_02"
+  prototype: "/main/game/stages/stage_02/stage_02.go"
   position {
     x: -168.0
     y: 288.0
@@ -19,6 +19,13 @@ collection_instances {
   collection: "/main/game/player/player_composer.collection"
   position {
     z: 1.0
+  }
+}
+collection_instances {
+  id: "enemy_02"
+  collection: "/main/game/enemies/enemy_02/enemy_02.collection"
+  position {
+    y: 130.0
   }
 }
 scale_along_z: 0
