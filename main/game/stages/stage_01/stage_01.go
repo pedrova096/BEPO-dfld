@@ -1,5 +1,5 @@
 components {
-  id: "stage_01"
+  id: "stage"
   component: "/main/game/stages/stage_01/stage_01.tilemap"
 }
 components {
@@ -7,7 +7,7 @@ components {
   component: "/main/game/stages/stages_controller.script"
 }
 components {
-  id: "obstacles_01"
+  id: "obstacles"
   component: "/main/game/stages/stage_01/obstacles_01.tilemap"
   position {
     z: 5.0
@@ -52,7 +52,7 @@ embedded_components {
   ""
 }
 embedded_components {
-  id: "obstacles"
+  id: "obstacle"
   type: "collisionobject"
   data: "collision_shape: \"/main/game/stages/stage_01/obstacles_01.tilemap\"\n"
   "type: COLLISION_OBJECT_TYPE_STATIC\n"

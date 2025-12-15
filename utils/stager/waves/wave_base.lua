@@ -22,7 +22,6 @@ function M:new(config, deps)
   instance.enemy_selector = deps.enemy_selector
   instance.active_enemies = {} -- TODO: This should a pool of enemies
   instance.completed = false
-  instance.spawn_timer = 0
 
   instance:_init()
 
@@ -33,6 +32,7 @@ end
 function M:_init()
   self.spawn_interval = self.config.spawn_interval or 1
   self.spawn_concurrent = self.config.spawn_concurrent or 1
+  self.spawn_timer = self.spawn_interval
 end
 
 ---Update the wave (override in subclass)

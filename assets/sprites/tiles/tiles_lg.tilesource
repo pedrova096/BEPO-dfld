@@ -1,8 +1,8 @@
-image: "/assets/sprites/tiles/tiles.png"
+image: "/assets/sprites/tiles/tiles_lg.png"
 tile_width: 48
 tile_height: 48
 tile_margin: 1
-collision: "/assets/sprites/tiles/tiles.png"
+collision: "/assets/sprites/tiles/tiles_lg.png"
 convex_hulls {
   index: 0
   count: 4

@@ -9,17 +9,71 @@ local Urls = {
 	Factory02 = "#cfactory enemy_02",
 	Factory03 = "#cfactory_enemy_03",
 	Factory04 = "#cfactory_enemy_04",
+	Stage = "#stage",
+	Obstacles = "#obstacles",
 }
 
-local TILE_SIZE = 48
+local TILE_LG_SIZE = 48
+local TILE_SM_SIZE = 24
 
 go.property("stage_name", hash("Stage01")) -- Stage01
 go.property("stage_width", 7)
 go.property("stage_height", 11)
 
+local LandmarksEnum = {
+	Door = 5,
+	Spawn = 6,
+	Chest = 7,
+}
+
+local function get_stage_info_from_landmarks(self)
+	local stage_offset = go.get_position()
+	local left, bottom, columns_count, rows_count = tilemap.get_bounds(Urls.Obstacles)
+	local landmarks = tilemap.get_tiles(Urls.Obstacles, "landmarks")
+
+	local spawn_positions = {}
+	local doors_positions = {}
+	local chest_position = nil
+	-- TODO: player position
+
+	local tile_center = vmath.vector3(TILE_SM_SIZE / 2, TILE_SM_SIZE / 2, 0)
+	for row_index = bottom, bottom + rows_count - 1 do
+		for column_index = left, left + columns_count - 1 do
+			local tile = landmarks[row_index][column_index]
+			if tile ~= nil then
+				print("Tile => ", tile, row_index, column_index)
+			end
+
+			local x = column_index * TILE_SM_SIZE
+			local y = row_index * TILE_SM_SIZE
+
+			local position = vmath.vector3(x, y, 1) + stage_offset
+			local center_position = position - tile_center
+
+			if tile == LandmarksEnum.Door then
+				local door_position = position + vmath.vector3(TILE_SM_SIZE, TILE_SM_SIZE, 0)
+				table.insert(doors_positions, door_position)
+			elseif tile == LandmarksEnum.Spawn then
+				table.insert(spawn_positions, center_position)
+			elseif tile == LandmarksEnum.Chest then
+				chest_position = center_position
+			end
+		end
+	end
+
+	return {
+		spawn_positions = spawn_positions,
+		doors_positions = doors_positions,
+		chest_position = chest_position,
+	}
+end
+
 function init(self)
-	local stage_width = self.stage_width * TILE_SIZE
-	local stage_height = self.stage_height * TILE_SIZE
+	local stage_width = self.stage_width * TILE_LG_SIZE
+	local stage_height = self.stage_height * TILE_LG_SIZE
+
+	tilemap.set_visible(Urls.Obstacles, "landmarks", false)
+	local stage_info = get_stage_info_from_landmarks(self)
 
 	pprint("Initializing stage: " .. self.stage_name, "size => width: " .. stage_width .. ", height: " .. stage_height)
 	self.stager = Stager:new({
@@ -28,6 +82,7 @@ function init(self)
 			min = vmath.vector3(-stage_width / 2, -stage_height / 2, 0),
 			max = vmath.vector3(stage_width / 2, stage_height / 2, 0),
 		},
+		spawn_positions = stage_info.spawn_positions,
 		factories = {
 			enemy_01 = Urls.Factory01,
 			enemy_02 = Urls.Factory02,

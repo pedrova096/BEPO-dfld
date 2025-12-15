@@ -1,4 +1,4 @@
-tile_set: "/assets/sprites/tiles/tiles.tilesource"
+tile_set: "/assets/sprites/tiles/tiles_lg.tilesource"
 layers {
   id: "bg"
   z: 0.0

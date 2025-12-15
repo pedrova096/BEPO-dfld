@@ -20,4 +20,8 @@ function M.contains(list, value)
   return false
 end
 
+function M.random(list)
+  return list[math.random(1, #list)]
+end
+
 return M

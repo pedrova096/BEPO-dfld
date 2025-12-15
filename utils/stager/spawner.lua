@@ -1,9 +1,11 @@
 local Msg = require("lib.msg")
+local Table = require("utils.table")
 
 ---@class SpawnerOptions
 ---@field bounds { min: vector3, max: vector3 }
 ---@field factories table<string, url>
 ---@field debug boolean
+---@field spawn_positions table<vector3>
 ---@class Spawner : SpawnerOptions
 local M = {}
 M.__index = M
@@ -16,21 +18,15 @@ function M:new(options)
   local instance = setmetatable({}, M)
   instance.bounds = options.bounds
   instance.factories = options.factories
-  instance.debug = options.debugs
-
+  instance.debug = options.debug
+  instance.spawn_positions = options.spawn_positions
   return instance
 end
 
 ---Get a random spawn position in the area
 ---@return vector3
 function M:get_spawn_position_by_bounds()
-  local min = self.bounds.min
-  local max = self.bounds.max
-
-  local x = math.random(min.x, max.x)
-  local y = math.random(min.y, max.y)
-
-  return vmath.vector3(x, y, 1)
+  return Table.random(self.spawn_positions)
 end
 
 ---Spawn an enemy
@@ -52,7 +48,9 @@ function M:spawn(enemy_config)
     pprint("Spawner: spawned enemy => " .. enemy_id, "position => " .. position)
   end
 
-  msg.post(enemy_id, Msg.Enemy.SPAWNED)
+  msg.post(enemy_id, Msg.Enemy.SPAWNED, {
+    position = position,
+  })
   return enemy_id
 end
 

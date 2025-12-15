@@ -6,6 +6,7 @@ local EnemySelector = require("utils.stager.enemy_selector")
 ---@field config StagesConfig
 ---@field bounds { min: vector3, max: vector3 }
 ---@field factories table<string, url>
+---@field spawn_positions table<vector3>
 ---@field debug boolean
 
 ---@class StagerDependencies
@@ -39,6 +40,7 @@ function M:new(options, deps)
     bounds = options.bounds,
     factories = options.factories,
     debug = options.debug,
+    spawn_positions = options.spawn_positions,
   })
   instance.enemy_selector = deps.enemy_selector or EnemySelector:new()
 
