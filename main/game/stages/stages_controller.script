@@ -40,9 +40,6 @@ local function get_stage_info_from_landmarks(self)
 	for row_index = bottom, bottom + rows_count - 1 do
 		for column_index = left, left + columns_count - 1 do
 			local tile = landmarks[row_index][column_index]
-			if tile ~= nil then
-				print("Tile => ", tile, row_index, column_index)
-			end
 
 			local x = column_index * TILE_SM_SIZE
 			local y = row_index * TILE_SM_SIZE
@@ -125,8 +122,8 @@ function fixed_update(self, dt)
 	target_enemies_pipe(self, dt)
 end
 
-local function on_enemy_killed(self, enemy)
-	self.stager:on_enemy_killed(enemy)
+local function on_enemy_killed(self, message)
+	self.stager:on_enemy_killed(message.enemy_id)
 end
 
 local function on_stage_ended(self, message)
@@ -134,9 +131,9 @@ local function on_stage_ended(self, message)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Game.ENEMY_KILLED then
-		on_enemy_killed(self, message.enemy)
-	elseif message_id == Msg.Game.STAGE_ENDED then
+	if message_id == Msg.Stager.ENEMY_KILLED then
+		on_enemy_killed(self, message)
+	elseif message_id == Msg.Stager.STAGE_ENDED then
 		on_stage_ended(self, message)
 	end
 end

@@ -1,4 +1,5 @@
 local Default = {
+  Empty = require("lib.stater.states.default.empty"),
   Move = require("lib.stater.states.default.move"),
   Hurt = require("lib.stater.states.default.hurt"),
   Idle = require("lib.stater.states.default.idle"),
@@ -11,6 +12,7 @@ local Enemy = {
   Attack = require("lib.stater.states.enemy.attack"),
   Idle = require("lib.stater.states.enemy.idle"),
   Dead = require("lib.stater.states.enemy.dead"),
+  Despawn = require("lib.stater.states.enemy.despawn"),
 }
 
 return {

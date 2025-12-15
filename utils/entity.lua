@@ -23,14 +23,14 @@ end
 ---@param url? string The URL of the body component (optional, defaults to DefaultUrls.body if used via hide_entity)
 function M.disable_body(url)
   url = url or DefaultUrls.body
-  msg.post(url, "disabled")
+  msg.post(url, "disable")
 end
 
 --- Enable the physics body.
 ---@param url? string The URL of the body component (optional, defaults to DefaultUrls.body if used via show_entity)
 function M.enable_body(url)
   url = url or DefaultUrls.body
-  msg.post(url, "enabled")
+  msg.post(url, "enable")
 end
 
 --- Hide both the sprite and the body of an entity.

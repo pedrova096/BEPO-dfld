@@ -36,7 +36,7 @@ function M:new(config)
   instance.urls = config.urls or DefaultUrls
   instance.facing = config.facing or 1
   instance.movement_active = false
-  instance:_set_state(StatesEnum.Idle)
+  instance:_set_state(config.initial_state or StatesEnum.Idle)
   return instance
 end
 

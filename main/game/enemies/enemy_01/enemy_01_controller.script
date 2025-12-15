@@ -4,6 +4,10 @@ local Entity = require("utils.entity")
 
 local StatesEnum = EnemyStater.StatesEnum
 
+local Urls = {
+	StageController = "/stage_01",
+}
+
 go.property("health", 9)
 go.property("velocity", 80)
 
@@ -14,9 +18,6 @@ function init(self)
 			velocity = self.velocity,
 		}
 	})
-
-	Entity.hide_entity()
-	label.set_text("root#label", "" .. go.get_id())
 end
 
 function fixed_update(self, dt)
@@ -39,10 +40,25 @@ local function on_spawned(self, message)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
 end
 
+local function on_dead(self, message)
+	msg.post(Urls.StageController, Msg.Stager.ENEMY_KILLED, {
+		enemy_id = go.get_id(),
+	})
+end
+
+local function on_despawned(self, message)
+	Entity.hide_entity()
+	print("Enemy despawned => " .. go.get_id())
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
 	elseif message_id == Msg.Enemy.SPAWNED then
 		on_spawned(self, message)
+	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Dead then
+		on_dead(self, message)
+	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Despawn then
+		on_despawned(self, message)
 	end
 end
