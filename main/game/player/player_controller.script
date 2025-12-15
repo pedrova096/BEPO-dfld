@@ -16,6 +16,9 @@ local TriggerStatusEnum = {
 go.property("velocity", 60)
 go.property("lives", 3)
 go.property("ammo_capacity", 6)
+go.property("bullet_damage", 2)
+go.property("bullet_speed", 400)
+go.property("bullet_force", 3)
 
 function init(self)
 	self.stater = PlayerStater:new({
@@ -27,9 +30,13 @@ function init(self)
 	})
 
 	self.target_enemies = {}
-	msg.post(Urls.Weapon, Msg.Weapon.SET_CAPACITY, {
+	msg.post(Urls.Weapon, Msg.Weapon.SET_PROPERTIES, {
 		ammo_capacity = self.ammo_capacity,
 		pool_size = self.ammo_capacity + 2,
+		bullet_config = {
+			speed = self.bullet_speed,
+			force = self.bullet_force,
+		},
 	})
 end
 
@@ -63,7 +70,8 @@ local function target_enemies_pipe(self, dt)
 	end
 
 	msg.post(Urls.Weapon, Msg.Weapon.TRIGGER_WEAPON, {
-		direction = enemy.direction
+		direction = enemy.direction,
+		damage = self.bullet_damage,
 	})
 end
 

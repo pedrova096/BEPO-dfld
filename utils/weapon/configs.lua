@@ -25,11 +25,9 @@ local ShotgunWeaponConfig = {
 local WeaponConfigs = {
   Pistol = {
     fire_interval = 0.4, -- 2.5 shots/sec
-    ammo_capacity = 12,
     reload_time = 1.2,
     range = 300,
     accuracy = 0.9,
-    bullet_config = BulletConfigs.Pistol,
   },
   Shotgun = ShotgunWeaponConfig,
   Sniper = {
@@ -38,7 +36,6 @@ local WeaponConfigs = {
     reload_time = 2.2,
     range = 900,
     accuracy = 0.98,
-    bullet_config = BulletConfigs.Sniper,
   },
   MachineGun = {
     fire_interval = 0.11, -- ~9 shots/sec
@@ -46,7 +43,6 @@ local WeaponConfigs = {
     reload_time = 2.4,
     range = 360,
     accuracy = 0.72,
-    bullet_config = BulletConfigs.MachineGun,
   },
   RocketLauncher = {
     fire_interval = 1.11, -- ~0.9 shots/sec
@@ -54,7 +50,6 @@ local WeaponConfigs = {
     reload_time = 2.8,
     range = 420,
     accuracy = 0.85,
-    bullet_config = BulletConfigs.Rocket,
   },
   LaserRifle = {
     fire_interval = 0.17, -- ~6 shots/sec
@@ -62,7 +57,6 @@ local WeaponConfigs = {
     reload_time = 1.9,
     range = 480,
     accuracy = 0.94,
-    bullet_config = BulletConfigs.Laser,
   },
   PlasmaRifle = {
     fire_interval = 0.22, -- ~4.5 shots/sec

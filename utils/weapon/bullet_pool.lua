@@ -4,17 +4,13 @@ local Bullet = require("utils.weapon.bullet")
 local DEFAULT_POOL_SIZE = 10
 
 ---@class BulletPool
----@field pool table
+---@field pool Pooler
 ---@field pool_size number
----@field bullet_config BulletConfig
----@field target userdata
----@field factory_url string
 local M = {}
 M.__index = M
 
 ---@class BulletPoolOptions
 ---@field pool_size number
----@field bullet_config BulletConfig
 ---@field target userdata
 ---@field factory_url string
 
@@ -25,17 +21,13 @@ function M:new(opts)
   local instance = setmetatable({}, self)
 
   instance.pool_size = opts.pool_size or DEFAULT_POOL_SIZE
-  instance.bullet_config = opts.bullet_config or {}
-  instance.target = opts.target
-  instance.factory_url = opts.factory_url
   instance.pool = Pooler.new({
     pool_size = instance.pool_size,
-    factory = function(i)
+    spawner = function(index)
       return Bullet:new({
-        index = i,
-        config = instance.bullet_config,
-        target = instance.target,
-        factory_url = instance.factory_url,
+        index = index,
+        target = opts.target,
+        factory_url = opts.factory_url,
       })
     end
   }):spawn()
@@ -44,13 +36,13 @@ function M:new(opts)
 end
 
 ---Acquire a bullet from the pool and refresh its config.
----@param override_config? BulletConfig
 ---@return Bullet|nil
-function M:acquire(override_config)
+function M:acquire()
+  ---@type Bullet|nil
   local bullet = self.pool:pull()
   if not bullet then return nil end
 
-  bullet:reset(override_config or self.bullet_config)
+  bullet:reset()
   return bullet
 end
 

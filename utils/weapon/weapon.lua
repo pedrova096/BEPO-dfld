@@ -9,15 +9,29 @@ local DefaultBulletConfig = {
   force = 1,
 }
 
+
 ---@class Weapon
 ---@field id string
 ---@field config WeaponConfig
 ---@field target userdata
 ---@field state WeaponState
+---@field bullet_config BulletConfig
 ---@field bullet_pool BulletPool
 local M = {}
 M.__index = M
 
+---@class WeaponBulletOptions
+---@field config BulletConfig
+---@field factory_url string
+
+---@class WeaponOptions
+---@field id string
+---@field config WeaponConfig
+---@field target userdata
+---@field bullet WeaponBulletOptions
+---@field pool_size number?       -- max bullets kept in pool (defaults provided)
+
+---Create a new weapon instance.
 ---@param opts WeaponOptions
 ---@return Weapon
 function M:new(opts)
@@ -25,6 +39,7 @@ function M:new(opts)
 
   instance.id = opts.id or "weapon"
   instance.config = opts.config
+  instance.bullet_config = opts.bullet.config or DefaultBulletConfig
   instance.target = opts.target
 
   instance.state = {
@@ -34,12 +49,10 @@ function M:new(opts)
     cooldown = 0,
   }
 
-  local bullet_config = opts.bullet.config or DefaultBulletConfig
   instance.bullet_pool = BulletPool:new({
-    pool_size = opts.bullet.pool_size,
-    bullet_config = bullet_config,
     target = instance.target,
     factory_url = opts.bullet.factory_url,
+    pool_size = opts.pool_size,
   })
   return instance
 end
@@ -107,17 +120,21 @@ function M:fire(payload)
   if not self:can_fire() then
     return nil
   end
-  local bullet = self.bullet_pool:acquire(payload and payload.bullet_config)
+
+  local bullet = self.bullet_pool:acquire()
   if not bullet then
     return nil
   end
 
+  payload.force = self.bullet_config.force
+  payload.speed = self.bullet_config.speed
   local firing_payload = self:_apply_accuracy(payload)
+
   bullet:activate(firing_payload)
-  self.state.cooldown = self.config.fire_interval
-  self.state.ammo = math.max(0, self.state.ammo - 1)
   msg.post(".", Msg.Weapon.FIRE_WEAPON)
 
+  self.state.cooldown = self.config.fire_interval
+  self.state.ammo = math.max(0, self.state.ammo - 1)
   if self.state.ammo <= 0 then
     self:start_reload(true)
   end
@@ -172,12 +189,19 @@ function M:is_reloading()
   return self.state.reloading
 end
 
----Set the capacity of the weapon.
----@param ammo_capacity number
----@param pool_size number
-function M:set_capacity(ammo_capacity, pool_size)
-  -- self.config.ammo_capacity = ammo_capacity
-  -- self.bullet_pool:set_pool_size(pool_size)
+---Set the properties of the weapon.
+---@param properties table
+function M:set_properties(properties)
+  self.config.ammo_capacity = properties.ammo_capacity
+  self.state.ammo = properties.ammo_capacity
+  if properties.pool_size then
+    self.bullet_pool:set_pool_size(properties.pool_size)
+  end
+
+  if properties.bullet_config then
+    self.bullet_config.force = properties.bullet_config.force or self.bullet_config.force
+    self.bullet_config.speed = properties.bullet_config.speed or self.bullet_config.speed
+  end
 end
 
 ---Handle bullet completion (hit, timeout, etc).
