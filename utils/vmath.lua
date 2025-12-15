@@ -1,7 +1,11 @@
 local M = {}
 
+function M.z_extends(vector, z)
+  return vmath.vector3(vector.x, vector.y, z)
+end
+
 function M.z_one(vector)
-  return vmath.vector3(vector.x, vector.y, 1)
+  return M.z_extends(vector, 1)
 end
 
 ---Return a random vector3 between the given min and max values.
