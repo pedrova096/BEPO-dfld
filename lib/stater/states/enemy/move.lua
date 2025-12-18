@@ -7,10 +7,10 @@ function M:enter()
 end
 
 function M:update(dt)
-  -- local direction = self.direction
-  -- local velocity = direction * self.stats.velocity
+  local direction = self.direction
+  local velocity = direction * self.stats.velocity
 
-  -- go.set(self.urls.Body, "linear_velocity", VMath.z_one(velocity))
+  go.set(self.urls.Body, "linear_velocity", VMath.z_one(velocity))
 end
 
 function M:exit()

@@ -1,15 +1,19 @@
 local Msg = require("lib.msg")
 local EnemyStater = require("lib.stater.enemy_stater")
 local Entity = require("utils.entity")
+local Steer = require("lib.steer")
 
 local StatesEnum = EnemyStater.StatesEnum
 
 local Urls = {
 	StageController = "/stage_01",
+	PlayerController = "/player/root",
+	--Inner
+	AttackController = "attack#controller",
 }
 
 go.property("health", 9)
-go.property("velocity", 80)
+go.property("velocity", 40)
 
 function init(self)
 	self.stater = EnemyStater:new({
@@ -18,10 +22,33 @@ function init(self)
 			velocity = self.velocity,
 		}
 	})
+
+	self.steer = Steer:new({})
+
+	self.stater:add_behaviors({
+		{
+			state = StatesEnum.Attack,
+			condition = function()
+				-- if it's near the player, attack
+				return true
+			end,
+			-- get_payload = function()
+			-- 	return {
+			-- 	}
+			-- end,
+		}
+	})
 end
 
 function fixed_update(self, dt)
 	self.stater:update(dt)
+
+	local direction = self.steer:update(dt, {
+		position = go.get_position(),
+		target_position = go.get_position(Urls.PlayerController),
+		-- debug = true,
+	})
+	self.stater:set_direction(direction)
 end
 
 local function on_apply_damage(self, message)

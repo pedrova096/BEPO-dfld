@@ -28,4 +28,23 @@ function M.rotate_direction(direction, angle)
   return vmath.vector3(x, y, 0)
 end
 
+---Check if a vector is near zero.
+---@param vector vector3
+---@param epsilon number?
+---@return boolean
+function M.is_near_zero(vector, epsilon)
+  epsilon = epsilon or 0.0001
+  return vmath.length(vector) < epsilon
+end
+
+---Normalize a vector or return zero if it's near zero.
+---@param vector vector3
+---@return vector3
+function M.normalize_or_zero(vector)
+  if M.is_near_zero(vector) then
+    return vmath.vector3(0, 0, 0)
+  end
+  return vmath.normalize(vector)
+end
+
 return M

@@ -9,10 +9,13 @@ function M.draw_line(start_point, end_point, color)
 end
 
 local CIRCLE_SEGMENTS = 12
-function M.draw_circle(position, radius, color)
+function M.draw_circle(position, radius, color, cross)
+  cross = cross or true
+
   local base_angle = math.pi * 2 / CIRCLE_SEGMENTS
   local start = position + vmath.vector3(radius, 0, 0)
   local previous_point = start
+
   for i = 0, CIRCLE_SEGMENTS do
     local angle = i * base_angle
     local x = position.x + radius * math.cos(angle)
@@ -21,9 +24,21 @@ function M.draw_circle(position, radius, color)
     M.draw_line(previous_point, end_point, color)
     previous_point = end_point
   end
+  if cross then
+    M.draw_line(position + vmath.vector3(-radius, 0, 0), position + vmath.vector3(radius, 0, 0), color)
+    M.draw_line(position + vmath.vector3(0, -radius, 0), position + vmath.vector3(0, radius, 0), color)
 
-  M.draw_line(position + vmath.vector3(-radius, 0, 0), position + vmath.vector3(radius, 0, 0), color)
-  M.draw_line(position + vmath.vector3(0, -radius, 0), position + vmath.vector3(0, radius, 0), color)
+    M.draw_line(
+      position + radius * vmath.vector3(0.7, 0.7, 0),
+      position + radius * vmath.vector3(-0.7, -0.7, 0),
+      color
+    )
+    M.draw_line(
+      position + radius * vmath.vector3(-0.7, 0.7, 0),
+      position + radius * vmath.vector3(0.7, -0.7, 0),
+      color
+    )
+  end
 end
 
 return M
