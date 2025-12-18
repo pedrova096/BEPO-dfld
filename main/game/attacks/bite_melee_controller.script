@@ -1,0 +1,38 @@
+local Entity = require("utils.entity")
+
+local Urls = {
+	AreaSprite = "#area_sprite",
+	Sprite = "#sprite",
+	Body = "#body",
+}
+
+local function disabled_attack()
+	Entity.disable_body(Urls.Body)
+	Entity.hide_sprite(Urls.AreaSprite)
+	Entity.hide_sprite(Urls.Sprite)
+end
+
+local function enabled_attack()
+	Entity.enable_body(Urls.Body)
+	Entity.show_sprite(Urls.AreaSprite)
+	Entity.show_sprite(Urls.Sprite)
+end
+
+function init(self)
+	disabled_attack()
+end
+
+function update(self, dt)
+end
+
+function fixed_update(self, dt)
+end
+
+function on_message(self, message_id, message, sender)
+end
+
+function on_input(self, action_id, action)
+end
+
+function on_reload(self)
+end
