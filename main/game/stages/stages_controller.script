@@ -5,12 +5,12 @@ local Stages = require("utils.stager.stages_config")
 
 local Urls = {
 	PlayerController = "/player/root#controller",
-	Factory01 = "#cfactory enemy_01",
-	Factory02 = "#cfactory enemy_02",
-	Factory03 = "#cfactory_enemy_03",
-	Factory04 = "#cfactory_enemy_04",
-	Stage = "#stage",
-	Obstacles = "#obstacles",
+	Factory01 = "root#cfactory enemy_01",
+	Factory02 = "root#cfactory enemy_02",
+	Factory03 = "root#cfactory_enemy_03",
+	Factory04 = "root#cfactory_enemy_04",
+	Stage = "tiles_lg#tileset",
+	Obstacles = "tiles_sm#tileset",
 }
 
 local TILE_LG_SIZE = 48
@@ -72,7 +72,10 @@ function init(self)
 	tilemap.set_visible(Urls.Obstacles, "landmarks", false)
 	local stage_info = get_stage_info_from_landmarks(self)
 
-	pprint("Initializing stage: " .. self.stage_name, "size => width: " .. stage_width .. ", height: " .. stage_height)
+	pprint(
+		"Initializing stage: " .. self.stage_name .. " - " .. go.get_id(),
+		"size => width: " .. stage_width .. ", height: " .. stage_height
+	)
 	self.stager = Stager:new({
 		config = Stages[self.stage_name],
 		bounds = {

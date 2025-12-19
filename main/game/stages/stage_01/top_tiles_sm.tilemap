@@ -1,0 +1,41 @@
+tile_set: "/assets/sprites/tiles/tiles_sm.tilesource"
+layers {
+  id: "layer"
+  z: 0.0
+  cell {
+    x: 9
+    y: -14
+    tile: 1
+  }
+  cell {
+    x: 10
+    y: -14
+    tile: 1
+  }
+  cell {
+    x: 11
+    y: -14
+    tile: 1
+  }
+  cell {
+    x: 2
+    y: -8
+    tile: 1
+  }
+  cell {
+    x: 3
+    y: -8
+    tile: 1
+  }
+  cell {
+    x: 4
+    y: -8
+    tile: 1
+  }
+  cell {
+    x: 5
+    y: -8
+    tile: 1
+  }
+}
+material: "/builtins/materials/tile_map.material"

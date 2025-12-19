@@ -1,0 +1,59 @@
+name: "stage_01"
+instances {
+  id: "tiles_lg"
+  prototype: "/main/game/stages/stage_01/tiles_lg.go"
+}
+instances {
+  id: "tiles_sm"
+  prototype: "/main/game/stages/stage_01/tiles_sm.go"
+  position {
+    z: 1.0
+  }
+}
+instances {
+  id: "top_tiles_sm"
+  prototype: "/main/game/stages/stage_01/top_tiles_sm.go"
+  position {
+    z: 2.0
+  }
+}
+scale_along_z: 0
+embedded_instances {
+  id: "root"
+  children: "tiles_lg"
+  children: "tiles_sm"
+  children: "top_tiles_sm"
+  data: "components {\n"
+  "  id: \"controller\"\n"
+  "  component: \"/main/game/stages/stages_controller.script\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"cfactory_enemy_01\"\n"
+  "  type: \"collectionfactory\"\n"
+  "  data: \"prototype: \\\"/main/game/enemies/enemy_01/enemy_01.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"cfactory_enemy_02\"\n"
+  "  type: \"collectionfactory\"\n"
+  "  data: \"prototype: \\\"/main/game/enemies/enemy_02/enemy_02.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"cfactory_enemy_03\"\n"
+  "  type: \"collectionfactory\"\n"
+  "  data: \"prototype: \\\"/main/game/enemies/enemy_03/enemy_03.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"cfactory_enemy_04\"\n"
+  "  type: \"collectionfactory\"\n"
+  "  data: \"prototype: \\\"/main/game/enemies/enemy_04/enemy_04.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  ""
+  position {
+    x: -168.0
+    y: 288.0
+  }
+}
