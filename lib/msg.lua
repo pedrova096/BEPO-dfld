@@ -43,6 +43,14 @@ local Game = {
   DISABLE_SPAWNER = hash("disable_spawner"),
 }
 
+local Attacker = {
+  PREPARE = hash("attacker_prepare"),
+  ATTACK = hash("attacker_attack"),
+  RECOVER = hash("attacker_recover"),
+  COOLDOWN = hash("attacker_cooldown"),
+  SET_DIRECTION = hash("attacker_set_direction"),
+}
+
 return {
   Camera = Camera,
   Enemy = Enemy,
@@ -51,8 +59,10 @@ return {
   Weapon = Weapon,
   Stager = Stager,
   Bullet = Bullet,
+  Attacker = Attacker,
   -- Globals
   APPLY_DAMAGE = hash("apply_damage"),
   STATE_TRANSITION = hash("state_transition"),
-  TRIGGER_RESPONSE = hash("trigger_response")
+  TRIGGER_RESPONSE = hash("trigger_response"),
+  COLLISION_RESPONSE = hash("collision_response"),
 }

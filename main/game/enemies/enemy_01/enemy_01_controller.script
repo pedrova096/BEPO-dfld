@@ -2,13 +2,17 @@ local Msg = require("lib.msg")
 local EnemyStater = require("lib.stater.enemy_stater")
 local Entity = require("utils.entity")
 local Steer = require("lib.steer")
+local DistanceChecker = require("utils.attacker.checker.distance_checker")
+local BasicAttack = require("utils.attacker.basic_attack")
 
 local StatesEnum = EnemyStater.StatesEnum
 
 local Urls = {
-	StageController = "/stage_01",
-	PlayerController = "/player/root",
+	StageController = "/stage_01/root#controller",
+	PlayerRoot = "/player/root",
+	PlayerController = "/player/root#controller",
 	--Inner
+	Attack = "attack",
 	AttackController = "attack#controller",
 }
 
@@ -24,24 +28,39 @@ function init(self)
 	})
 
 	self.steer = Steer:new({})
+	self.attacker = BasicAttack:new({
+		time_config = {
+			prepare = 0.35,
+			attack = 0.3,
+			cooldown = 0.5,
+		},
+		checker = DistanceChecker:new({
+			target_id = Urls.PlayerRoot,
+		}),
+		attack_url = Urls.Attack,
+	})
 
 	self.stater:add_behaviors({
 		{
 			state = StatesEnum.Attack,
 			condition = function()
-				-- if it's near the player, attack
-				return true
+				return self.attacker.checker:check()
 			end,
-			-- get_payload = function()
-			-- 	return {
-			-- 	}
-			-- end,
+			get_payload = function()
+				return {
+					attacker = self.attacker,
+					target = self.target,
+				}
+			end,
 		}
 	})
+
+	Entity.hide_entity()
 end
 
 function fixed_update(self, dt)
 	self.stater:update(dt)
+	self.attacker:update(dt)
 
 	local direction = self.steer:update(dt, {
 		position = go.get_position(),
@@ -49,13 +68,13 @@ function fixed_update(self, dt)
 		-- debug = true,
 	})
 	self.stater:set_direction(direction)
+	self.attacker:set_direction(direction)
 end
 
 local function on_apply_damage(self, message)
 	if self.stater:is(StatesEnum.Hurt) then return end
 
 	local direction, damage, force = message.direction, message.damage, message.force
-
 	self.stater:apply_transition(StatesEnum.Hurt, {
 		damage = damage,
 		direction = vmath.vector3(direction.x, direction.y, 0),

@@ -1,0 +1,95 @@
+local Msg = require("lib.msg")
+local Entity = require("utils.entity")
+
+local Urls = {
+	AreaSprite = "#area_sprite",
+	Sprite = "#sprite",
+	Body = "#body",
+}
+
+local function disabled_attack()
+	Entity.disable_body(Urls.Body)
+	Entity.hide_sprite(Urls.AreaSprite)
+	Entity.hide_sprite(Urls.Sprite)
+end
+
+go.property("damage", 1)
+go.property("knock_back", 30)
+
+function init(self)
+	self.is_active = false
+	self.omit_in_zone = {}
+	self.original_position = go.get_position()
+	self.original_offset = vmath.length(self.original_position) or 1
+	disabled_attack()
+end
+
+local function area_pipe(self, dt)
+	if not self.is_active then return end
+	local area_position, area_rotation = Entity.get_object_facing({
+		direction = self.direction,
+		offset = self.original_offset,
+		z = 3,
+	})
+	go.set(".", "position", area_position)
+	go.set(".", "rotation", area_rotation)
+end
+
+function update(self, dt)
+	area_pipe(self, dt)
+end
+
+local function on_attack_prepare(self, message)
+	self.is_active = true
+	Entity.show_sprite(Urls.AreaSprite)
+end
+local function on_attack_attack(self, message)
+	Entity.show_sprite(Urls.Sprite)
+	Entity.enable_body(Urls.Body)
+	sprite.play_flipbook(Urls.Sprite, "enemy_attack")
+end
+local function on_attack_cooldown(self, message)
+	self.is_active = false
+	self.omit_in_zone = {}
+	disabled_attack()
+end
+local function on_set_direction(self, message)
+	self.direction = message.direction
+end
+
+local function on_trigger_response(self, message)
+	if not message.enter then return end
+
+	local target_id = msg.url(message.other_id)
+
+	if self.omit_in_zone[target_id] then return end
+
+	self.omit_in_zone[target_id] = true
+	msg.post(target_id, Msg.APPLY_DAMAGE, {
+		damage = self.damage,
+		direction = self.direction,
+		force = self.knock_back
+	})
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Attacker.PREPARE then
+		on_attack_prepare(self, message)
+	elseif message_id == Msg.Attacker.ATTACK then
+		on_attack_attack(self, message)
+	elseif message_id == Msg.Attacker.PREPARE then
+		on_attack_prepare(self, message)
+	elseif message_id == Msg.Attacker.COOLDOWN then
+		on_attack_cooldown(self, message)
+	elseif message_id == Msg.Attacker.SET_DIRECTION then
+		on_set_direction(self, message)
+	elseif message_id == Msg.TRIGGER_RESPONSE then
+		on_trigger_response(self, message)
+	end
+end
+
+function on_input(self, action_id, action)
+end
+
+function on_reload(self)
+end

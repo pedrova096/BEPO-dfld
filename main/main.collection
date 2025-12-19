@@ -14,7 +14,7 @@ collection_instances {
   }
 }
 collection_instances {
-  id: "stage_01_composer"
+  id: "stage_01"
   collection: "/main/game/stages/stage_01/stage_01_composer.collection"
 }
 scale_along_z: 0

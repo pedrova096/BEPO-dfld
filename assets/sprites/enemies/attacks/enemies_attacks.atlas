@@ -5,23 +5,15 @@ animations {
   id: "enemy_attack"
   images {
     image: "/assets/sprites/enemies/attacks/enemy_attack_01.png"
-    pivot_x: 0.0
-    pivot_y: 0.0
   }
   images {
     image: "/assets/sprites/enemies/attacks/enemy_attack_02.png"
-    pivot_x: 0.0
-    pivot_y: 0.0
   }
   images {
     image: "/assets/sprites/enemies/attacks/enemy_attack_03.png"
-    pivot_x: 0.0
-    pivot_y: 0.0
   }
   images {
     image: "/assets/sprites/enemies/attacks/enemy_attack_04.png"
-    pivot_x: 0.0
-    pivot_y: 0.0
   }
   playback: PLAYBACK_LOOP_FORWARD
   fps: 12

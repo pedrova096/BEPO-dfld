@@ -20,7 +20,7 @@ local LifeCycle = {
 local Transitions = {
   [StatesEnum.Idle] = { StatesEnum.Move, StatesEnum.Hurt },
   [StatesEnum.Move] = { StatesEnum.Idle, StatesEnum.Hurt },
-  [StatesEnum.Hurt] = { StatesEnum.Idle },
+  [StatesEnum.Hurt] = { StatesEnum.Idle, StatesEnum.Move },
 }
 
 local DefaultUrls = {
@@ -36,6 +36,7 @@ function M:new(config)
   instance.urls = config.urls or DefaultUrls
   instance.facing = config.facing or 1
   instance.movement_active = false
+  instance.behaviors = {}
   instance:_set_state(config.initial_state or StatesEnum.Idle)
   return instance
 end
@@ -46,6 +47,10 @@ function M:_set_state(state, payload)
 
   local life_cycle = self.LifeCycle[state]
   life_cycle.enter(self, self.payload)
+end
+
+function M:add_behaviors(behaviors)
+  self.behaviors = behaviors
 end
 
 function M:set_facing(direction_x)
@@ -98,11 +103,39 @@ function M:state_timer(options)
   end)
 end
 
+function M:apply_behavior(behavior)
+  local next_state = behavior.state
+  local previous_state = behavior.previous_state or self.state
+
+  if previous_state ~= self.state or self.state == next_state then
+    return
+  end
+
+  if not behavior.condition(self) then
+    return
+  end
+
+  local payload = behavior.get_payload and behavior.get_payload() or {}
+  self:apply_transition(next_state, payload)
+end
+
+function M:behavior_pipe(dt)
+  if self.current_timer then
+    return
+  end
+
+  for _, behavior in pairs(self.behaviors) do
+    self:apply_behavior(behavior)
+  end
+end
+
 function M:update(dt)
   local current_lifecycle = self.LifeCycle[self.state]
   if current_lifecycle.update then
     current_lifecycle.update(self, dt)
   end
+
+  self:behavior_pipe(dt)
 end
 
 M.StatesEnum = StatesEnum

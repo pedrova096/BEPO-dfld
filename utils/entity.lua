@@ -1,3 +1,4 @@
+local Vmath = require("utils.vmath")
 local M = {}
 
 local DefaultUrls = {
@@ -47,6 +48,23 @@ function M.show_entity(urls)
   urls = urls or DefaultUrls
   M.show_sprite(urls.sprite)
   M.enable_body(urls.body)
+end
+
+---@class GetObjectFacingOptions
+---@field direction vector3
+---@field offset vector3
+---@field z number?
+
+---@param options GetObjectFacingOptions
+---@return vector3, vector3
+function M.get_object_facing(options)
+  local direction = options.direction
+  local offset = options.offset
+  local z = options.z or 1
+
+  local object_position = Vmath.z_extends(direction * offset, z)
+  local object_rotation = vmath.quat_rotation_z(math.atan2(direction.y, direction.x))
+  return object_position, object_rotation
 end
 
 return M
