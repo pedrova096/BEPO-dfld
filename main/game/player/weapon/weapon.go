@@ -6,7 +6,7 @@ embedded_components {
   id: "sprite"
   type: "sprite"
   data: "default_animation: \"idle\"\n"
-  "material: \"/builtins/materials/sprite.material\"\n"
+  "material: \"/main/materials/map_colors/map_colors.material\"\n"
   "textures {\n"
   "  sampler: \"texture_sampler\"\n"
   "  texture: \"/assets/sprites/player/weapon/player_weapon.tilesource\"\n"
