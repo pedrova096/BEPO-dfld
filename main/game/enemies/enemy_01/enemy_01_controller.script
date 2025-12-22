@@ -30,7 +30,7 @@ function init(self)
 	self.steer = Steer:new({})
 	self.attacker = BasicAttack:new({
 		time_config = {
-			prepare = 0.35,
+			prepare = 0.5,
 			attack = 0.3,
 			cooldown = 0.5,
 		},
@@ -60,6 +60,8 @@ end
 
 function fixed_update(self, dt)
 	self.stater:update(dt)
+	if self.stater:is(StatesEnum.Despawn) then return end
+
 	self.attacker:update(dt)
 
 	local direction = self.steer:update(dt, {

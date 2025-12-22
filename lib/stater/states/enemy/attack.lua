@@ -5,7 +5,6 @@ local M = {}
 function M:enter(payload)
   sprite.play_flipbook(self.urls.VisualSprite, "attack")
   local attacker = payload.attacker
-  local target = payload.target
 
   local duration = attacker:get_total_time()
   self.payload.limit_timer = LimitStateTimer:new({
@@ -23,6 +22,7 @@ function M:update(dt)
 end
 
 function M:exit()
+  self.payload.attacker:reset()
   print("Enemy state: attack exit")
 end
 

@@ -30,10 +30,7 @@ fragment_constants {
   name: "source_color_2"
   type: CONSTANT_TYPE_USER
   value {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+    w: 1.0
   }
 }
 fragment_constants {
@@ -41,8 +38,6 @@ fragment_constants {
   type: CONSTANT_TYPE_USER
   value {
     x: 1.0
-    y: 0.0
-    z: 0.0
     w: 1.0
   }
 }
@@ -52,7 +47,6 @@ fragment_constants {
   value {
     x: 1.0
     y: 1.0
-    z: 0.0
     w: 1.0
   }
 }
@@ -61,7 +55,6 @@ fragment_constants {
   type: CONSTANT_TYPE_USER
   value {
     x: 1.0
-    y: 0.0
     z: 1.0
     w: 1.0
   }
@@ -80,10 +73,7 @@ fragment_constants {
   name: "target_color_2"
   type: CONSTANT_TYPE_USER
   value {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+    w: 1.0
   }
 }
 fragment_constants {
@@ -91,8 +81,6 @@ fragment_constants {
   type: CONSTANT_TYPE_USER
   value {
     x: 1.0
-    y: 0.0
-    z: 0.0
     w: 1.0
   }
 }
@@ -102,7 +90,6 @@ fragment_constants {
   value {
     x: 1.0
     y: 1.0
-    z: 0.0
     w: 1.0
   }
 }
@@ -111,7 +98,6 @@ fragment_constants {
   type: CONSTANT_TYPE_USER
   value {
     x: 1.0
-    y: 0.0
     z: 1.0
     w: 1.0
   }

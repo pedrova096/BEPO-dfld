@@ -1,7 +1,11 @@
+local Colors = require("lib.colors")
 local Msg = require("lib.msg")
+local Entity = require("utils.entity")
 local VMath = require("utils.vmath")
 local Weapon = require("utils.weapon.weapon")
 local WeaponConfigs = require("utils.weapon.configs")
+
+local DebugDraw = require("utils.debug_draw")
 
 local TriggerStatusEnum = {
 	Pressed = hash("pressed"),
@@ -14,6 +18,7 @@ local Urls = {
 }
 
 go.property("trigger_status", hash("released"))
+go.property("offset", vmath.vector3(0, 8.0, 0))
 
 function init(self)
 	self.weapon = Weapon:new({
@@ -24,14 +29,55 @@ function init(self)
 			factory_url = Urls.BulletSmFactory,
 		},
 		target = hash("enemy"),
+		bullet_options = {
+			theme = 1,
+		},
 	})
 
+	self.original_position = go.get_position()
+	self.original_offset = vmath.length(self.original_position) or 1
+	self.current_direction = vmath.vector3(0, -1, 0)
+
+	go.set(Urls.Sprite, "target_color_1", vmath.vector4(unpack(Colors.red_50)))
+	go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors.violet_950b)))
+	go.set(Urls.Sprite, "target_color_3", vmath.vector4(unpack(Colors.orange_500b)))
+	go.set(Urls.Sprite, "target_color_4", vmath.vector4(unpack(Colors.yellow_300)))
+	go.set(Urls.Sprite, "target_color_5", vmath.vector4(unpack(Colors.red_400)))
 	self.trigger_payload = {}
 end
+
+local HALF_PI = math.pi / 2
+local POINTING_DIRECTION_THRESHOLD = 0.175
 
 local function trigger_weapon_pipe(self, dt)
 	if self.trigger_status ~= TriggerStatusEnum.Pressed then return end
 	if self.weapon:is_reloading() then return end
+
+	local current_direction = self.current_direction
+	local target_direction = self.trigger_payload.direction
+	local distance = vmath.length(current_direction - target_direction)
+
+	DebugDraw.draw_line(go.get_world_position(), go.get_world_position() + target_direction * 20,
+		vmath.vector4(1, 0, 0, 1))
+
+	DebugDraw.draw_line(go.get_world_position(), go.get_world_position() + current_direction * 20,
+		vmath.vector4(0, 1, 0, 1))
+
+	if distance ~= 0 then
+		self.current_direction = vmath.lerp(dt * 5, current_direction, target_direction)
+		local weapon_position, weapon_rotation = Entity.get_object_facing({
+			direction = self.current_direction,
+			offset = self.original_offset,
+			z = go.get(".", "position.z"),
+			facing_angle = HALF_PI,
+		})
+		go.set(".", "position", weapon_position + self.offset)
+		go.set(".", "rotation", weapon_rotation)
+
+		if distance > POINTING_DIRECTION_THRESHOLD then
+			return
+		end
+	end
 
 	self.weapon:fire(self.trigger_payload)
 end
@@ -45,6 +91,7 @@ end
 local function on_trigger_weapon(self, message)
 	self.trigger_status = TriggerStatusEnum.Pressed
 	self.trigger_payload = message or {}
+	self.trigger_payload.direction = self.trigger_payload.direction or vmath.vector3(0, -1, 0)
 	self.trigger_payload.position = VMath.z_one(go.get_world_position())
 end
 
