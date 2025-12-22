@@ -45,7 +45,7 @@ function M:new(config)
     Visual = "visual",
     Body = "#body",
     ShadowSprite = "shadow#sprite",
-    -- DebugIdLabel = "root#debug_id",
+    DebugIdLabel = "root#debug_id",
   }
   local instance = Stater.new(self, config)
   instance.target = config.target or nil

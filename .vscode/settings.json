@@ -12,7 +12,8 @@
   "Lua.diagnostics.libraryFiles": "Disable",
   "Lua.diagnostics.disable": ["lowercase-global", "redefined-local"],
   "Lua.workspace.library": [
-    "~/.config/Cursor/User/globalStorage/astronachos.defold"
+    "~/.config/Cursor/User/globalStorage/astronachos.defold",
+    "~/.config/Code/User/globalStorage/astronachos.defold"
   ],
   "files.associations": {
     "*.project": "ini",
@@ -53,5 +54,9 @@
     "*.appmanifest": "yaml",
     "*.script_api": "yaml",
     "ext.manifest": "yaml"
+  },
+  "glsllint.additionalStageAssociations": {
+    ".fp": "frag",
+    ".vp": "vert"
   }
 }

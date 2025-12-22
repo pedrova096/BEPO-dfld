@@ -1,0 +1,7 @@
+font: "/assets/fonts/ChakraPetch-Bold.ttf"
+material: "/builtins/fonts/font.material"
+size: 12
+antialias: 0
+outline_alpha: 1.0
+outline_width: 2.0
+characters: " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
