@@ -11,6 +11,7 @@ scale_along_z: 0
 embedded_instances {
   id: "root"
   children: "shadow"
+  children: "smoke"
   children: "visual"
   children: "weapon"
   data: "components {\n"
@@ -106,4 +107,12 @@ embedded_instances {
   position {
     y: 2.0
   }
+}
+embedded_instances {
+  id: "smoke"
+  data: "components {\n"
+  "  id: \"particle\"\n"
+  "  component: \"/main/game/vfx/smoke.particlefx\"\n"
+  "}\n"
+  ""
 }

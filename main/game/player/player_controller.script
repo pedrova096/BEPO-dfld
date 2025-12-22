@@ -1,4 +1,4 @@
-local PlayerStater = require("lib.stater.stater")
+local PlayerStater = require("lib.stater.player_stater")
 local Msg = require("lib.msg")
 local VMath = require("utils.vmath")
 local DebugDraw = require("utils.debug_draw")
@@ -46,7 +46,6 @@ local function get_target_enemy(self)
 	for i = 1, 3 do
 		local enemy = self.target_enemies[i]
 		if enemy then
-			DebugDraw.draw_line(player_position, enemy.position, vmath.vector4(1, 0, 0, 1))
 			local result = physics.raycast(player_position, enemy.position, { hash("wall"), hash("obstacle") })
 			if not result then
 				return enemy

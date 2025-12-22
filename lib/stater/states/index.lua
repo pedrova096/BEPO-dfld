@@ -15,7 +15,12 @@ local Enemy = {
   Despawn = require("lib.stater.states.enemy.despawn"),
 }
 
+local Player = {
+  Move = require("lib.stater.states.player.move"),
+}
+
 return {
   Default = Default,
   Enemy = Enemy,
+  Player = Player,
 }
