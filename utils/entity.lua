@@ -54,6 +54,7 @@ end
 ---@field direction vector3
 ---@field offset vector3
 ---@field z number?
+---@field facing_angle number?
 
 ---@param options GetObjectFacingOptions
 ---@return vector3, vector3
@@ -61,9 +62,10 @@ function M.get_object_facing(options)
   local direction = options.direction
   local offset = options.offset
   local z = options.z or 1
+  local facing_angle = options.facing_angle or 0
 
   local object_position = Vmath.z_extends(direction * offset, z)
-  local object_rotation = vmath.quat_rotation_z(math.atan2(direction.y, direction.x))
+  local object_rotation = vmath.quat_rotation_z(math.atan2(direction.y, direction.x) + facing_angle)
   return object_position, object_rotation
 end
 

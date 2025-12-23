@@ -1,3 +1,4 @@
+local Colors = require("lib.colors")
 local Msg = require("lib.msg")
 local VMath = require("utils.vmath")
 local Entity = require("utils.entity")
@@ -5,6 +6,7 @@ local Entity = require("utils.entity")
 go.property("id", 0)
 go.property("target", hash("none"))
 go.property("owner_id", hash("none"))
+go.property("theme", 1) -- 1: normal, 2: enemy
 
 local Urls = {
 	Sprite = "#sprite",
@@ -27,6 +29,19 @@ end
 
 function init(self)
 	physics.set_maskbit(Urls.Zone, self.target, true)
+
+	if self.theme == 1 then
+		local color3 = vmath.vector4(unpack(Colors["#ffe478"])) * 0.5
+		go.set(Urls.Sprite, "target_color_1", vmath.vector4(unpack(Colors["#ffffeb"])))
+		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#f2a65e"])))
+		go.set(Urls.Sprite, "target_color_3", color3)
+	elseif self.theme == 2 then
+		local color3 = vmath.vector4(unpack(Colors["#8fde5d"])) * 0.5
+		go.set(Urls.Sprite, "target_color_1", vmath.vector4(unpack(Colors["#ebffeb"])))
+		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#3ca370"])))
+		go.set(Urls.Sprite, "target_color_3", color3)
+	end
+
 	disabled_bullet()
 end
 

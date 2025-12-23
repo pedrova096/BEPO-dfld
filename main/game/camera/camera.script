@@ -27,10 +27,11 @@ function init(self)
 
 	window.set_listener(function(self, event, data)
 		if event == window.WINDOW_EVENT_RESIZED then
-			-- TODO: setup_camera()
+			-- TODO:
+			setup_camera()
 		end
 	end)
-	
+
 	self.state = CameraStates.Idle
 end
 

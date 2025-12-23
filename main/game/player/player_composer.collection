@@ -3,6 +3,7 @@ instances {
   id: "weapon"
   prototype: "/main/game/player/weapon/weapon.go"
   position {
+    x: 12.0
     y: 1.0
     z: 2.0
   }
