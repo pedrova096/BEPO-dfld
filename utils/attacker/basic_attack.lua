@@ -4,7 +4,6 @@ local Msg = require("lib.msg")
 local M = setmetatable({}, { __index = AttackerBase })
 M.__index = M
 
-
 function M:new(options)
   local instance = AttackerBase.new(self, options)
   setmetatable(instance, M)
@@ -44,6 +43,11 @@ function M:set_direction(direction)
   msg.post(self.attack_url, Msg.Attacker.SET_DIRECTION, {
     direction = direction,
   })
+end
+
+function M:on_reset()
+  self.state.direction = nil
+  msg.post(self.attack_url, Msg.Attacker.RESET)
 end
 
 return M

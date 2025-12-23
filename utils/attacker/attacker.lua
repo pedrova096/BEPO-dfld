@@ -161,4 +161,14 @@ function M:update(dt)
   self:_update_state(dt)
 end
 
+function M:reset()
+  self.state.state = StatesEnum.Idle
+  self.state.timer = 0
+  self.state.combo_number = 1
+
+  if self.on_reset then
+    self.on_reset(self)
+  end
+end
+
 return M

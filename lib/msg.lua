@@ -49,6 +49,7 @@ local Attacker = {
   RECOVER = hash("attacker_recover"),
   COOLDOWN = hash("attacker_cooldown"),
   SET_DIRECTION = hash("attacker_set_direction"),
+  RESET = hash("attacker_reset")
 }
 
 return {

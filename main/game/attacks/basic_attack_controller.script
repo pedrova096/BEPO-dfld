@@ -48,11 +48,13 @@ local function on_attack_attack(self, message)
 	Entity.enable_body(Urls.Body)
 	sprite.play_flipbook(Urls.Sprite, "enemy_attack")
 end
-local function on_attack_cooldown(self, message)
+
+local function on_attack_cooldown(self)
 	self.is_active = false
 	self.omit_in_zone = {}
 	disabled_attack()
 end
+
 local function on_set_direction(self, message)
 	self.direction = message.direction
 end
@@ -83,6 +85,8 @@ function on_message(self, message_id, message, sender)
 		on_attack_cooldown(self, message)
 	elseif message_id == Msg.Attacker.SET_DIRECTION then
 		on_set_direction(self, message)
+	elseif message_id == Msg.Attacker.RESET then
+		on_attack_cooldown(self, message)
 	elseif message_id == Msg.TRIGGER_RESPONSE then
 		on_trigger_response(self, message)
 	end
