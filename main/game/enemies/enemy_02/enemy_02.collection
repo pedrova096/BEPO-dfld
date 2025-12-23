@@ -4,6 +4,7 @@ embedded_instances {
   id: "root"
   children: "shadow"
   children: "visual"
+  children: "weapon"
   data: "components {\n"
   "  id: \"controller\"\n"
   "  component: \"/main/game/enemies/enemy_02/enemy_02_controller.script\"\n"
@@ -125,5 +126,39 @@ embedded_instances {
   ""
   position {
     y: 2.0
+  }
+  rotation {
+    z: -0.71480626
+    w: 0.6993225
+  }
+}
+embedded_instances {
+  id: "weapon"
+  data: "embedded_components {\n"
+  "  id: \"sprite\"\n"
+  "  type: \"sprite\"\n"
+  "  data: \"default_animation: \\\"weapon_01\\\"\\n"
+  "material: \\\"/builtins/materials/sprite.material\\\"\\n"
+  "textures {\\n"
+  "  sampler: \\\"texture_sampler\\\"\\n"
+  "  texture: \\\"/assets/sprites/enemies/weapons/enemy_weapons.atlas\\\"\\n"
+  "}\\n"
+  "\"\n"
+  "  position {\n"
+  "    y: -7.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 2.0
+    y: 11.0
+    z: 3.0
+  }
+  rotation {
+    z: -0.70710677
+    w: 0.70710677
+  }
+  scale3 {
+    y: -1.0
   }
 }

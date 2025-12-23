@@ -1,0 +1,3 @@
+images {
+  image: "/assets/sprites/enemies/weapons/weapon_01.png"
+}
