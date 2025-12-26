@@ -34,7 +34,7 @@ local DEFAULT_CONFIG = {
   start_offset = 10,
   ray_range = 20,
   smoothing_speed = 6,
-  safe_distance = 60,
+  safe_distance = 0,
   obstacle_groups = DEFAULT_OBSTACLE_GROUPS,
 }
 
@@ -173,15 +173,16 @@ end
 function M:_apply_safe_distance(direction, obstacle_direction, position, target_position)
   local distance = vmath.length(position - target_position)
 
+  local state = self.state
   if distance < self.config.safe_distance then
-    if vmath.length(obstacle_direction) > 0.95 and self.state.safe_change_direction_frame_count == 0 then
-      self.safe_distance_direction = -self.safe_distance_direction
-      self.safe_change_direction_frame_count = 20
+    if vmath.length(obstacle_direction) > 0.95 and state.safe_change_direction_frame_count == 0 then
+      state.safe_distance_direction = -state.safe_distance_direction
+      state.safe_change_direction_frame_count = 20
     end
 
-    self.safe_change_direction_frame_count = math.max(0, self.safe_change_direction_frame_count - 1)
+    state.safe_change_direction_frame_count = math.max(0, state.safe_change_direction_frame_count - 1)
 
-    direction = VMath.rotate_direction(direction, math.rad(90) * self.state.safe_distance_direction)
+    direction = VMath.rotate_direction(direction, math.rad(90) * state.safe_distance_direction)
   end
 
   return direction
@@ -230,7 +231,7 @@ function M:update(dt, payload)
 
   local direction = vmath.normalize(avg_target_direction - avg_obstacle_direction)
 
-  if enable_safe_distance then
+  if enable_safe_distance and self.config.safe_distance > 0 then
     direction = self:_apply_safe_distance(direction, avg_obstacle_direction, position, target_position)
   end
 
@@ -245,6 +246,10 @@ function M:update(dt, payload)
   end
 
   return steer_direction
+end
+
+function M:get_is_target_on_sight()
+  return self.state.target_on_sight
 end
 
 return M

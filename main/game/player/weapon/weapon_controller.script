@@ -27,7 +27,7 @@ function init(self)
 			factory_url = Urls.BulletSmFactory,
 		},
 		target = hash("enemy"),
-		bullet_options = {
+		bullet_props = {
 			theme = 1,
 		},
 	})

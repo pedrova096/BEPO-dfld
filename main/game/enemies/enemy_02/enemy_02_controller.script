@@ -1,18 +1,142 @@
+local Msg = require("lib.msg")
+local EnemyStater = require("lib.stater.enemy_stater")
+local Entity = require("utils.entity")
+local Steer = require("lib.steer")
+local WeaponAttack = require("utils.attacker.weapon_attack")
+
+local StatesEnum = EnemyStater.StatesEnum
+
+local Urls = {
+	StageController = "/stage_01/root#controller",
+	PlayerRoot = "/player/root",
+	PlayerController = "/player/root#controller",
+	--Inner
+	WeaponController = "weapon#controller"
+}
+
+go.property("health", 12)
+go.property("velocity", 30)
+go.property("ammo_capacity", 3)
+go.property("bullet_damage", 1)
+go.property("bullet_speed", 100)
+go.property("bullet_force", 8)
+go.property("safe_distance", 100)
+
 function init(self)
-	-- Initialization for enemy 02
-end
+	self.stater = EnemyStater:new({
+		stats = {
+			health = self.health,
+			velocity = self.velocity,
+		}
+	})
 
-function final(self)
-end
+	---@diagnostic disable-next-line: missing-fields
+	self.steer = Steer:new({
+		config = {
+			safe_distance = self.safe_distance
+		}
+	})
+	self.attacker = WeaponAttack:new({
+		time_config = {
+			prepare = 0.3,
+			attack = 1.0,
+			cooldown = 0.3,
+		},
+		attack_url = Urls.WeaponController,
+	})
 
-function update(self, dt)
+	self.stater:add_behaviors({
+		{
+			state = StatesEnum.Attack,
+			condition = function()
+				local player_position = go.get_position(Urls.PlayerController)
+				local position = go.get_position()
+				local distance = vmath.length(player_position - position)
+				return self.steer:get_is_target_on_sight() and distance <= self.safe_distance
+			end,
+			get_payload = function()
+				return {
+					attacker = self.attacker,
+					target = self.target,
+				}
+			end,
+		}
+	})
+
+	Entity.hide_entity()
+
+	msg.post(Urls.WeaponController, Msg.Weapon.SET_PROPERTIES, {
+		ammo_capacity = self.ammo_capacity,
+		pool_size = self.ammo_capacity + 2,
+		bullet_config = {
+			speed = self.bullet_speed,
+			force = self.bullet_force,
+		},
+	})
 end
 
 function fixed_update(self, dt)
+	self.stater:update(dt)
+
+	if self.stater:is(StatesEnum.Despawn) then return end
+
+	self.attacker:update(dt)
+	local position = go.get_position()
+	local target_position = go.get_position(Urls.PlayerController)
+	local weapon_direction = vmath.normalize(target_position - position)
+
+	local direction = self.steer:update(dt, {
+		position = position,
+		target_position = target_position,
+		enable_safe_distance = true,
+		-- debug = true,
+	})
+	self.stater:set_direction(direction)
+	self.attacker:set_direction(weapon_direction)
+end
+
+local function on_apply_damage(self, message)
+	if self.stater:is(StatesEnum.Hurt) then return end
+
+	-- if self.stater:is(StatesEnum.Attack) then
+	-- 	local current_health = self.stater.stats.health
+	-- 	self.stater.stats.health = current_health - message.damage
+	-- 	return
+	-- end
+
+	local direction, damage, force = message.direction, message.damage, message.force
+	self.stater:apply_transition(StatesEnum.Hurt, {
+		damage = damage,
+		direction = vmath.vector3(direction.x, direction.y, 0),
+		force = force,
+	})
+end
+
+local function on_spawned(self, message)
+	self.stater:apply_transition(StatesEnum.Spawn, {})
+	msg.post(Urls.WeaponController, Msg.SHOW_ELEMENT)
+end
+
+local function on_dead(self, message)
+	msg.post(Urls.StageController, Msg.Stager.ENEMY_KILLED, {
+		enemy_id = go.get_id(),
+	})
+	msg.post(Urls.WeaponController, Msg.HIDE_ELEMENT)
+end
+
+local function on_despawned(self, message)
+	Entity.hide_entity()
+	print("Enemy despawned => " .. go.get_id())
 end
 
 function on_message(self, message_id, message, sender)
-end
-
-function on_reload(self)
+	if message_id == Msg.APPLY_DAMAGE then
+		on_apply_damage(self, message)
+	elseif message_id == Msg.Enemy.SPAWNED then
+		on_spawned(self, message)
+	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Dead then
+		on_dead(self, message)
+	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Despawn then
+		on_despawned(self, message)
+	end
 end

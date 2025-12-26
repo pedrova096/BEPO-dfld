@@ -1,0 +1,144 @@
+local Colors = require("lib.colors")
+local Msg = require("lib.msg")
+local Entity = require("utils.entity")
+local VMath = require("utils.vmath")
+local Weapon = require("utils.weapon.weapon")
+local WeaponConfigs = require("utils.weapon.configs")
+
+local TriggerStatusEnum = {
+  Pressed = hash("pressed"),
+  Released = hash("released"),
+}
+
+local Urls = {
+  BulletSmFactory = "#bullet_sm_factory",
+  Sprite = "#sprite",
+}
+
+go.property("trigger_status", hash("released"))
+go.property("offset", vmath.vector3(0, 12.0, 0))
+
+function init(self)
+  self.weapon = Weapon:new({
+    id = "pistol",
+    config = WeaponConfigs.WeaponConfigs.Pistol,
+    auto_reload = false,
+    bullet = {
+      config = WeaponConfigs.BulletConfigs.Pistol,
+      factory_url = Urls.BulletSmFactory,
+    },
+    target = hash("player"),
+    bullet_props = {
+      theme = 2,
+    },
+  })
+
+  Entity.hide_sprite(Urls.Sprite)
+
+  self.original_position = go.get_position()
+  self.original_offset = vmath.length(self.original_position) or 1
+  self.current_direction = vmath.vector3(0, -1, 0)
+
+  self.trigger_payload = {}
+end
+
+local HALF_PI = math.pi / 2
+local function trigger_weapon_pipe(self, dt)
+  if self.trigger_status ~= TriggerStatusEnum.Pressed then return end
+  if self.weapon:is_reloading() then return end
+
+  -- 	---@type vector3
+  -- 	local current_direction = self.current_direction
+  -- 	local target_direction = self.trigger_payload.direction
+  -- 	local distance = vmath.length(current_direction - target_direction)
+
+  -- 	if distance ~= 0 then
+  local weapon_position, weapon_rotation = Entity.get_object_facing({
+    direction = self.trigger_payload.direction,
+    offset = self.original_offset,
+    z = 3,
+    facing_angle = HALF_PI,
+  })
+  go.set(".", "position", weapon_position + self.offset)
+  go.set(".", "rotation", weapon_rotation)
+
+  -- 		if distance > POINTING_DIRECTION_THRESHOLD then
+  -- 			return
+  -- 		end
+  -- 	end
+
+  self.weapon:fire(self.trigger_payload)
+end
+
+function fixed_update(self, dt)
+  self.weapon:update(dt)
+  trigger_weapon_pipe(self, dt)
+end
+
+local function on_trigger_weapon(self, message)
+  self.trigger_status = TriggerStatusEnum.Pressed
+  self.trigger_payload = message or {}
+  self.trigger_payload.direction = self.trigger_payload.direction or vmath.vector3(0, -1, 0)
+  self.trigger_payload.position = VMath.z_one(go.get_world_position())
+end
+
+local function on_release_weapon(self, message)
+  self.trigger_status = TriggerStatusEnum.Released
+  self.trigger_payload = nil
+end
+
+local function on_set_properties(self, message)
+  self.weapon:set_properties(message)
+end
+
+local function on_bullet_finished(self, message)
+  self.weapon:on_bullet_finished(message.id)
+end
+
+local function on_reload_started(self, message)
+  -- sprite.play_flipbook(Urls.Sprite, "reload")
+  go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.15, 0)
+end
+
+local function on_reload_completed(self, message)
+  go.cancel_animations(".", "euler.z")
+  go.set(".", "euler.z", 0)
+  -- sprite.play_flipbook(Urls.Sprite, "idle")
+end
+
+local function on_force_reload(self, message)
+  self.weapon:start_reload(true)
+end
+
+local function on_show_element(self, message)
+  Entity.show_sprite(Urls.Sprite)
+end
+
+local function on_hide_element(self, message)
+  self.trigger_status = TriggerStatusEnum.Released
+  Entity.hide_sprite(Urls.Sprite)
+end
+
+function on_message(self, message_id, message, sender)
+  if message_id == Msg.Weapon.TRIGGER_WEAPON then
+    on_trigger_weapon(self, message)
+  elseif message_id == Msg.Weapon.RELEASE_WEAPON or message_id == Msg.Attacker.RESET then
+    on_release_weapon(self, message)
+  elseif message_id == Msg.Weapon.SET_PROPERTIES then
+    on_set_properties(self, message)
+  elseif message_id == Msg.Bullet.BULLET_FINISHED then
+    on_bullet_finished(self, message)
+  elseif message_id == Msg.Weapon.RELOAD_STARTED then
+    on_reload_started(self, message)
+  elseif message_id == Msg.Weapon.RELOAD_COMPLETED then
+    on_reload_completed(self, message)
+    -- elseif message_id == Msg.Weapon.FIRE_WEAPON then
+    --   on_fire_weapon(self, message)
+  elseif message_id == Msg.Weapon.FORCE_RELOAD then
+    on_force_reload(self, message)
+  elseif message_id == Msg.SHOW_ELEMENT then
+    on_show_element(self, message)
+  elseif message_id == Msg.HIDE_ELEMENT then
+    on_hide_element(self, message)
+  end
+end

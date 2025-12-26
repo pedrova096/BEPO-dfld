@@ -6,6 +6,7 @@ local DebugDraw = require("utils.debug_draw")
 local StatesEnum = PlayerStater.StatesEnum
 
 local Urls = {
+	Camera = "/camera",
 	Weapon = "weapon#controller"
 }
 local TriggerStatusEnum = {
@@ -106,6 +107,10 @@ local function on_apply_damage(self, message)
 		damage = message.damage,
 		direction = message.direction,
 		force = message.force,
+	})
+	msg.post(Urls.Camera, Msg.Camera.SHAKE, {
+		shake_duration = 0.2,
+		shake_magnitude = 2,
 	})
 end
 

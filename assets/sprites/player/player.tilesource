@@ -27,3 +27,9 @@ animations {
   end_tile: 16
   fps: 12
 }
+animations {
+  id: "shot"
+  start_tile: 17
+  end_tile: 20
+  fps: 12
+}

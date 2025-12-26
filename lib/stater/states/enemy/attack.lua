@@ -6,6 +6,7 @@ function M:enter(payload)
   sprite.play_flipbook(self.urls.VisualSprite, "attack")
   local attacker = payload.attacker
 
+  attacker:execute()
   local duration = attacker:get_total_time()
   self.payload.limit_timer = LimitStateTimer:new({
     duration = duration,
@@ -16,7 +17,7 @@ function M:update(dt)
   self.payload.limit_timer:update(dt)
 
   if self.payload.limit_timer:is_expired() then
-    local next_state = self.StatesEnum.Move
+    local next_state = self.stats.health > 0 and self.StatesEnum.Move or self.StatesEnum.Dead
     self:apply_transition(next_state, {})
   end
 end
