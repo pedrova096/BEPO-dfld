@@ -1,9 +1,18 @@
 name: "enemy_02"
+instances {
+  id: "weapon"
+  prototype: "/main/game/enemies/enemy_02/weapon/weapon.go"
+  position {
+    y: -5.0
+    z: 3.0
+  }
+}
 scale_along_z: 0
 embedded_instances {
   id: "root"
   children: "shadow"
   children: "visual"
+  children: "weapon"
   data: "components {\n"
   "  id: \"controller\"\n"
   "  component: \"/main/game/enemies/enemy_02/enemy_02_controller.script\"\n"

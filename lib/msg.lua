@@ -11,6 +11,7 @@ local Weapon = {
   SET_PROPERTIES = hash("set_properties"),
   RELOAD_STARTED = hash("reload_started"),
   RELOAD_COMPLETED = hash("reload_completed"),
+  FORCE_RELOAD = hash("force_reload"),
 }
 
 local Camera = {
@@ -66,4 +67,6 @@ return {
   STATE_TRANSITION = hash("state_transition"),
   TRIGGER_RESPONSE = hash("trigger_response"),
   COLLISION_RESPONSE = hash("collision_response"),
+  HIDE_ELEMENT = hash("hide_element"),
+  SHOW_ELEMENT = hash("show_element"),
 }

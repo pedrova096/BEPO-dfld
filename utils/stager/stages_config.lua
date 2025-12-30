@@ -45,13 +45,13 @@ Stages[hash("Stage01")] = {
         enemy_01 = {
           id = "enemy_01",
           factory_url = "#cfactory_enemy_01",
-          probability = 0.8,
+          probability = 0.5,
           threat = 1,
         },
         enemy_02 = {
           id = "enemy_02",
           factory_url = "#cfactory_enemy_02",
-          probability = 0.2,
+          probability = 0.5,
           threat = 2,
         },
       },

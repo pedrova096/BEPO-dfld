@@ -167,7 +167,12 @@ layers {
     tile: 3
   }
   cell {
-    x: 6
+    x: 4
+    y: -1
+    tile: 4
+  }
+  cell {
+    x: 8
     y: -1
     tile: 4
   }

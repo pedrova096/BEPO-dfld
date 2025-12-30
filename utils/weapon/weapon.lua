@@ -1,6 +1,7 @@
 local Msg = require("lib.msg")
 local BulletPool = require("utils.weapon.bullet_pool")
 local VMath = require("utils.vmath")
+local Table = require("utils.table")
 
 local DEFAULT_INACCURACY_DEGREES = 4
 
@@ -8,7 +9,6 @@ local DefaultBulletConfig = {
   speed = 400,
   force = 1,
 }
-
 
 ---@class Weapon
 ---@field id string
@@ -28,7 +28,9 @@ M.__index = M
 ---@field id string
 ---@field config WeaponConfig
 ---@field target userdata
+---@field auto_reload boolean?
 ---@field bullet WeaponBulletOptions
+---@field bullet_props table?
 ---@field pool_size number?       -- max bullets kept in pool (defaults provided)
 
 ---Create a new weapon instance.
@@ -38,8 +40,8 @@ function M:new(opts)
   local instance = setmetatable({}, self)
 
   instance.id = opts.id or "weapon"
-  instance.config = opts.config
-  instance.bullet_config = opts.bullet.config or DefaultBulletConfig
+  instance.config = Table.copy(opts.config)
+  instance.bullet_config = Table.copy(opts.bullet.config or DefaultBulletConfig)
   instance.target = opts.target
 
   instance.state = {
@@ -53,6 +55,7 @@ function M:new(opts)
     target = instance.target,
     factory_url = opts.bullet.factory_url,
     pool_size = opts.pool_size,
+    bullet_props = opts.bullet_props,
   })
   return instance
 end
@@ -158,7 +161,7 @@ end
 function M:_complete_reload()
   self.state.reloading = false
   self.state.reload_timer = 0
-  self.state.ammo = self.config.ammo_capacity or self.state.ammo
+  self.state.ammo = self.config.ammo_capacity
   msg.post(".", Msg.Weapon.RELOAD_COMPLETED)
 end
 

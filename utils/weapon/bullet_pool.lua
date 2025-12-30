@@ -13,12 +13,13 @@ M.__index = M
 ---@field pool_size number
 ---@field target userdata
 ---@field factory_url string
+---@field bullet_props table?
 
 ---Create a pool of bullet instances.
 ---@param opts BulletPoolOptions
 ---@return BulletPool
 function M:new(opts)
-  local instance = setmetatable({}, self)
+  local instance = setmetatable({}, M)
 
   instance.pool_size = opts.pool_size or DEFAULT_POOL_SIZE
   instance.pool = Pooler.new({
@@ -28,6 +29,7 @@ function M:new(opts)
         index = index,
         target = opts.target,
         factory_url = opts.factory_url,
+        properties = opts.bullet_props,
       })
     end
   }):spawn()

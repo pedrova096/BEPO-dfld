@@ -1,3 +1,5 @@
+local Checker = require("utils.attacker.checker.checker")
+
 ---@class TimeConfig
 ---@field prepare number
 ---@field attack number
@@ -19,7 +21,7 @@ local M = {}
 M.__index = M
 
 local StatesEnum = {
-  Idle = hash("idle"),
+  Active = hash("active"),
   Prepare = hash("prepare"),
   Attack = hash("attack"),
   Recover = hash("recover"),
@@ -29,7 +31,7 @@ local StatesEnum = {
 ---@class AttackerOptions
 ---@field time_config TimeConfig
 ---@field combo_count number?
----@field checker Checker
+---@field checker Checker?
 ---@field attack_url string?
 
 ---@param options AttackerOptions
@@ -38,7 +40,7 @@ function M:new(options)
   local instance = setmetatable({}, M)
   instance.time_config = options.time_config
   instance.combo_count = options.combo_count or 1
-  instance.checker = options.checker
+  instance.checker = options.checker or Checker:new()
   instance.attack_url = options.attack_url or "."
   instance:_init()
   return instance
@@ -46,11 +48,16 @@ end
 
 function M:_init()
   self.state = {
-    state = StatesEnum.Idle,
-    timer = 0,
+    state = StatesEnum.Cooldown,
+    timer = self.time_config.cooldown,
     combo_number = 1,
   }
   self.event_configs = {
+    [StatesEnum.Active] = {
+      time = 0,
+      on_enter = self.on_active,
+      on_update = self.on_active_update,
+    },
     [StatesEnum.Prepare] = {
       time = self.time_config.prepare,
       on_enter = self.on_prepare,
@@ -87,7 +94,7 @@ function M:_get_current_event_config()
 end
 
 function M:_is_timer_done()
-  return self.state.timer <= 0 and self.state.state ~= StatesEnum.Idle
+  return self.state.timer <= 0 and self.state.state ~= StatesEnum.Active
 end
 
 function M:transition(next_state)
@@ -99,13 +106,6 @@ function M:transition(next_state)
     event_config.on_enter(self)
   end
   self.state.timer = event_config.time
-end
-
-function M:_idle_pipe()
-  if self.state.state ~= StatesEnum.Idle then return end
-  if not self.checker:check() then return end
-
-  self:transition(StatesEnum.Prepare)
 end
 
 function M:_prepare_pipe()
@@ -140,7 +140,7 @@ function M:_cooldown_pipe()
   if not self:_is_timer_done() then return end
 
   self.state.combo_number = 1
-  self:transition(StatesEnum.Idle)
+  self:transition(StatesEnum.Active)
 end
 
 function M:_update_state(dt)
@@ -153,7 +153,6 @@ function M:_update_state(dt)
 end
 
 function M:update(dt)
-  self:_idle_pipe()
   self:_prepare_pipe()
   self:_attack_pipe()
   self:_recover_pipe()
@@ -161,8 +160,16 @@ function M:update(dt)
   self:_update_state(dt)
 end
 
+function M:execute()
+  if self.state.state ~= StatesEnum.Active then return false end
+  if not self.checker:check() then return false end
+
+  self:transition(StatesEnum.Prepare)
+  return true
+end
+
 function M:reset()
-  self.state.state = StatesEnum.Idle
+  self.state.state = StatesEnum.Active
   self.state.timer = 0
   self.state.combo_number = 1
 

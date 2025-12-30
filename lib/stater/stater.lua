@@ -69,10 +69,21 @@ function M:is(state)
   return self.state == state
 end
 
+function M:is_in(states)
+  return Table.contains(states, self.state)
+end
+
+function M:can_transition(next_state)
+  local current_state = self.state
+  local transitions = self.Transitions[current_state]
+  return Table.contains(transitions, next_state)
+end
+
 function M:apply_transition(next_state, data)
   local current_state = self.state
   local transitions = self.Transitions[current_state]
 
+  pprint("next_state", next_state, "current_state", current_state, transitions, go.get_id())
   if not transitions or not Table.contains(transitions, next_state) then
     print("Invalid transition from " .. current_state .. " to " .. next_state)
     return
