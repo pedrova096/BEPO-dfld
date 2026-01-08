@@ -1,4 +1,8 @@
 script: "/main/game/ui/ui_controller.gui_script"
+fonts {
+  name: "ui_bold"
+  font: "/assets/fonts/ui_bold.font"
+}
 textures {
   name: "ui"
   texture: "/assets/sprites/ui/ui.atlas"
@@ -68,6 +72,318 @@ nodes {
   id: "move_controller"
   parent: "move_zone"
   size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    z: 1.0
+  }
+  size {
+    x: 360.0
+    y: 640.0
+  }
+  color {
+    x: 0.196
+    y: 0.243
+    z: 0.31
+  }
+  type: TYPE_BOX
+  id: "overlay"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_SW
+  adjust_mode: ADJUST_MODE_STRETCH
+  layer: "modal"
+  inherit_alpha: true
+  alpha: 0.75
+  size_mode: SIZE_MODE_AUTO
+  enabled: false
+}
+nodes {
+  size {
+    x: 360.0
+    y: 360.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_BOX
+  id: "upgrade_container"
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_SW
+  adjust_mode: ADJUST_MODE_STRETCH
+  parent: "overlay"
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 180.0
+    y: 72.0
+  }
+  size {
+    x: 300.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  texture: "ui/upgrade_frame"
+  id: "upgrade_a"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+  parent: "upgrade_container"
+  inherit_alpha: true
+  slice9 {
+    x: 60.0
+    y: 4.0
+    z: 4.0
+    w: 8.0
+  }
+}
+nodes {
+  position {
+    x: -52.0
+    y: 19.0
+  }
+  size {
+    x: 160.0
+    y: 16.0
+  }
+  color {
+    z: 0.922
+  }
+  type: TYPE_TEXT
+  text: "upgrade_a"
+  font: "ui_bold"
+  id: "upgrade_title_a"
+  pivot: PIVOT_W
+  outline {
+    x: 0.153
+    y: 0.153
+    z: 0.212
+  }
+  line_break: true
+  parent: "upgrade_a"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -52.0
+    y: -4.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  size {
+    x: 160.0
+    y: 16.0
+  }
+  color {
+    z: 0.922
+  }
+  type: TYPE_TEXT
+  text: "description_a"
+  font: "ui_bold"
+  id: "upgrade_description_a"
+  pivot: PIVOT_W
+  outline {
+    x: 0.153
+    y: 0.153
+    z: 0.212
+  }
+  line_break: true
+  parent: "upgrade_a"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 180.0
+    y: 156.0
+  }
+  size {
+    x: 300.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  texture: "ui/upgrade_frame"
+  id: "upgrade_b"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+  parent: "upgrade_container"
+  inherit_alpha: true
+  slice9 {
+    x: 60.0
+    y: 4.0
+    z: 4.0
+    w: 8.0
+  }
+}
+nodes {
+  position {
+    x: -52.0
+    y: 19.0
+  }
+  size {
+    x: 160.0
+    y: 16.0
+  }
+  color {
+    z: 0.922
+  }
+  type: TYPE_TEXT
+  text: "upgrade_b"
+  font: "ui_bold"
+  id: "upgrade_title_b"
+  pivot: PIVOT_W
+  outline {
+    x: 0.153
+    y: 0.153
+    z: 0.212
+  }
+  line_break: true
+  parent: "upgrade_b"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -52.0
+    y: -4.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  size {
+    x: 160.0
+    y: 16.0
+  }
+  color {
+    z: 0.922
+  }
+  type: TYPE_TEXT
+  text: "description_b"
+  font: "ui_bold"
+  id: "upgrade_description_b"
+  pivot: PIVOT_W
+  outline {
+    x: 0.153
+    y: 0.153
+    z: 0.212
+  }
+  line_break: true
+  parent: "upgrade_b"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 180.0
+    y: 240.0
+  }
+  size {
+    x: 300.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  texture: "ui/upgrade_frame"
+  id: "upgrade_c"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+  parent: "upgrade_container"
+  inherit_alpha: true
+  slice9 {
+    x: 60.0
+    y: 4.0
+    z: 4.0
+    w: 8.0
+  }
+}
+nodes {
+  position {
+    x: -52.0
+    y: 19.0
+  }
+  size {
+    x: 160.0
+    y: 16.0
+  }
+  color {
+    z: 0.922
+  }
+  type: TYPE_TEXT
+  text: "upgrade_c"
+  font: "ui_bold"
+  id: "upgrade_title_c"
+  pivot: PIVOT_W
+  outline {
+    x: 0.153
+    y: 0.153
+    z: 0.212
+  }
+  line_break: true
+  parent: "upgrade_c"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -52.0
+    y: -4.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  size {
+    x: 160.0
+    y: 16.0
+  }
+  color {
+    z: 0.922
+  }
+  type: TYPE_TEXT
+  text: "description_c"
+  font: "ui_bold"
+  id: "upgrade_description_c"
+  pivot: PIVOT_W
+  outline {
+    x: 0.153
+    y: 0.153
+    z: 0.212
+  }
+  line_break: true
+  parent: "upgrade_c"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    y: 640.0
+  }
+  size {
+    x: 360.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "header"
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_NW
+  inherit_alpha: true
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 30.0
+    y: -34.0
+  }
+  type: TYPE_BOX
+  texture: "ui/life"
+  id: "life_node"
+  parent: "header"
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+layers {
+  name: "modal"
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT

@@ -7,4 +7,13 @@ images {
 images {
   image: "/assets/sprites/ui/move_pad.png"
 }
-extrude_borders: 2
+images {
+  image: "/assets/sprites/ui/upgrade_frame.png"
+}
+images {
+  image: "/assets/sprites/ui/life.png"
+}
+images {
+  image: "/assets/sprites/ui/life_empty.png"
+}
+extrude_borders: 1
