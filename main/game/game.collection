@@ -1,0 +1,28 @@
+name: "main"
+instances {
+  id: "camera"
+  prototype: "/main/game/camera/camera.go"
+  position {
+    z: 100.0
+  }
+}
+collection_instances {
+  id: "player"
+  collection: "/main/game/player/player_composer.collection"
+  position {
+    z: 1.0
+  }
+}
+collection_instances {
+  id: "stage_01"
+  collection: "/main/game/stages/stage_01/stage_01_composer.collection"
+}
+scale_along_z: 0
+embedded_instances {
+  id: "ui"
+  data: "components {\n"
+  "  id: \"ui\"\n"
+  "  component: \"/main/game/ui/ui.gui\"\n"
+  "}\n"
+  ""
+}

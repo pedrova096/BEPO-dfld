@@ -1,0 +1,33 @@
+local Msg = require("lib.msg")
+
+local Urls = {
+	UIController = "/ui",
+}
+
+function init(self)
+end
+
+local function on_set_life_count(self, message)
+	self.player_life_count = message.lives
+	msg.post(Urls.UIController, Msg.Game.PLAYER_SET_LIFE_COUNT, {
+		lives = self.player_life_count,
+	})
+end
+
+local function on_player_life_changed(self, message)
+	self._current_player_life_count = message.current_lives
+
+	msg.post(Urls.UIController, Msg.Game.PLAYER_LIFE_CHANGED, message)
+	if self._current_player_life_count == 0 then
+		-- TODO: Game over
+		return
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Game.PLAYER_SET_LIFE_COUNT then
+		on_set_life_count(self, message)
+	elseif message_id == Msg.Game.PLAYER_LIFE_CHANGED then
+		on_player_life_changed(self, message)
+	end
+end

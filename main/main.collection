@@ -1,28 +1,50 @@
-name: "main"
-instances {
-  id: "camera"
-  prototype: "/main/game/camera/camera.go"
-  position {
-    z: 100.0
-  }
-}
-collection_instances {
-  id: "player"
-  collection: "/main/game/player/player_composer.collection"
-  position {
-    z: 1.0
-  }
-}
-collection_instances {
-  id: "stage_01"
-  collection: "/main/game/stages/stage_01/stage_01_composer.collection"
-}
+name: "game"
 scale_along_z: 0
 embedded_instances {
-  id: "ui"
+  id: "quad"
+  data: "embedded_components {\n"
+  "  id: \"model\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
+  "materials {\\n"
+  "  name: \\\"default\\\"\\n"
+  "  material: \\\"/main/materials/quad/quad.material\\\"\\n"
+  "}\\n"
+  "\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "proxies"
+  data: "embedded_components {\n"
+  "  id: \"game_proxy\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/main/game/game.collection\\\"\\n"
+  "exclude: true\\n"
+  "\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"game_over_proxy\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/main/game/game.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "controller"
   data: "components {\n"
-  "  id: \"ui\"\n"
-  "  component: \"/main/game/ui/ui.gui\"\n"
+  "  id: \"main\"\n"
+  "  component: \"/main/main.script\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "go"
+  data: "components {\n"
+  "  id: \"controller\"\n"
+  "  component: \"/main/main.script\"\n"
   "}\n"
   ""
 }

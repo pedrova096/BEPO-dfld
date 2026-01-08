@@ -1,13 +1,12 @@
 local PlayerStater = require("lib.stater.player_stater")
 local Msg = require("lib.msg")
-local VMath = require("utils.vmath")
-local DebugDraw = require("utils.debug_draw")
 
 local StatesEnum = PlayerStater.StatesEnum
 
 local Urls = {
 	Camera = "/camera",
-	Weapon = "weapon#controller"
+	Weapon = "weapon#controller",
+	GameController = "/controller",
 }
 local TriggerStatusEnum = {
 	Pressed = hash("pressed"),
@@ -16,28 +15,20 @@ local TriggerStatusEnum = {
 
 go.property("velocity", 60)
 go.property("lives", 3)
-go.property("ammo_capacity", 6)
 go.property("bullet_damage", 2)
-go.property("bullet_speed", 400)
-go.property("bullet_force", 3)
 
 function init(self)
 	self.stater = PlayerStater:new({
 		stats = {
 			velocity = self.velocity,
 			lives = self.lives,
-			ammo_capacity = self.ammo_capacity,
 		}
 	})
 
 	self.target_enemies = {}
-	msg.post(Urls.Weapon, Msg.Weapon.SET_PROPERTIES, {
-		ammo_capacity = self.ammo_capacity,
-		pool_size = self.ammo_capacity + 2,
-		bullet_config = {
-			speed = self.bullet_speed,
-			force = self.bullet_force,
-		},
+
+	msg.post(Urls.GameController, Msg.Game.PLAYER_SET_LIFE_COUNT, {
+		lives = self.lives,
 	})
 end
 
@@ -108,9 +99,16 @@ local function on_apply_damage(self, message)
 		direction = message.direction,
 		force = message.force,
 	})
+	local stats = self.stater.stats
+	stats.lives = stats.lives - 1
+
 	msg.post(Urls.Camera, Msg.Camera.SHAKE, {
 		shake_duration = 0.2,
 		shake_magnitude = 2,
+	})
+	msg.post(Urls.GameController, Msg.Game.PLAYER_LIFE_CHANGED, {
+		current_lives = self.stater.stats.lives,
+		total_lives = self.lives,
 	})
 end
 

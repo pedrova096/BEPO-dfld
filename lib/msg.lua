@@ -5,13 +5,16 @@ local Player = {
 }
 
 local Weapon = {
-  TRIGGER_WEAPON = hash("trigger_weapon"),
-  FIRE_WEAPON = hash("fire_weapon"),
+  FORCE_RELOAD = hash("force_reload"),
+  SET_DIRECTION = hash("set_direction"),
+  LIB_FIRE_WEAPON = hash("lib_fire_weapon"),
+  LIB_RELOAD_COMPLETED = hash("lib_reload_completed"),
+  LIB_RELOAD_STARTED = hash("lib_reload_started"),
   RELEASE_WEAPON = hash("release_weapon"),
   SET_PROPERTIES = hash("set_properties"),
-  RELOAD_STARTED = hash("reload_started"),
-  RELOAD_COMPLETED = hash("reload_completed"),
-  FORCE_RELOAD = hash("force_reload"),
+  TRIGGER_WEAPON = hash("trigger_weapon"),
+  WEAPON_CONFIG_QUERY = hash("weapon_config_query"),
+  WEAPON_CONFIG_RESPONSE = hash("weapon_config_response"),
 }
 
 local Camera = {
@@ -42,6 +45,8 @@ local Stager = {
 local Game = {
   OPEN_DOOR = hash("open_door"),
   DISABLE_SPAWNER = hash("disable_spawner"),
+  PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
+  PLAYER_LIFE_CHANGED = hash("player_life_changed"),
 }
 
 local Attacker = {
