@@ -1,5 +1,6 @@
 local Colors = require("lib.colors")
 local Msg = require("lib.msg")
+local Math = require("utils.math")
 local VMath = require("utils.vmath")
 local Entity = require("utils.entity")
 
@@ -51,7 +52,9 @@ local function on_bullet_fired(self, message)
 	self.config = message
 	local velocity = self.config.direction * self.config.speed
 	local position = VMath.z_extends(self.config.position, 3)
+	local heading_angle = Math.heading_angle(velocity) + math.pi / 2
 	go.set_position(position)
+	go.set_rotation(vmath.quat_rotation_z(heading_angle))
 	go.set(Urls.Body, "linear_velocity", velocity)
 end
 

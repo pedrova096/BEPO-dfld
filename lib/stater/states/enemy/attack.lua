@@ -7,7 +7,7 @@ function M:enter(payload)
   local attacker = payload.attacker
 
   attacker:execute()
-  local duration = attacker:get_total_time()
+  local duration = attacker:get_total_time_without_cooldown()
   self.payload.limit_timer = LimitStateTimer:new({
     duration = duration,
   })
@@ -22,8 +22,10 @@ function M:update(dt)
   end
 end
 
-function M:exit()
-  self.payload.attacker:reset()
+function M:exit(payload, next_state)
+  if next_state == self.StatesEnum.Dead then
+    self.payload.attacker:reset()
+  end
 end
 
 return M

@@ -15,12 +15,9 @@ local Urls = {
 }
 
 go.property("health", 12)
+go.property("safe_distance", 100)
 go.property("velocity", 30)
-go.property("ammo_capacity", 3)
-go.property("bullet_damage", 1)
-go.property("bullet_speed", 100)
-go.property("bullet_force", 8)
-go.property("safe_distance", 80)
+go.property("bullet_damage", 2)
 
 function init(self)
 	self.stater = EnemyStater:new({
@@ -37,11 +34,7 @@ function init(self)
 		}
 	})
 	self.attacker = WeaponAttack:new({
-		time_config = {
-			prepare = 0.3,
-			attack = 1.0,
-			cooldown = 0.3,
-		},
+		time_config = nil,
 		attack_url = Urls.WeaponController,
 	})
 
@@ -52,7 +45,7 @@ function init(self)
 				local player_position = go.get_position(Urls.PlayerController)
 				local position = go.get_position()
 				local distance = vmath.length(player_position - position)
-				return self.steer:get_is_target_on_sight() and distance <= self.safe_distance
+				return self.steer:get_is_target_on_sight() and distance <= self.safe_distance and self.attacker:can_attack()
 			end,
 			get_payload = function()
 				return {
@@ -65,14 +58,7 @@ function init(self)
 
 	Entity.hide_entity()
 
-	msg.post(Urls.WeaponController, Msg.Weapon.SET_PROPERTIES, {
-		ammo_capacity = self.ammo_capacity,
-		pool_size = self.ammo_capacity + 2,
-		bullet_config = {
-			speed = self.bullet_speed,
-			force = self.bullet_force,
-		},
-	})
+	msg.post(Urls.WeaponController, Msg.Weapon.WEAPON_CONFIG_QUERY)
 end
 
 function fixed_update(self, dt)
@@ -81,9 +67,17 @@ function fixed_update(self, dt)
 	if self.stater:is(StatesEnum.Despawn) then return end
 
 	self.attacker:update(dt)
+
 	local position = go.get_position()
 	local target_position = go.get_position(Urls.PlayerController)
 	local weapon_direction = vmath.normalize(target_position - position)
+
+	if not self.stater:is(StatesEnum.Attack) then
+		self.attacker:set_direction(weapon_direction)
+		msg.post(Urls.WeaponController, Msg.Weapon.SET_DIRECTION, {
+			direction = weapon_direction,
+		})
+	end
 
 	local direction = self.steer:update(dt, {
 		position = position,
@@ -92,7 +86,6 @@ function fixed_update(self, dt)
 		-- debug = true,
 	})
 	self.stater:set_direction(direction)
-	self.attacker:set_direction(weapon_direction)
 end
 
 local function on_apply_damage(self, message)
@@ -129,11 +122,25 @@ local function on_despawned(self, message)
 	print("Enemy despawned => " .. go.get_id())
 end
 
+local function on_weapon_config_response(self, message)
+	local config = message.config
+	local cooldown = config.reload_time
+	local attack = config.fire_interval * config.ammo_capacity
+
+	self.attacker:set_time_config({
+		prepare = 0.3,
+		attack = attack,
+		cooldown = cooldown,
+	})
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
 	elseif message_id == Msg.Enemy.SPAWNED then
 		on_spawned(self, message)
+	elseif message_id == Msg.Weapon.WEAPON_CONFIG_RESPONSE then
+		on_weapon_config_response(self, message)
 	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Dead then
 		on_dead(self, message)
 	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Despawn then

@@ -14,8 +14,13 @@ local Urls = {
   Sprite = "#sprite",
 }
 
+go.property("ammo_capacity", 3)
+go.property("bullet_damage", 1)
+go.property("bullet_force", 8)
+go.property("bullet_speed", 100)
+go.property("reload_time", 1.2)
+go.property("offset", vmath.vector3(0, 8.0, 0))
 go.property("trigger_status", hash("released"))
-go.property("offset", vmath.vector3(0, 12.0, 0))
 
 function init(self)
   self.weapon = Weapon:new({
@@ -31,6 +36,15 @@ function init(self)
       theme = 2,
     },
   })
+  self.weapon:set_properties({
+    ammo_capacity = self.ammo_capacity,
+    pool_size = self.ammo_capacity + 2,
+    reload_time = self.reload_time,
+    bullet_config = {
+      speed = self.bullet_speed,
+      force = self.bullet_force,
+    },
+  })
 
   Entity.hide_sprite(Urls.Sprite)
 
@@ -41,10 +55,6 @@ function init(self)
   self.trigger_payload = {}
 
   self.parent_id = go.get_parent() or "."
-
-  msg.post(self.parent_id, Msg.Weapon.WEAPON_INIT, {
-    config = self.weapon.config,
-  })
 end
 
 local HALF_PI = math.pi / 2
@@ -119,27 +129,38 @@ local function on_hide_element(self, message)
 end
 
 local function on_set_direction(self, message)
-  self.current_direction = message.direction
+  if self.weapon:is_reloading() then return end
+  set_place_from_direction(self, message.direction)
+end
+
+local function on_weapon_config_query(self, message, sender)
+  msg.post(sender, Msg.Weapon.WEAPON_CONFIG_RESPONSE, {
+    config = self.weapon.config,
+    bullet_config = self.weapon.bullet_config,
+  })
 end
 
 function on_message(self, message_id, message, sender)
-  if message_id == Msg.Weapon.TRIGGER_WEAPON then
+  if message_id == Msg.SHOW_ELEMENT then
+    on_show_element(self, message)
+  elseif message_id == Msg.HIDE_ELEMENT then
+    on_hide_element(self, message)
+  elseif message_id == Msg.Weapon.WEAPON_CONFIG_QUERY then
+    on_weapon_config_query(self, message, sender)
+  elseif message_id == Msg.Weapon.SET_DIRECTION then
+    on_set_direction(self, message)
+  elseif message_id == Msg.Weapon.TRIGGER_WEAPON then
     on_trigger_weapon(self, message)
-  elseif message_id == Msg.Weapon.RELEASE_WEAPON or message_id == Msg.Attacker.RESET then
+  elseif message_id == Msg.Weapon.RELEASE_WEAPON then
     on_release_weapon(self, message)
   elseif message_id == Msg.Weapon.SET_PROPERTIES then
     on_set_properties(self, message)
   elseif message_id == Msg.Bullet.BULLET_FINISHED then
     on_bullet_finished(self, message)
     -- Reload Start/Completed
-  elseif message_id == Msg.Weapon.RELOAD_STARTED then
+  elseif message_id == Msg.Weapon.LIB_RELOAD_STARTED then
     on_reload_started(self, message)
-  elseif message_id == Msg.Weapon.RELOAD_COMPLETED then
+  elseif message_id == Msg.Weapon.LIB_RELOAD_COMPLETED then
     on_reload_completed(self, message)
-    -- Show/Hide
-  elseif message_id == Msg.SHOW_ELEMENT then
-    on_show_element(self, message)
-  elseif message_id == Msg.HIDE_ELEMENT then
-    on_hide_element(self, message)
   end
 end

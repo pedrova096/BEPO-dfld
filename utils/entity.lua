@@ -1,4 +1,5 @@
 local Vmath = require("utils.vmath")
+local Math = require("utils.math")
 local M = {}
 
 local DefaultUrls = {
@@ -64,8 +65,9 @@ function M.get_object_facing(options)
   local z = options.z or 1
   local facing_angle = options.facing_angle or 0
 
+  local heading_angle = Math.heading_angle(direction)
   local object_position = Vmath.z_extends(direction * offset, z)
-  local object_rotation = vmath.quat_rotation_z(math.atan2(direction.y, direction.x) + facing_angle)
+  local object_rotation = vmath.quat_rotation_z(heading_angle + facing_angle)
   return object_position, object_rotation
 end
 

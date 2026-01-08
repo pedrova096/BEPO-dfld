@@ -15,8 +15,12 @@ local Urls = {
 	Sprite = "#sprite",
 }
 
-go.property("trigger_status", hash("released"))
+go.property("ammo_capacity", 6)
+go.property("bullet_damage", 2)
+go.property("bullet_force", 3)
+go.property("bullet_speed", 400)
 go.property("offset", vmath.vector3(0, 8.0, 0))
+go.property("trigger_status", hash("released"))
 
 function init(self)
 	self.weapon = Weapon:new({
@@ -29,6 +33,15 @@ function init(self)
 		target = hash("enemy"),
 		bullet_props = {
 			theme = 1,
+		},
+	})
+
+	self.weapon:set_properties({
+		ammo_capacity = self.ammo_capacity,
+		pool_size = self.ammo_capacity + 2,
+		bullet_config = {
+			speed = self.bullet_speed,
+			force = self.bullet_force,
 		},
 	})
 
@@ -56,7 +69,7 @@ local function trigger_weapon_pipe(self, dt)
 	local distance = vmath.length(current_direction - target_direction)
 
 	if distance ~= 0 then
-		self.current_direction = vmath.lerp(dt * 5, current_direction, target_direction)
+		self.current_direction = vmath.lerp(dt * 7, current_direction, target_direction)
 		local weapon_position, weapon_rotation = Entity.get_object_facing({
 			direction = self.current_direction,
 			offset = self.original_offset,
@@ -124,11 +137,11 @@ function on_message(self, message_id, message, sender)
 		on_set_properties(self, message)
 	elseif message_id == Msg.Bullet.BULLET_FINISHED then
 		on_bullet_finished(self, message)
-	elseif message_id == Msg.Weapon.RELOAD_STARTED then
-		on_reload_started(self, message)
-	elseif message_id == Msg.Weapon.RELOAD_COMPLETED then
-		on_reload_completed(self, message)
-	elseif message_id == Msg.Weapon.FIRE_WEAPON then
+	elseif message_id == Msg.Weapon.LIB_FIRE_WEAPON then
 		on_fire_weapon(self, message)
+	elseif message_id == Msg.Weapon.LIB_RELOAD_STARTED then
+		on_reload_started(self, message)
+	elseif message_id == Msg.Weapon.LIB_RELOAD_COMPLETED then
+		on_reload_completed(self, message)
 	end
 end

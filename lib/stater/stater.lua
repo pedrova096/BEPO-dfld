@@ -90,7 +90,7 @@ function M:apply_transition(next_state, data)
   end
 
   local current_lifecycle = self.LifeCycle[current_state]
-  current_lifecycle.exit(self, self.payload)
+  current_lifecycle.exit(self, self.payload, next_state)
 
   self:_set_state(next_state, data)
 

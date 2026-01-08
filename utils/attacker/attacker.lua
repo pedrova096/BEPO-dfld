@@ -29,7 +29,7 @@ local StatesEnum = {
 }
 
 ---@class AttackerOptions
----@field time_config TimeConfig
+---@field time_config TimeConfig|nil
 ---@field combo_count number?
 ---@field checker Checker?
 ---@field attack_url string?
@@ -47,6 +47,8 @@ function M:new(options)
 end
 
 function M:_init()
+  if not self.time_config then return end
+
   self.state = {
     state = StatesEnum.Cooldown,
     timer = self.time_config.cooldown,
@@ -81,12 +83,22 @@ function M:_init()
   }
 end
 
+---@param time_config TimeConfig
+function M:set_time_config(time_config)
+  self.time_config = time_config
+  self:_init()
+end
+
 function M:get_total_time()
   local total = 0
   for _, config in pairs(self.event_configs) do
     total = total + (config.time or 0)
   end
   return total
+end
+
+function M:get_total_time_without_cooldown()
+  return self:get_total_time() - self.time_config.cooldown
 end
 
 function M:_get_current_event_config()
@@ -153,6 +165,8 @@ function M:_update_state(dt)
 end
 
 function M:update(dt)
+  if not self.time_config then return end
+
   self:_prepare_pipe()
   self:_attack_pipe()
   self:_recover_pipe()
@@ -176,6 +190,10 @@ function M:reset()
   if self.on_reset then
     self.on_reset(self)
   end
+end
+
+function M:can_attack()
+  return self.state.state == StatesEnum.Active
 end
 
 return M

@@ -134,7 +134,7 @@ function M:fire(payload)
   local firing_payload = self:_apply_accuracy(payload)
 
   bullet:activate(firing_payload)
-  msg.post(".", Msg.Weapon.FIRE_WEAPON)
+  msg.post(".", Msg.Weapon.LIB_FIRE_WEAPON)
 
   self.state.cooldown = self.config.fire_interval
   self.state.ammo = math.max(0, self.state.ammo - 1)
@@ -154,15 +154,16 @@ function M:start_reload(force)
 
   self.state.reloading = true
   self.state.reload_timer = 0
-  msg.post(".", Msg.Weapon.RELOAD_STARTED)
+  msg.post(".", Msg.Weapon.LIB_RELOAD_STARTED)
   return true
 end
 
 function M:_complete_reload()
   self.state.reloading = false
   self.state.reload_timer = 0
+  self.state.cooldown = 0
   self.state.ammo = self.config.ammo_capacity
-  msg.post(".", Msg.Weapon.RELOAD_COMPLETED)
+  msg.post(".", Msg.Weapon.LIB_RELOAD_COMPLETED)
 end
 
 ---Handle bullet completion (hit, timeout, etc).
@@ -195,6 +196,7 @@ end
 ---Set the properties of the weapon.
 ---@param properties table
 function M:set_properties(properties)
+  self.config.reload_time = properties.reload_time or self.config.reload_time
   self.config.ammo_capacity = properties.ammo_capacity
   self.state.ammo = properties.ammo_capacity
   if properties.pool_size then

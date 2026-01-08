@@ -15,6 +15,7 @@ end
 
 go.property("damage", 1)
 go.property("knock_back", 30)
+go.property("offset", vmath.vector3(0, 5.0, 0))
 
 function init(self)
 	self.is_active = false
@@ -31,7 +32,7 @@ local function area_pipe(self, dt)
 		offset = self.original_offset,
 		z = 3,
 	})
-	go.set(".", "position", area_position)
+	go.set(".", "position", area_position + self.offset)
 	go.set(".", "rotation", area_rotation)
 end
 
