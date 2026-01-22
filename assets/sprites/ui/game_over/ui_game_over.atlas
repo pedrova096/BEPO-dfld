@@ -1,0 +1,19 @@
+images {
+  image: "/assets/sprites/ui/game_over/antenna.png"
+}
+images {
+  image: "/assets/sprites/ui/game_over/back-shell.png"
+}
+images {
+  image: "/assets/sprites/ui/game_over/circuit.png"
+}
+images {
+  image: "/assets/sprites/ui/game_over/front-shell.png"
+}
+images {
+  image: "/assets/sprites/ui/game_over/gameover_del.png"
+}
+images {
+  image: "/assets/sprites/ui/game_over/antenna_2.png"
+}
+extrude_borders: 1

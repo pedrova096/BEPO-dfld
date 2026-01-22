@@ -58,20 +58,28 @@ local Attacker = {
   RESET = hash("attacker_reset")
 }
 
+local Main = {
+  GAME_OVER = hash("game_over"),
+  NEW_GAME = hash("new_game")
+}
+
 return {
+  Attacker = Attacker,
+  Bullet = Bullet,
   Camera = Camera,
   Enemy = Enemy,
   Game = Game,
+  Main = Main,
   Player = Player,
-  Weapon = Weapon,
   Stager = Stager,
-  Bullet = Bullet,
-  Attacker = Attacker,
+  Weapon = Weapon,
   -- Globals
   APPLY_DAMAGE = hash("apply_damage"),
-  STATE_TRANSITION = hash("state_transition"),
-  TRIGGER_RESPONSE = hash("trigger_response"),
   COLLISION_RESPONSE = hash("collision_response"),
   HIDE_ELEMENT = hash("hide_element"),
+  PROXY_LOADED = hash("proxy_loaded"),
+  PROXY_UNLOADED = hash("proxy_unloaded"),
   SHOW_ELEMENT = hash("show_element"),
+  STATE_TRANSITION = hash("state_transition"),
+  TRIGGER_RESPONSE = hash("trigger_response"),
 }

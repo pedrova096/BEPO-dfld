@@ -1,0 +1,127 @@
+local Msg = require("lib.msg")
+
+local Urls = {
+	MainController = "main:/main_controller"
+}
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+end
+
+function final(self)
+end
+
+function update(self, dt)
+end
+
+local function _pressed_button(options)
+	local button = options.button
+	local label = options.label
+
+	gui.play_flipbook(button, "pressed", nil)
+	gui.animate(label, "position.y", -2, gui.EASING_LINEAR, 0.1, 0)
+end
+
+local function _unpressed_button(options)
+	local button = options.button
+	local label = options.label
+	gui.play_flipbook(button, "unpressed")
+	gui.animate(label, "position.y", 1.5, gui.EASING_LINEAR, 0.1, 0)
+end
+
+
+local function _input_button(options, action)
+	local button = gui.get_node(options.button_name)
+	local label = gui.get_node(options.label_name)
+	local pressed_flag = options.pressed_flag
+	local on_pressed = options.on_pressed
+
+	if action.pressed and gui.pick_node(button, action.x, action.y) then
+		_pressed_button({
+			button = button,
+			label = label
+		})
+		pressed_flag.set(true)
+		return true
+	end
+
+	if pressed_flag.get() and not action.released then
+		if not gui.pick_node(button, action.x, action.y) then
+			_unpressed_button({
+				button = button,
+				label = label
+			})
+			pressed_flag.set(false)
+			return false
+		end
+	end
+
+	if action.released and pressed_flag.get() then
+		_unpressed_button({
+			button = button,
+			label = label
+		})
+		pressed_flag.set(false)
+
+		if on_pressed then
+			on_pressed()
+		end
+		return true
+	end
+
+	return false
+end
+
+local function input_new_game(self, action)
+	return _input_button({
+		button_name = "new_game_button",
+		label_name = "new_game_label",
+		pressed_flag = {
+			get = function()
+				return self.new_game_pressed
+			end,
+			set = function(value)
+				self.new_game_pressed = value
+			end
+		},
+		on_pressed = function()
+			msg.post(Urls.MainController, Msg.Main.NEW_GAME)
+		end
+	}, action)
+end
+
+local function input_quit(self, action)
+	return _input_button({
+		button_name = "quit_button",
+		label_name = "quit_label",
+		pressed_flag = {
+			get = function()
+				return self.quit_pressed
+			end,
+			set = function(value)
+				self.quit_pressed = value
+			end
+		},
+		-- TODO: on_pressed
+	}, action)
+end
+
+function on_input(self, action_id, action)
+	local handled = false
+
+	if action_id == hash("touch") then
+		if input_new_game(self, action) then
+			handled = true
+		end
+
+		if input_quit(self, action) then
+			handled = true
+		end
+	end
+
+	return handled
+end
+
+function on_reload(self)
+	msg.post(".", "acquire_input_focus")
+end

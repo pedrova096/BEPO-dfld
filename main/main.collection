@@ -1,4 +1,4 @@
-name: "game"
+name: "main"
 scale_along_z: 0
 embedded_instances {
   id: "quad"
@@ -27,24 +27,16 @@ embedded_instances {
   "embedded_components {\n"
   "  id: \"game_over_proxy\"\n"
   "  type: \"collectionproxy\"\n"
-  "  data: \"collection: \\\"/main/game/game.collection\\\"\\n"
+  "  data: \"collection: \\\"/main/game_over/game_over.collection\\\"\\n"
   "\"\n"
   "}\n"
   ""
 }
 embedded_instances {
-  id: "controller"
+  id: "main_controller"
   data: "components {\n"
   "  id: \"main\"\n"
-  "  component: \"/main/main.script\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "go"
-  data: "components {\n"
-  "  id: \"controller\"\n"
-  "  component: \"/main/main.script\"\n"
+  "  component: \"/main/main_controller.script\"\n"
   "}\n"
   ""
 }

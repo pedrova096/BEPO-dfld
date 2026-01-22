@@ -83,7 +83,6 @@ function M:apply_transition(next_state, data)
   local current_state = self.state
   local transitions = self.Transitions[current_state]
 
-  pprint("next_state", next_state, "current_state", current_state, transitions, go.get_id())
   if not transitions or not Table.contains(transitions, next_state) then
     print("Invalid transition from " .. current_state .. " to " .. next_state)
     return

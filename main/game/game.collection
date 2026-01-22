@@ -1,4 +1,4 @@
-name: "main"
+name: "game"
 instances {
   id: "camera"
   prototype: "/main/game/camera/camera.go"
@@ -23,6 +23,14 @@ embedded_instances {
   data: "components {\n"
   "  id: \"ui\"\n"
   "  component: \"/main/game/ui/ui.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "controller"
+  data: "components {\n"
+  "  id: \"controller\"\n"
+  "  component: \"/main/game/game_controller.script\"\n"
   "}\n"
   ""
 }

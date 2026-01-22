@@ -89,7 +89,6 @@ end
 
 local function on_player_life_changed(self, message)
 	local current_lives = message.current_lives + 1
-	pprint("Current lives: " .. current_lives)
 
 	for index, life in ipairs(self.life_nodes) do
 		local life_node = gui.get_node(life.id)

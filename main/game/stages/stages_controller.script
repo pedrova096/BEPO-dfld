@@ -1,4 +1,5 @@
 local Msg = require("lib.msg")
+local Colors = require("lib.colors")
 local VMath = require("utils.vmath")
 local Stager = require("utils.stager.stager")
 local Stages = require("utils.stager.stages_config")
@@ -91,6 +92,8 @@ function init(self)
 		},
 		debug = true,
 	})
+
+	msg.post("@render:", "clear_color", { color = vmath.vector4(unpack(Colors["#272736"])) })
 end
 
 local function target_enemies_pipe(self, dt)

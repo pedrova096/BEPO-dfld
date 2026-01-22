@@ -1,0 +1,18 @@
+name: "game_over"
+scale_along_z: 0
+embedded_instances {
+  id: "ui"
+  data: "components {\n"
+  "  id: \"game_over_ui\"\n"
+  "  component: \"/main/game_over/ui/game_over_ui.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "controller"
+  data: "components {\n"
+  "  id: \"game_over_controller\"\n"
+  "  component: \"/main/game_over/game_over_controller.script\"\n"
+  "}\n"
+  ""
+}

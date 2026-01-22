@@ -51,6 +51,12 @@ embedded_instances {
   "  data: \"prototype: \\\"/main/game/enemies/enemy_04/enemy_04.collection\\\"\\n"
   "\"\n"
   "}\n"
+  "embedded_components {\n"
+  "  id: \"box_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/main/game/boxes/boxes.go\\\"\\n"
+  "\"\n"
+  "}\n"
   ""
   position {
     x: -168.0

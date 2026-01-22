@@ -2,6 +2,7 @@ local Msg = require("lib.msg")
 
 local Urls = {
 	UIController = "/ui",
+	MainController = "main:/main_controller"
 }
 
 function init(self)
@@ -19,7 +20,7 @@ local function on_player_life_changed(self, message)
 
 	msg.post(Urls.UIController, Msg.Game.PLAYER_LIFE_CHANGED, message)
 	if self._current_player_life_count == 0 then
-		-- TODO: Game over
+		msg.post(Urls.MainController, hash("game_over"))
 		return
 	end
 end
