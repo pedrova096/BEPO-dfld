@@ -37,9 +37,9 @@ function init(self)
 		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#f2a65e"])))
 		go.set(Urls.Sprite, "target_color_3", color3)
 	elseif self.theme == 2 then
-		local color3 = vmath.vector4(unpack(Colors["#8fde5d"])) * 0.5
+		local color3 = vmath.vector4(unpack(Colors["#b7ee7b"])) * 0.5
 		go.set(Urls.Sprite, "target_color_1", vmath.vector4(unpack(Colors["#ebffeb"])))
-		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#3ca370"])))
+		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#6dc170"])))
 		go.set(Urls.Sprite, "target_color_3", color3)
 	end
 
