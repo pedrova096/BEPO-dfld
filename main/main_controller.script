@@ -39,7 +39,6 @@ local PROXY_FRAGMENT_MAP = {
 	[hash("game_over")] = Urls.GameOverProxy,
 }
 local function on_new_game(self, message, sender_socket)
-	pprint("sender", sender_socket)
 	local proxy = PROXY_FRAGMENT_MAP[sender_socket]
 
 	msg.post(proxy, "disable")

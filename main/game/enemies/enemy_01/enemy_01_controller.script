@@ -8,7 +8,7 @@ local BasicAttack = require("utils.attacker.basic_attack")
 local StatesEnum = EnemyStater.StatesEnum
 
 local Urls = {
-	StageController = "/stage_01/root#controller",
+	GameController = "/controller#controller",
 	PlayerRoot = "/player/root",
 	PlayerController = "/player/root#controller",
 	--Inner
@@ -89,7 +89,7 @@ local function on_spawned(self, message)
 end
 
 local function on_dead(self, message)
-	msg.post(Urls.StageController, Msg.Stager.ENEMY_KILLED, {
+	msg.post(Urls.GameController, Msg.Stager.ENEMY_KILLED, {
 		enemy_id = go.get_id(),
 	})
 end

@@ -2,10 +2,14 @@ local Msg = require("lib.msg")
 
 local Urls = {
 	UIController = "/ui",
-	MainController = "main:/main_controller"
+	MainController = "main:/main_controller",
+	Factories = {
+		Stage_01 = "/stages_factory#stage_01_factory"
+	}
 }
 
 function init(self)
+	self.current_stage = collectionfactory.create(Urls.Factories.Stage_01)
 end
 
 local function on_set_life_count(self, message)
@@ -25,10 +29,16 @@ local function on_player_life_changed(self, message)
 	end
 end
 
+local function on_enemy_killed(self, message)
+	msg.post(self.current_stage["/root"], Msg.Stager.ENEMY_KILLED, message)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Game.PLAYER_SET_LIFE_COUNT then
 		on_set_life_count(self, message)
 	elseif message_id == Msg.Game.PLAYER_LIFE_CHANGED then
 		on_player_life_changed(self, message)
+	elseif message_id == Msg.Stager.ENEMY_KILLED then
+		on_enemy_killed(self, message)
 	end
 end

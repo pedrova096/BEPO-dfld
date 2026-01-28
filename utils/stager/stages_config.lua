@@ -31,6 +31,35 @@
 local Stages = {}
 
 ---@type StagesConfig
+Stages[hash("Stage00")] = {
+  inter_wave_delay = 2.0,
+  waves = {
+    -- Wave 1: Budget-based wave with basic enemies
+    {
+      pattern = "budget",
+      type = "enemies",
+      budget = 10,
+      spawn_interval = 6.0,
+      spawn_concurrent = 3,
+      enemies = {
+        enemy_01 = {
+          id = "enemy_01",
+          factory_url = "#cfactory_enemy_01",
+          probability = 0.5,
+          threat = 1,
+        },
+        enemy_02 = {
+          id = "enemy_02",
+          factory_url = "#cfactory_enemy_02",
+          probability = 0.5,
+          threat = 2,
+        },
+      },
+    }
+  },
+}
+
+---@type StagesConfig
 Stages[hash("Stage01")] = {
   inter_wave_delay = 2.0,
   waves = {

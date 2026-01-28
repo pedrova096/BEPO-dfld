@@ -13,10 +13,6 @@ collection_instances {
     z: 1.0
   }
 }
-collection_instances {
-  id: "stage_01"
-  collection: "/main/game/stages/stage_01/stage_01_composer.collection"
-}
 scale_along_z: 0
 embedded_instances {
   id: "ui"
@@ -31,6 +27,16 @@ embedded_instances {
   data: "components {\n"
   "  id: \"controller\"\n"
   "  component: \"/main/game/game_controller.script\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "stages_factory"
+  data: "embedded_components {\n"
+  "  id: \"stage_01_factory\"\n"
+  "  type: \"collectionfactory\"\n"
+  "  data: \"prototype: \\\"/main/game/stages/stage_01/stage_01_composer.collection\\\"\\n"
+  "\"\n"
   "}\n"
   ""
 }

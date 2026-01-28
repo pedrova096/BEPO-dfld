@@ -6,10 +6,13 @@ local Stages = require("utils.stager.stages_config")
 
 local Urls = {
 	PlayerController = "/player/root#controller",
+	-- Inner
 	Factory01 = "root#cfactory enemy_01",
 	Factory02 = "root#cfactory enemy_02",
 	Factory03 = "root#cfactory_enemy_03",
 	Factory04 = "root#cfactory_enemy_04",
+	BoxFactory = "root#box_factory",
+	DoorFactory = "root#door_factory",
 	Stage = "tiles_lg#tileset",
 	Obstacles = "tiles_sm#tileset",
 }
@@ -17,7 +20,7 @@ local Urls = {
 local TILE_LG_SIZE = 48
 local TILE_SM_SIZE = 24
 
-go.property("stage_name", hash("Stage01")) -- Stage01
+go.property("stage_name", hash("Stage00")) -- Stage01
 go.property("stage_width", 7)
 go.property("stage_height", 11)
 
@@ -27,6 +30,8 @@ local LandmarksEnum = {
 	Chest = 7,
 }
 
+local DOOR_TILE_OPEN = 11
+
 local function get_stage_info_from_landmarks(self)
 	local stage_offset = go.get_position()
 	local left, bottom, columns_count, rows_count = tilemap.get_bounds(Urls.Obstacles)
@@ -34,7 +39,7 @@ local function get_stage_info_from_landmarks(self)
 
 	local spawn_positions = {}
 	local doors_positions = {}
-	local chest_position = nil
+	local box_position = nil
 	-- TODO: player position
 
 	local tile_center = vmath.vector3(TILE_SM_SIZE / 2, TILE_SM_SIZE / 2, 0)
@@ -49,12 +54,15 @@ local function get_stage_info_from_landmarks(self)
 			local center_position = position - tile_center
 
 			if tile == LandmarksEnum.Door then
-				local door_position = position + vmath.vector3(TILE_SM_SIZE, TILE_SM_SIZE, 0)
-				table.insert(doors_positions, door_position)
+				table.insert(doors_positions, {
+					position = position,
+					column_index = math.floor(column_index / 2) + 1,
+					row_index = math.floor(row_index / 2),
+				})
 			elseif tile == LandmarksEnum.Spawn then
 				table.insert(spawn_positions, center_position)
 			elseif tile == LandmarksEnum.Chest then
-				chest_position = center_position
+				box_position = center_position
 			end
 		end
 	end
@@ -62,8 +70,18 @@ local function get_stage_info_from_landmarks(self)
 	return {
 		spawn_positions = spawn_positions,
 		doors_positions = doors_positions,
-		chest_position = chest_position,
+		box_position = box_position,
 	}
+end
+
+local function spawn_doors(doors_positions)
+	local doors = {}
+	for _, door_position in ipairs(doors_positions) do
+		local door = factory.create(Urls.DoorFactory, door_position.position, nil, {})
+		table.insert(doors, { id = door, column_index = door_position.column_index, row_index = door_position.row_index })
+	end
+
+	return doors
 end
 
 function init(self)
@@ -92,6 +110,10 @@ function init(self)
 		},
 		debug = true,
 	})
+
+	self.box_position = stage_info.box_position
+
+	self.doors = spawn_doors(stage_info.doors_positions)
 
 	msg.post("@render:", "clear_color", { color = vmath.vector4(unpack(Colors["#272736"])) })
 end
@@ -132,8 +154,18 @@ local function on_enemy_killed(self, message)
 	self.stager:on_enemy_killed(message.enemy_id)
 end
 
+local function on_open_door(self, message)
+	for _, door in ipairs(self.doors) do
+		msg.post(door.id, Msg.HIDE_ELEMENT)
+		local x = door.column_index
+		local y = door.row_index
+		tilemap.set_tile(Urls.Stage, "walls", x, y, DOOR_TILE_OPEN)
+	end
+end
+
 local function on_stage_ended(self, message)
-	print("Stage ended")
+	on_open_door(self, message)
+	factory.create(Urls.BoxFactory, self.box_position, nil, {})
 end
 
 function on_message(self, message_id, message, sender)
@@ -141,6 +173,8 @@ function on_message(self, message_id, message, sender)
 		on_enemy_killed(self, message)
 	elseif message_id == Msg.Stager.STAGE_ENDED then
 		on_stage_ended(self, message)
+	elseif message_id == Msg.Stager.OPEN_DOOR then
+		on_open_door(self, message)
 	end
 end
 

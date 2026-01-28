@@ -1,18 +1,18 @@
-name: "stage_01"
+name: "stage_02"
 instances {
   id: "tiles_lg"
-  prototype: "/main/game/stages/stage_01/tiles_lg.go"
+  prototype: "/main/game/stages/stage_02/tiles_lg.go"
 }
 instances {
   id: "tiles_sm"
-  prototype: "/main/game/stages/stage_01/tiles_sm.go"
+  prototype: "/main/game/stages/stage_02/tiles_sm.go"
   position {
     z: 1.0
   }
 }
 instances {
   id: "top_tiles_sm"
-  prototype: "/main/game/stages/stage_01/top_tiles_sm.go"
+  prototype: "/main/game/stages/stage_02/top_tiles_sm.go"
   position {
     z: 2.0
   }
@@ -55,12 +55,6 @@ embedded_instances {
   "  id: \"box_factory\"\n"
   "  type: \"factory\"\n"
   "  data: \"prototype: \\\"/main/game/boxes/boxes.go\\\"\\n"
-  "\"\n"
-  "}\n"
-  "embedded_components {\n"
-  "  id: \"door_factory\"\n"
-  "  type: \"factory\"\n"
-  "  data: \"prototype: \\\"/main/game/stages/door/door.go\\\"\\n"
   "\"\n"
   "}\n"
   ""

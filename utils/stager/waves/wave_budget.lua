@@ -22,7 +22,9 @@ end
 
 -- Check completion: budget exhausted and all enemies dead
 function M:_check_completion_pipe()
+  pprint("self.budget, self.spent", self.budget, self.spent)
   if not self:has_finished_spawning() then return false end
+  pprint("self:get_active_enemies_count()", self:get_active_enemies_count())
   if self:get_active_enemies_count() > 0 then return false end
 
   self.completed = true
@@ -44,10 +46,10 @@ function M:_spawn_enemies_pipe()
 
     if not enemy then
       enemy = self.enemy_selector:select_most_expensive(self.config.enemies)
+      self.spent = self.budget
     end
 
     if not enemy then
-      self.spent = self.budget
       break
     end
 
@@ -60,8 +62,7 @@ end
 function M:update(dt)
   self.spawn_timer = self.spawn_timer + dt
 
-  if self:_check_completion_pipe() then return end
-
+  self.completed = self:_check_completion_pipe()
   self:_spawn_enemies_pipe()
 end
 

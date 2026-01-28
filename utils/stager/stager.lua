@@ -1,3 +1,4 @@
+local Msg = require("lib.msg")
 local Waves = require("utils.stager.waves.index")
 local Spawner = require("utils.stager.spawner")
 local EnemySelector = require("utils.stager.enemy_selector")
@@ -82,19 +83,13 @@ function M:_start_next_wave()
   self.waiting_for_next_wave = false
 end
 
----Check if stage should end
-function M:_check_stage_end()
-  local total_waves = #self.config.waves
-  if self.current_wave_index > total_waves then
-    self:_end_stage()
-  end
-end
-
 ---End the stage
 function M:_end_stage()
   if self.stage_ended then return end
 
   self.stage_ended = true
+
+  msg.post(".", Msg.Stager.STAGE_ENDED)
 end
 
 ---Handle inter-wave delay
@@ -115,7 +110,7 @@ function M:_wave_pipe(dt)
 
   self.current_wave:update(dt)
 
-  if not self.current_wave:is_complete() then return end
+  if not self.current_wave:is_complete() or self.waiting_for_next_wave then return end
 
   self.waiting_for_next_wave = true
   self.inter_wave_timer = self.config.inter_wave_delay or 0
@@ -130,7 +125,6 @@ function M:update(dt)
 
   self:_wave_pipe(dt)
   self:_inter_wave_delay_pipe(dt)
-  self:_check_stage_end()
 end
 
 ---Handle enemy killed event

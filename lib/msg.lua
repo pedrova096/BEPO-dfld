@@ -40,10 +40,10 @@ local Stager = {
   WAVE_STARTED = hash("wave_started"),
   WAVE_ENDED = hash("wave_ended"),
   ENEMY_KILLED = hash("enemy_killed"),
+  OPEN_DOOR = hash("open_door"),
 }
 
 local Game = {
-  OPEN_DOOR = hash("open_door"),
   DISABLE_SPAWNER = hash("disable_spawner"),
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   PLAYER_LIFE_CHANGED = hash("player_life_changed"),

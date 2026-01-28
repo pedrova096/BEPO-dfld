@@ -1,0 +1,171 @@
+tile_set: "/assets/sprites/tiles/tiles_sm.tilesource"
+layers {
+  id: "layer"
+  z: 0.0
+  cell {
+    x: 1
+    y: -18
+    tile: 1
+  }
+  cell {
+    x: 2
+    y: -18
+    tile: 1
+  }
+  cell {
+    x: 3
+    y: -18
+    tile: 1
+  }
+  cell {
+    x: 4
+    y: -18
+    tile: 1
+  }
+  cell {
+    x: 5
+    y: -18
+    tile: 1
+  }
+  cell {
+    x: 6
+    y: -18
+    tile: 1
+  }
+  cell {
+    x: 8
+    y: -15
+    tile: 1
+  }
+  cell {
+    x: 9
+    y: -15
+    tile: 1
+  }
+  cell {
+    x: 10
+    y: -15
+    tile: 1
+  }
+  cell {
+    x: 11
+    y: -15
+    tile: 1
+  }
+  cell {
+    x: 12
+    y: -15
+    tile: 1
+  }
+  cell {
+    x: 1
+    y: -12
+    tile: 1
+  }
+  cell {
+    x: 2
+    y: -12
+    tile: 1
+  }
+  cell {
+    x: 3
+    y: -12
+    tile: 1
+  }
+  cell {
+    x: 4
+    y: -12
+    tile: 1
+  }
+  cell {
+    x: 5
+    y: -12
+    tile: 1
+  }
+  cell {
+    x: 6
+    y: -12
+    tile: 1
+  }
+  cell {
+    x: 8
+    y: -9
+    tile: 1
+  }
+  cell {
+    x: 9
+    y: -9
+    tile: 1
+  }
+  cell {
+    x: 10
+    y: -9
+    tile: 1
+  }
+  cell {
+    x: 11
+    y: -9
+    tile: 1
+  }
+  cell {
+    x: 12
+    y: -9
+    tile: 1
+  }
+  cell {
+    x: 1
+    y: -6
+    tile: 1
+  }
+  cell {
+    x: 2
+    y: -6
+    tile: 1
+  }
+  cell {
+    x: 3
+    y: -6
+    tile: 1
+  }
+  cell {
+    x: 4
+    y: -6
+    tile: 1
+  }
+  cell {
+    x: 5
+    y: -6
+    tile: 1
+  }
+  cell {
+    x: 6
+    y: -6
+    tile: 1
+  }
+  cell {
+    x: 8
+    y: -3
+    tile: 1
+  }
+  cell {
+    x: 9
+    y: -3
+    tile: 1
+  }
+  cell {
+    x: 10
+    y: -3
+    tile: 1
+  }
+  cell {
+    x: 11
+    y: -3
+    tile: 1
+  }
+  cell {
+    x: 12
+    y: -3
+    tile: 1
+  }
+}
+material: "/builtins/materials/tile_map.material"
