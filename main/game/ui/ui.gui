@@ -382,8 +382,32 @@ nodes {
   size_mode: SIZE_MODE_AUTO
   visible: false
 }
+nodes {
+  position {
+    x: 180.0
+    y: 320.0
+  }
+  size {
+    x: 360.0
+    y: 640.0
+  }
+  color {
+    x: 0.2
+    y: 0.16
+    z: 0.28
+  }
+  type: TYPE_BOX
+  id: "wipe"
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+  material: "halftone_circles_wipe"
+}
 layers {
   name: "modal"
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "halftone_circles_wipe"
+  material: "/main/materials/halftone_circles_wipe/halftone_circles_wipe.material"
+}

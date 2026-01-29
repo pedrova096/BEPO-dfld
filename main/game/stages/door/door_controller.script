@@ -1,0 +1,30 @@
+local Msg = require("lib.msg")
+local Entity = require("utils.entity")
+
+local Urls = {
+	Body = "#body",
+	BodyTrigger = "#body_trigger",
+	GameController = "/controller#controller",
+}
+
+go.property("door_option", 1)
+
+local function on_hide_element(self, message)
+	Entity.disable_body(Urls.Body)
+end
+
+local function on_trigger_response(self, message)
+	if not message.enter then return end
+
+	msg.post(Urls.GameController, Msg.Stager.ENTER_DOOR, {
+		door_option = self.door_option,
+	})
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.HIDE_ELEMENT then
+		on_hide_element(self, message)
+	elseif message_id == Msg.TRIGGER_RESPONSE then
+		on_trigger_response(self, message)
+	end
+end

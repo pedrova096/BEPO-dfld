@@ -15,4 +15,8 @@ function M:is_expired()
   return self.elapsed >= self.duration
 end
 
+function M:progress()
+  return self.elapsed / self.duration
+end
+
 return M

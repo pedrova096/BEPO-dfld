@@ -33,6 +33,10 @@ local function on_enemy_killed(self, message)
 	msg.post(self.current_stage["/root"], Msg.Stager.ENEMY_KILLED, message)
 end
 
+local function on_door_entered(self, message)
+	msg.post(Urls.UIController, Msg.Game.SHOW_WIPE)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Game.PLAYER_SET_LIFE_COUNT then
 		on_set_life_count(self, message)
@@ -40,5 +44,7 @@ function on_message(self, message_id, message, sender)
 		on_player_life_changed(self, message)
 	elseif message_id == Msg.Stager.ENEMY_KILLED then
 		on_enemy_killed(self, message)
+	elseif message_id == Msg.Stager.ENTER_DOOR then
+		on_door_entered(self, message)
 	end
 end

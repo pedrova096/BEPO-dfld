@@ -41,12 +41,14 @@ local Stager = {
   WAVE_ENDED = hash("wave_ended"),
   ENEMY_KILLED = hash("enemy_killed"),
   OPEN_DOOR = hash("open_door"),
+  ENTER_DOOR = hash("enter_door"),
 }
 
 local Game = {
   DISABLE_SPAWNER = hash("disable_spawner"),
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   PLAYER_LIFE_CHANGED = hash("player_life_changed"),
+  SHOW_WIPE = hash("show_wipe"),
 }
 
 local Attacker = {

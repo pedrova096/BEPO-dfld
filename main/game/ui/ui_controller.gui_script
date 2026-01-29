@@ -1,3 +1,4 @@
+local LimitStateTimer = require("lib.stater.limit_state_timer")
 local UtilsGUI = require("utils.utils_gui")
 local Msg = require("lib.msg")
 
@@ -15,6 +16,7 @@ local Urls = {
 	Button = "button",
 	LifeNode = "life_node",
 	Footer = "footer",
+	Wipe = "wipe",
 }
 
 local ActionStates = {
@@ -56,10 +58,24 @@ function final(self)
 	-- Remove this function if not needed
 end
 
+local function wipe_view_pipe(self, dt)
+	if not self.wipe_timer then return end
+
+	self.wipe_timer:update(dt)
+	if self.wipe_timer:is_expired() then
+		self.wipe_timer = nil
+		return
+	end
+
+	local progress = self.wipe_timer:progress()
+
+	local wipe_node = gui.get_node(Urls.Wipe)
+
+	gui.set(wipe_node, "progress.x", progress + 0.1)
+end
+
 function update(self, dt)
-	-- Add update code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	wipe_view_pipe(self, dt)
 end
 
 local LIFE_NODE_SPACING = 32
@@ -107,12 +123,21 @@ local function on_player_life_changed(self, message)
 	end
 end
 
+local function on_show_wipe(self, message)
+	local wipe_node = gui.get_node(Urls.Wipe)
+	gui.set_visible(wipe_node, true)
+	self.wipe_timer = LimitStateTimer:new({
+		duration = message.duration or 0.5,
+	})
+end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Game.PLAYER_SET_LIFE_COUNT then
 		on_set_life_count(self, message)
 	elseif message_id == Msg.Game.PLAYER_LIFE_CHANGED then
 		on_player_life_changed(self, message)
+	elseif message_id == Msg.Game.SHOW_WIPE then
+		on_show_wipe(self, message)
 	end
 end
 

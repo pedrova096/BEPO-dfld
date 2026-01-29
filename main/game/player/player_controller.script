@@ -15,7 +15,7 @@ local TriggerStatusEnum = {
 
 go.property("velocity", 60)
 go.property("lives", 3)
-go.property("bullet_damage", 2)
+go.property("bullet_damage", 20)
 
 function init(self)
 	self.stater = PlayerStater:new({

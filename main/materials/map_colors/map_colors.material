@@ -1,4 +1,4 @@
-name: "map_colors.vp"
+name: "map_colors"
 tags: "tile"
 vertex_program: "/main/materials/map_colors/map_colors.vp"
 fragment_program: "/main/materials/map_colors/map_colors.fp"
