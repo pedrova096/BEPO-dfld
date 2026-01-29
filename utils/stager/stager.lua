@@ -103,6 +103,10 @@ function M:_inter_wave_delay_pipe(dt)
   self:_start_next_wave()
 end
 
+function M:_was_last_wave()
+  return self.current_wave_index == #self.config.waves
+end
+
 ---Update wave
 ---@param dt number
 function M:_wave_pipe(dt)
@@ -112,8 +116,13 @@ function M:_wave_pipe(dt)
 
   if not self.current_wave:is_complete() or self.waiting_for_next_wave then return end
 
+  self.current_wave:destroy()
   self.waiting_for_next_wave = true
   self.inter_wave_timer = self.config.inter_wave_delay or 0
+  if self:_was_last_wave() then
+    -- When it's the last wave, reduce the time to end the stage
+    self.inter_wave_timer = self.inter_wave_timer / 8
+  end
 end
 
 ---Update the stager

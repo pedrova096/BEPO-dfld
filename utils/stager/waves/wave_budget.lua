@@ -22,9 +22,7 @@ end
 
 -- Check completion: budget exhausted and all enemies dead
 function M:_check_completion_pipe()
-  pprint("self.budget, self.spent", self.budget, self.spent)
   if not self:has_finished_spawning() then return false end
-  pprint("self:get_active_enemies_count()", self:get_active_enemies_count())
   if self:get_active_enemies_count() > 0 then return false end
 
   self.completed = true
@@ -60,7 +58,7 @@ end
 
 ---@param dt number
 function M:update(dt)
-  self.spawn_timer = self.spawn_timer + dt
+  WaveBase.update(self, dt)
 
   self.completed = self:_check_completion_pipe()
   self:_spawn_enemies_pipe()
@@ -82,6 +80,18 @@ end
 function M:get_progress()
   if self.budget <= 0 then return 1 end
   return self.spent / self.budget
+end
+
+---Handle enemy killed
+---@param enemy_id hash|url
+---@return EnemyConfig|nil killed_config
+function M:on_enemy_killed(enemy_id)
+  WaveBase.on_enemy_killed(self, enemy_id)
+
+  if self:get_active_enemies_count() <= 0 then
+    -- When current spawn batch is done, accelerate spawn timer
+    self.spawn_timer = self.spawn_timer * 1 / 8
+  end
 end
 
 return M

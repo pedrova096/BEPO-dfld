@@ -29,6 +29,22 @@ function M:get_spawn_position_by_bounds()
   return Table.random(self.spawn_positions)
 end
 
+function M:spawn_existing_enemy(enemy_id, position)
+  if not position then
+    position = self:get_spawn_position_by_bounds()
+  end
+
+  if self.debug then
+    pprint("Spawner: spawned enemy => " .. enemy_id, "position => " .. position)
+  end
+
+  msg.post(enemy_id, Msg.Enemy.SPAWNED, {
+    position = position,
+  })
+
+  return enemy_id
+end
+
 ---Spawn an enemy
 ---@param enemy_config EnemyConfig
 ---@return hash|nil root_id
@@ -44,14 +60,7 @@ function M:spawn(enemy_config)
 
   local ids = collectionfactory.create(factory_url, position)
   local enemy_id = ids["/root"]
-  if self.debug then
-    pprint("Spawner: spawned enemy => " .. enemy_id, "position => " .. position)
-  end
-
-  msg.post(enemy_id, Msg.Enemy.SPAWNED, {
-    position = position,
-  })
-  return enemy_id
+  return self:spawn_existing_enemy(enemy_id, position)
 end
 
 return M

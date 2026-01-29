@@ -4,13 +4,13 @@ local Table = require("utils.table")
 ---@field pool_size number
 ---@field available table
 ---@field in_use table
----@field spawner fun(i: number): any Function that creates a pooled item.
+---@field spawner fun(i: number, options: table?): any Function that creates a pooled item.
 local M = {}
 M.__index = M
 
 ---@class PoolerOptions
 ---@field pool_size number
----@field spawner fun(i: number): any Function that creates a pooled item.
+---@field spawner fun(i: number, options: table?): any Function that creates a pooled item.
 
 ---@param opts PoolerOptions
 ---@return table pool A new pool instance.
@@ -29,10 +29,11 @@ end
 
 ---Pre‑populate the pool with items created by the given factory.
 ---This is typically called once at startup to "warm" the pool.
+---@param options table? Options to pass to the spawner.
 ---@return table self Returns the pool instance for chaining.
-function M:spawn()
+function M:spawn(options)
   for i = 1, self.pool_size do
-    local item = self.spawner(i)
+    local item = self.spawner(i, options)
     table.insert(self.available, item)
   end
 
@@ -42,7 +43,6 @@ end
 ---Acquire an item from the pool.
 ---Moves the item from `available` to `in_use`.
 ---@return T|nil item The acquired item, or nil if the pool is empty.
----@return number? in_use_count The new number of in‑use items, or nil.
 function M:pull()
   local item = table.remove(self.available, 1)
 
@@ -51,7 +51,29 @@ function M:pull()
   end
 
   table.insert(self.in_use, item)
-  return item, #self.in_use
+  return item
+end
+
+---Acquire an item from the pool by its index.
+---@param index number
+---@return T|nil item The acquired item, or nil if the pool is empty.
+function M:pull_index(index)
+  local item = table.remove(self.available, index)
+  table.insert(self.in_use, item)
+  return item
+end
+
+---Acquire an item from the pool by its id.
+---@param id hash|url
+---@return T|nil item The acquired item, or nil if the pool is empty.
+function M:predicate_pull(callback)
+  for i, item in ipairs(self.available) do
+    if callback(item) then
+      return self:pull_index(i)
+    end
+  end
+
+  return nil
 end
 
 ---Release the oldest in‑use item back to the pool.
@@ -91,17 +113,17 @@ function M:push_index(index)
   return item
 end
 
----Acquire a specific item from the available collection.
----If the item is not currently available, this is a no‑op.
----@param item T The item to acquire from the pool.
-function M:pull_item(item)
-  local _, removed = Table.remove_value(self.available, item)
-
-  if not removed then
-    return
+---Release the item that matches a predicate.
+---@param callback fun(item: T): boolean Predicate that returns true for the desired item.
+---@return T|nil item The released item, or nil if none match the predicate.
+function M:predicate_push(callback)
+  for i, item in ipairs(self.in_use) do
+    if callback(item) then
+      return self:push_index(i)
+    end
   end
 
-  table.insert(self.in_use, item)
+  return nil
 end
 
 ---Get the number of available (free) items in the pool.
@@ -125,29 +147,32 @@ function M:reset()
   self.in_use = {}
 end
 
----Find the index of an in‑use item that matches a predicate.
----@param callback fun(item: T): boolean Predicate that returns true for the desired item.
----@return number? index Index within `in_use` if found, otherwise nil.
-function M:find_index(callback)
-  for i, item in ipairs(self.in_use) do
-    if callback(item) then
-      return i
-    end
-  end
-end
-
+---Set the size of the pool.
+---@param size number
+---@param options table? Options to pass to the spawner.
+---@return table self Returns the pool instance for chaining.
 function M:set_size(size)
   local old_size = self.pool_size
   self.pool_size = size
 
   if old_size < size then
     for i = old_size + 1, size do
-      local item = self.spawner(i)
+      local item = self.spawner(i, options)
       table.insert(self.available, item)
     end
   else
     -- TODO: Find a way to remove items from the pool.
   end
+end
+
+---Extend the pool with a specific number of items.
+---@return table self Returns the pool instance for chaining.
+function M:extend(options)
+  self.pool_size = self.pool_size + 1
+  local item = self.spawner(self.pool_size, options)
+  table.insert(self.in_use, item)
+
+  return item
 end
 
 -- Optional semantic aliases (non‑breaking):
