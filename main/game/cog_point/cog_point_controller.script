@@ -1,0 +1,92 @@
+local VMath = require("utils.vmath")
+local Msg = require("lib.msg")
+local Entity = require("utils.entity")
+
+local Urls = {
+	Body = "#body",
+	BodyTrigger = "#body_trigger",
+	Sprite = "#sprite",
+	-- External
+	GameController = "/controller#controller",
+}
+
+
+local function disabled_cog_point(self)
+	Entity.disable_body(Urls.Body)
+	Entity.disable_body(Urls.BodyTrigger)
+	Entity.hide_sprite(Urls.Sprite)
+	self.target = nil
+end
+
+local function enabled_cog_point(self)
+	Entity.enable_body(Urls.Body)
+	Entity.enable_body(Urls.BodyTrigger)
+	Entity.show_sprite(Urls.Sprite)
+end
+
+go.property("chase_speed", 100)
+go.property("value", 1)
+
+function init(self)
+	disabled_cog_point(self)
+end
+
+local DISTANCE_THRESHOLD = 5
+
+local function chase_target_pipe(self, dt)
+	if not self.target then return end
+
+	local position = go.get_position()
+	local target_position = go.get_position(self.target)
+	local distance = vmath.length(position - target_position)
+
+	if distance < DISTANCE_THRESHOLD then
+		msg.post(Urls.GameController, Msg.Game.PLAYER_COLLECT_POINT, {
+			value = self.value,
+			cog_point_id = go.get_id(),
+		})
+		disabled_cog_point(self)
+		return
+	end
+
+	local direction = vmath.normalize(target_position - position)
+
+	go.set(Urls.Body, "linear_velocity", direction * self.chase_speed)
+end
+
+function update(self, dt)
+	chase_target_pipe(self, dt)
+end
+
+local function on_trigger_response(self, message)
+	if not message.enter then return end
+
+	self.target = msg.url(message.other_id)
+	enabled_cog_point()
+end
+
+local function on_show_element(self, message)
+	enabled_cog_point(self)
+
+	if message.value then
+		self.value = message.value
+	end
+
+	if message.position then
+		go.set_position(message.position)
+		local random_direction = vmath.normalize(VMath.random_vector3(-1, 1))
+		local target_position = message.position + random_direction * 10
+		pprint("target_position", target_position, "message.position", message.position)
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, target_position, go.EASING_OUTCUBIC, 0.3, 0.1)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.HIDE_ELEMENT then
+		disabled_cog_point(self)
+	elseif message_id == Msg.SHOW_ELEMENT then
+		on_show_element(self, message)
+	elseif message_id == Msg.TRIGGER_RESPONSE then
+		on_trigger_response(self, message)
+	end
+end

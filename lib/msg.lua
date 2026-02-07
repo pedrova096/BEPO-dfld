@@ -49,6 +49,7 @@ local Game = {
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   PLAYER_LIFE_CHANGED = hash("player_life_changed"),
   SHOW_WIPE = hash("show_wipe"),
+  PLAYER_COLLECT_POINT = hash("player_collect_point"),
 }
 
 local Attacker = {

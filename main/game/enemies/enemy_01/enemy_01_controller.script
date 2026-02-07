@@ -91,6 +91,7 @@ end
 local function on_dead(self, message)
 	msg.post(Urls.GameController, Msg.Stager.ENEMY_KILLED, {
 		enemy_id = go.get_id(),
+		position = go.get_position(),
 	})
 end
 

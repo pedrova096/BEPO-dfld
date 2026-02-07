@@ -1,15 +1,28 @@
 local Msg = require("lib.msg")
+local Pooler = require("utils.pooler")
 
 local Urls = {
 	UIController = "/ui",
 	MainController = "main:/main_controller",
 	Factories = {
+		Cog = "/factories#cog_point_factory",
 		Stage_01 = "/stages_factory#stage_01_factory"
 	}
 }
 
+local function _spawn_cog(self, options)
+	local properties = options and options.value and { value = options.value } or nil
+	local position = options and options.position or vmath.vector3()
+
+	return factory.create(Urls.Factories.Cog, position, nil, properties)
+end
+
 function init(self)
 	self.current_stage = collectionfactory.create(Urls.Factories.Stage_01)
+	self.pool_cog = Pooler.new({
+		pool_size = 10,
+		spawner = _spawn_cog,
+	})
 end
 
 local function on_set_life_count(self, message)
@@ -31,10 +44,31 @@ end
 
 local function on_enemy_killed(self, message)
 	msg.post(self.current_stage["/root"], Msg.Stager.ENEMY_KILLED, message)
+
+	-- spawn cogs points
+	local random_cog_points = math.random(0, 2)
+	if random_cog_points > 0 then
+		for i = 1, random_cog_points do
+			local cog_id = self.pool_cog:pull()
+			pprint("cog pulled=> ", cog_id)
+			if not cog_id then
+				cog_id = self.pool_cog:extend()
+				pprint("cog extended=> ", cog_id)
+			end
+
+			msg.post(cog_id, Msg.SHOW_ELEMENT, {
+				position = message.position,
+			})
+		end
+	end
 end
 
 local function on_door_entered(self, message)
 	msg.post(Urls.UIController, Msg.Game.SHOW_WIPE)
+end
+
+local function on_player_collect_point(self, message)
+	self.pool_cog:push_item(message.cog_point_id)
 end
 
 function on_message(self, message_id, message, sender)
@@ -46,5 +80,7 @@ function on_message(self, message_id, message, sender)
 		on_enemy_killed(self, message)
 	elseif message_id == Msg.Stager.ENTER_DOOR then
 		on_door_entered(self, message)
+	elseif message_id == Msg.Game.PLAYER_COLLECT_POINT then
+		on_player_collect_point(self, message)
 	end
 end
