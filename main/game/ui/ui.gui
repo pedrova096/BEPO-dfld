@@ -87,7 +87,7 @@ nodes {
     z: 0.31
   }
   type: TYPE_BOX
-  id: "overlay"
+  id: "shop_modal"
   xanchor: XANCHOR_LEFT
   yanchor: YANCHOR_BOTTOM
   pivot: PIVOT_SW
@@ -113,7 +113,7 @@ nodes {
   yanchor: YANCHOR_BOTTOM
   pivot: PIVOT_SW
   adjust_mode: ADJUST_MODE_STRETCH
-  parent: "overlay"
+  parent: "shop_modal"
   size_mode: SIZE_MODE_AUTO
   visible: false
 }

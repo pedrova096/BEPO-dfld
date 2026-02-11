@@ -2,32 +2,35 @@ local Msg = require("lib.msg")
 local Pooler = require("utils.pooler")
 
 local Urls = {
-	UIController = "/ui",
-	MainController = "main:/main_controller",
 	Factories = {
-		Cog = "/factories#cog_point_factory",
+		Perrocoin = "/factories#perrocoin_cfactory",
 		Stage_01 = "/stages_factory#stage_01_factory"
-	}
+	},
+	-- External
+	UIController = "/ui",
+	Player = "/player/root",
+	MainController = "main:/main_controller",
 }
 
-local function _spawn_cog(self, options)
+local function _spawn_perrocoin(self, options)
 	local properties = options and options.value and { value = options.value } or nil
 	local position = options and options.position or vmath.vector3()
 
-	return factory.create(Urls.Factories.Cog, position, nil, properties)
+	local new_collection = collectionfactory.create(Urls.Factories.Perrocoin, position, nil, properties)
+	return new_collection["/root"]
 end
 
 function init(self)
 	self.current_stage = collectionfactory.create(Urls.Factories.Stage_01)
-	self.pool_cog = Pooler.new({
+	self.pool_perrocoin = Pooler.new({
 		pool_size = 10,
-		spawner = _spawn_cog,
+		spawner = _spawn_perrocoin,
 	})
 end
 
 local function on_set_life_count(self, message)
 	self.player_life_count = message.lives
-	msg.post(Urls.UIController, Msg.Game.PLAYER_SET_LIFE_COUNT, {
+	msg.post(Urls.UIController, Msg.UI.SET_LIFE_NODES, {
 		lives = self.player_life_count,
 	})
 end
@@ -35,7 +38,7 @@ end
 local function on_player_life_changed(self, message)
 	self._current_player_life_count = message.current_lives
 
-	msg.post(Urls.UIController, Msg.Game.PLAYER_LIFE_CHANGED, message)
+	msg.post(Urls.UIController, Msg.UI.LIFE_CHANGED, message)
 	if self._current_player_life_count == 0 then
 		msg.post(Urls.MainController, hash("game_over"))
 		return
@@ -46,17 +49,17 @@ local function on_enemy_killed(self, message)
 	msg.post(self.current_stage["/root"], Msg.Stager.ENEMY_KILLED, message)
 
 	-- spawn cogs points
-	local random_cog_points = math.random(0, 2)
-	if random_cog_points > 0 then
-		for i = 1, random_cog_points do
-			local cog_id = self.pool_cog:pull()
-			pprint("cog pulled=> ", cog_id)
-			if not cog_id then
-				cog_id = self.pool_cog:extend()
-				pprint("cog extended=> ", cog_id)
+	local random_perrocoins = math.random(0, 2)
+	if random_perrocoins > 0 then
+		for i = 1, random_perrocoins do
+			local perrocoin_id = self.pool_perrocoin:pull()
+			pprint("cog pulled=> ", perrocoin_id)
+			if not perrocoin_id then
+				perrocoin_id = self.pool_perrocoin:extend()
+				pprint("cog extended=> ", perrocoin_id)
 			end
 
-			msg.post(cog_id, Msg.SHOW_ELEMENT, {
+			msg.post(perrocoin_id, Msg.SHOW_ELEMENT, {
 				position = message.position,
 			})
 		end
@@ -64,11 +67,41 @@ local function on_enemy_killed(self, message)
 end
 
 local function on_door_entered(self, message)
-	msg.post(Urls.UIController, Msg.Game.SHOW_WIPE)
+	msg.post(Urls.UIController, Msg.UI.SHOW_WIPE)
 end
 
 local function on_player_collect_point(self, message)
-	self.pool_cog:push_item(message.cog_point_id)
+	self.pool_perrocoin:push_item(message.perrocoin_id)
+end
+
+local function on_point_expired(self, message)
+	self.pool_perrocoin:push_item(message.perrocoin_id)
+end
+
+local TIME_TO_SHOW_SHOP_MODAL = 0.5
+local TIME_TO_AUTO_COLLECT_POINT = TIME_TO_SHOW_SHOP_MODAL / 2
+local function on_open_chest(self, message)
+	msg.post(Urls.UIController, Msg.UI.DISABLE_BUTTON_ACTION)
+	msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
+	msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
+
+	local pending_perrocoins = self.pool_perrocoin.in_use
+	if #pending_perrocoins > 0 then
+		for _, perrocoin_id in ipairs(pending_perrocoins) do
+			msg.post(perrocoin_id, Msg.Game.AUTO_COLLECT_POINT, {
+				target = go.get_id(Urls.Player),
+				time = TIME_TO_AUTO_COLLECT_POINT,
+			})
+		end
+
+		timer.delay(TIME_TO_SHOW_SHOP_MODAL, false, function()
+			msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL)
+		end)
+
+		return
+	end
+
+	msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL)
 end
 
 function on_message(self, message_id, message, sender)
@@ -82,5 +115,9 @@ function on_message(self, message_id, message, sender)
 		on_door_entered(self, message)
 	elseif message_id == Msg.Game.PLAYER_COLLECT_POINT then
 		on_player_collect_point(self, message)
+	elseif message_id == Msg.Game.POINT_EXPIRED then
+		on_point_expired(self, message)
+	elseif message_id == Msg.Game.OPEN_CHEST then
+		on_open_chest(self, message)
 	end
 end

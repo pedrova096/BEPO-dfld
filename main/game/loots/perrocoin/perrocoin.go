@@ -1,15 +1,15 @@
 components {
   id: "controller"
-  component: "/main/game/cog_point/cog_point_controller.script"
+  component: "/main/game/loots/perrocoin/perrocoin_controller.script"
 }
 embedded_components {
   id: "sprite"
   type: "sprite"
-  data: "default_animation: \"idle\"\n"
+  data: "default_animation: \"perro_coin\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "textures {\n"
   "  sampler: \"texture_sampler\"\n"
-  "  texture: \"/assets/sprites/cog/cog_sm.tilesource\"\n"
+  "  texture: \"/assets/sprites/loots/loots.atlas\"\n"
   "}\n"
   ""
 }

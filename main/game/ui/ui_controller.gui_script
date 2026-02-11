@@ -17,6 +17,7 @@ local Urls = {
 	LifeNode = "life_node",
 	Footer = "footer",
 	Wipe = "wipe",
+	ShopModal = "shop_modal"
 }
 
 local ActionStates = {
@@ -36,11 +37,13 @@ function init(self)
 	self.original_move_controller_position = gui.get_position(move_controller_node)
 
 	self.move_zone_action = {
+		enabled = true,
 		touch_id = nil,
 		state = ActionStates.Idle,
 		position = vmath.vector3(0),
 	}
 	self.button_action = {
+		enabled = true,
 		touch_id = nil,
 		state = ActionStates.Idle,
 		position = vmath.vector3(0),
@@ -131,13 +134,36 @@ local function on_show_wipe(self, message)
 	})
 end
 
+local function on_toggle_move(self, enabled)
+	self.move_zone_action.enabled = enabled
+end
+
+local function on_toggle_button_action(self, enabled)
+	self.button_action.enabled = enabled
+end
+
+local function on_show_shop_modal(self, message)
+	local shop_modal_node = gui.get_node(Urls.ShopModal)
+	gui.set_enabled(shop_modal_node, true)
+end
+
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Game.PLAYER_SET_LIFE_COUNT then
+	if message_id == Msg.UI.SET_LIFE_NODES then
 		on_set_life_count(self, message)
-	elseif message_id == Msg.Game.PLAYER_LIFE_CHANGED then
+	elseif message_id == Msg.UI.LIFE_CHANGED then
 		on_player_life_changed(self, message)
-	elseif message_id == Msg.Game.SHOW_WIPE then
+	elseif message_id == Msg.UI.SHOW_WIPE then
 		on_show_wipe(self, message)
+	elseif message_id == Msg.UI.ENABLE_BUTTON_ACTION then
+		on_toggle_button_action(self, true)
+	elseif message_id == Msg.UI.DISABLE_BUTTON_ACTION then
+		on_toggle_button_action(self, false)
+	elseif message_id == Msg.UI.ENABLE_MOVE then
+		on_toggle_move(self, true)
+	elseif message_id == Msg.UI.DISABLE_MOVE then
+		on_toggle_move(self, false)
+	elseif message_id == Msg.UI.SHOW_SHOP_MODAL then
+		on_show_shop_modal(self, message)
 	end
 end
 
@@ -201,16 +227,20 @@ function on_input(self, action_id, action)
 		local move_zone_node = gui.get_node(Urls.MoveZone)
 		local button_node = gui.get_node(Urls.Button)
 
-		local touched = UtilsGUI.get_touched_by_node(move_zone_node, action)
-		if touched then
-			input_move_zone(self, touched)
-			handled = true
+		if self.move_zone_action.enabled then
+			local touched = UtilsGUI.get_touched_by_node(move_zone_node, action)
+			if touched then
+				input_move_zone(self, touched)
+				handled = true
+			end
 		end
 
-		local touched = UtilsGUI.get_touched_by_node(button_node, action)
-		if touched then
-			input_button(self, touched)
-			handled = true
+		if self.button_action.enabled then
+			local touched = UtilsGUI.get_touched_by_node(button_node, action)
+			if touched then
+				input_button(self, touched)
+				handled = true
+			end
 		end
 	end
 

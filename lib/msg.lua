@@ -48,8 +48,10 @@ local Game = {
   DISABLE_SPAWNER = hash("disable_spawner"),
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   PLAYER_LIFE_CHANGED = hash("player_life_changed"),
-  SHOW_WIPE = hash("show_wipe"),
   PLAYER_COLLECT_POINT = hash("player_collect_point"),
+  POINT_EXPIRED = hash("point_expired"),
+  AUTO_COLLECT_POINT = hash("auto_collect_point"),
+  OPEN_CHEST = hash("open_chest"),
 }
 
 local Attacker = {
@@ -66,6 +68,17 @@ local Main = {
   NEW_GAME = hash("new_game")
 }
 
+local UI = {
+  ENABLE_MOVE = hash("enable_move"),
+  DISABLE_MOVE = hash("disable_move"),
+  ENABLE_BUTTON_ACTION = hash("enable_button"),
+  DISABLE_BUTTON_ACTION = hash("disable_button"),
+  SHOW_WIPE = hash("show_wipe"),
+  SET_LIFE_NODES = hash("set_life_nodes"),
+  LIFE_CHANGED = hash("life_changed"), -- Split into added or removed
+  SHOW_SHOP_MODAL = hash("show_shop_modal"),
+}
+
 return {
   Attacker = Attacker,
   Bullet = Bullet,
@@ -75,6 +88,7 @@ return {
   Main = Main,
   Player = Player,
   Stager = Stager,
+  UI = UI,
   Weapon = Weapon,
   -- Globals
   APPLY_DAMAGE = hash("apply_damage"),

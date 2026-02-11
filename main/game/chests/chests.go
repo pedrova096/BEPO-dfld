@@ -1,15 +1,15 @@
 components {
   id: "controller"
-  component: "/main/game/boxes/boxes_controller.script"
+  component: "/main/game/chests/chests_controller.script"
 }
 embedded_components {
   id: "sprite"
   type: "sprite"
-  data: "default_animation: \"box_a\"\n"
+  data: "default_animation: \"chest_a\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "textures {\n"
   "  sampler: \"texture_sampler\"\n"
-  "  texture: \"/assets/sprites/boxes/boxes.atlas\"\n"
+  "  texture: \"/assets/sprites/chests/chests.atlas\"\n"
   "}\n"
   ""
   position {
@@ -49,7 +49,7 @@ embedded_components {
   "mass: 0.0\n"
   "friction: 0.1\n"
   "restitution: 0.5\n"
-  "group: \"box\"\n"
+  "group: \"chest_trigger\"\n"
   "mask: \"player\"\n"
   "embedded_collision_shape {\n"
   "  shapes {\n"

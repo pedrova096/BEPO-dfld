@@ -3,32 +3,35 @@ local Msg = require("lib.msg")
 local Entity = require("utils.entity")
 
 local Urls = {
-	Body = "#body",
-	BodyTrigger = "#body_trigger",
-	Sprite = "#sprite",
+	Body = "root#body",
+	BodyTrigger = "root#body_trigger",
+	Visual = "visual",
+	Sprite = "visual#sprite",
+	ShadowSprite = "shadow#sprite",
 	-- External
 	GameController = "/controller#controller",
 }
 
-
-local function disabled_cog_point(self)
+local function disabled_perrocoin(self)
 	Entity.disable_body(Urls.Body)
 	Entity.disable_body(Urls.BodyTrigger)
 	Entity.hide_sprite(Urls.Sprite)
+	Entity.hide_sprite(Urls.ShadowSprite)
 	self.target = nil
 end
 
-local function enabled_cog_point(self)
+local function enabled_perrocoin(self)
 	Entity.enable_body(Urls.Body)
 	Entity.enable_body(Urls.BodyTrigger)
 	Entity.show_sprite(Urls.Sprite)
+	Entity.show_sprite(Urls.ShadowSprite)
 end
 
 go.property("chase_speed", 100)
 go.property("value", 1)
 
 function init(self)
-	disabled_cog_point(self)
+	disabled_perrocoin(self)
 end
 
 local DISTANCE_THRESHOLD = 5
@@ -36,6 +39,7 @@ local DISTANCE_THRESHOLD = 5
 local function chase_target_pipe(self, dt)
 	if not self.target then return end
 
+	pprint("target", self.target)
 	local position = go.get_position()
 	local target_position = go.get_position(self.target)
 	local distance = vmath.length(position - target_position)
@@ -43,9 +47,9 @@ local function chase_target_pipe(self, dt)
 	if distance < DISTANCE_THRESHOLD then
 		msg.post(Urls.GameController, Msg.Game.PLAYER_COLLECT_POINT, {
 			value = self.value,
-			cog_point_id = go.get_id(),
+			perrocoin_id = go.get_id(),
 		})
-		disabled_cog_point(self)
+		disabled_perrocoin(self)
 		return
 	end
 
@@ -62,31 +66,50 @@ local function on_trigger_response(self, message)
 	if not message.enter then return end
 
 	self.target = msg.url(message.other_id)
-	enabled_cog_point()
+	enabled_perrocoin()
 end
 
 local function on_show_element(self, message)
-	enabled_cog_point(self)
+	enabled_perrocoin(self)
 
-	if message.value then
-		self.value = message.value
-	end
+	self.value = message.value or self.value
 
 	if message.position then
 		go.set_position(message.position)
-		local random_direction = vmath.normalize(VMath.random_vector3(-1, 1))
+		local random_direction = VMath.random_direction()
 		local target_position = message.position + random_direction * 10
-		pprint("target_position", target_position, "message.position", message.position)
-		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, target_position, go.EASING_OUTCUBIC, 0.3, 0.1)
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, target_position, go.EASING_OUTCUBIC, 0.3, 0.1, function()
+			go.set(Urls.Visual, "position.y", 10.0)
+			go.animate(
+				Urls.Visual,
+				"position.y",
+				go.PLAYBACK_LOOP_PINGPONG,
+				13.0,
+				go.EASING_INOUTSINE,
+				1.5,
+				math.random() / 10.0
+			)
+		end)
 	end
+end
+
+local function on_auto_collect_point(self, message)
+	self.target = message.target
+
+	local distance = vmath.length(go.get_position(self.target) - go.get_position())
+	local time = message.time
+
+	self.chase_speed = distance / time
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.HIDE_ELEMENT then
-		disabled_cog_point(self)
+		disabled_perrocoin(self)
 	elseif message_id == Msg.SHOW_ELEMENT then
 		on_show_element(self, message)
 	elseif message_id == Msg.TRIGGER_RESPONSE then
 		on_trigger_response(self, message)
+	elseif message_id == Msg.Game.AUTO_COLLECT_POINT then
+		on_auto_collect_point(self, message)
 	end
 end

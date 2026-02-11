@@ -1,0 +1,29 @@
+animations {
+  id: "chest_a_shine"
+  images {
+    image: "/assets/sprites/chests/chest_a1.png"
+    pivot_y: 1.0
+  }
+  images {
+    image: "/assets/sprites/chests/chest_a2.png"
+    pivot_y: 1.0
+  }
+  images {
+    image: "/assets/sprites/chests/chest_a3.png"
+    pivot_y: 1.0
+  }
+  images {
+    image: "/assets/sprites/chests/chest_a4.png"
+    pivot_y: 1.0
+  }
+  fps: 12
+}
+animations {
+  id: "chest_a"
+  images {
+    image: "/assets/sprites/chests/chest_a4.png"
+    pivot_y: 1.0
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+}
+extrude_borders: 2
