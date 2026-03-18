@@ -12,12 +12,21 @@ local Urls = {
 	GameController = "/controller#controller",
 }
 
+local function clear_life_timer(self)
+	if not self.current_life_timer then return end
+
+	timer.cancel(self.current_life_timer)
+	self.current_life_timer = nil
+end
+
 local function disabled_perrocoin(self)
 	Entity.disable_body(Urls.Body)
 	Entity.disable_body(Urls.BodyTrigger)
 	Entity.hide_sprite(Urls.Sprite)
 	Entity.hide_sprite(Urls.ShadowSprite)
 	self.target = nil
+
+	clear_life_timer(self)
 end
 
 local function enabled_perrocoin(self)
@@ -25,10 +34,26 @@ local function enabled_perrocoin(self)
 	Entity.enable_body(Urls.BodyTrigger)
 	Entity.show_sprite(Urls.Sprite)
 	Entity.show_sprite(Urls.ShadowSprite)
+
+	self.current_chase_speed = self.chase_speed
+	sprite.play_flipbook(Urls.Sprite, "perrocoin")
+	self.current_life_timer = timer.delay(
+		self.life_time,
+		false,
+		function()
+			sprite.play_flipbook(Urls.Sprite, "perrocoin_disappear", function()
+				msg.post(Urls.GameController, Msg.Game.PERROCOIN_EXPIRED, {
+					perrocoin_id = go.get_id(),
+				})
+				disabled_perrocoin(self)
+			end)
+		end
+	)
 end
 
 go.property("chase_speed", 100)
 go.property("value", 1)
+go.property("life_time", 3)
 
 function init(self)
 	disabled_perrocoin(self)
@@ -39,13 +64,12 @@ local DISTANCE_THRESHOLD = 5
 local function chase_target_pipe(self, dt)
 	if not self.target then return end
 
-	pprint("target", self.target)
 	local position = go.get_position()
 	local target_position = go.get_position(self.target)
 	local distance = vmath.length(position - target_position)
 
 	if distance < DISTANCE_THRESHOLD then
-		msg.post(Urls.GameController, Msg.Game.PLAYER_COLLECT_POINT, {
+		msg.post(Urls.GameController, Msg.Game.PERROCOIN_PICKED, {
 			value = self.value,
 			perrocoin_id = go.get_id(),
 		})
@@ -55,7 +79,7 @@ local function chase_target_pipe(self, dt)
 
 	local direction = vmath.normalize(target_position - position)
 
-	go.set(Urls.Body, "linear_velocity", direction * self.chase_speed)
+	go.set(Urls.Body, "linear_velocity", direction * self.current_chase_speed)
 end
 
 function update(self, dt)
@@ -66,7 +90,6 @@ local function on_trigger_response(self, message)
 	if not message.enter then return end
 
 	self.target = msg.url(message.other_id)
-	enabled_perrocoin()
 end
 
 local function on_show_element(self, message)
@@ -94,12 +117,14 @@ local function on_show_element(self, message)
 end
 
 local function on_auto_collect_point(self, message)
+	clear_life_timer(self)
+
 	self.target = message.target
 
 	local distance = vmath.length(go.get_position(self.target) - go.get_position())
 	local time = message.time
 
-	self.chase_speed = distance / time
+	self.current_chase_speed = math.max(distance / time, self.chase_speed)
 end
 
 function on_message(self, message_id, message, sender)

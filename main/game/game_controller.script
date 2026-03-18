@@ -12,6 +12,12 @@ local Urls = {
 	MainController = "main:/main_controller",
 }
 
+local StatesEnum = {
+	Active = 1,
+	Paused = 2,
+	AutoCollect = 3,
+}
+
 local function _spawn_perrocoin(self, options)
 	local properties = options and options.value and { value = options.value } or nil
 	local position = options and options.position or vmath.vector3()
@@ -26,6 +32,8 @@ function init(self)
 		pool_size = 10,
 		spawner = _spawn_perrocoin,
 	})
+
+	self.state = StatesEnum.Active
 end
 
 local function on_set_life_count(self, message)
@@ -53,10 +61,8 @@ local function on_enemy_killed(self, message)
 	if random_perrocoins > 0 then
 		for i = 1, random_perrocoins do
 			local perrocoin_id = self.pool_perrocoin:pull()
-			pprint("cog pulled=> ", perrocoin_id)
 			if not perrocoin_id then
 				perrocoin_id = self.pool_perrocoin:extend()
-				pprint("cog extended=> ", perrocoin_id)
 			end
 
 			msg.post(perrocoin_id, Msg.SHOW_ELEMENT, {
@@ -70,15 +76,15 @@ local function on_door_entered(self, message)
 	msg.post(Urls.UIController, Msg.UI.SHOW_WIPE)
 end
 
-local function on_player_collect_point(self, message)
+local function on_perrocoin_picked(self, message)
 	self.pool_perrocoin:push_item(message.perrocoin_id)
 end
 
-local function on_point_expired(self, message)
+local function on_perrocoin_expired(self, message)
 	self.pool_perrocoin:push_item(message.perrocoin_id)
 end
 
-local TIME_TO_SHOW_SHOP_MODAL = 0.5
+local TIME_TO_SHOW_SHOP_MODAL = 0.3
 local TIME_TO_AUTO_COLLECT_POINT = TIME_TO_SHOW_SHOP_MODAL / 2
 local function on_open_chest(self, message)
 	msg.post(Urls.UIController, Msg.UI.DISABLE_BUTTON_ACTION)
@@ -113,10 +119,10 @@ function on_message(self, message_id, message, sender)
 		on_enemy_killed(self, message)
 	elseif message_id == Msg.Stager.ENTER_DOOR then
 		on_door_entered(self, message)
-	elseif message_id == Msg.Game.PLAYER_COLLECT_POINT then
-		on_player_collect_point(self, message)
-	elseif message_id == Msg.Game.POINT_EXPIRED then
-		on_point_expired(self, message)
+	elseif message_id == Msg.Game.PERROCOIN_PICKED then
+		on_perrocoin_picked(self, message)
+	elseif message_id == Msg.Game.PERROCOIN_EXPIRED then
+		on_perrocoin_expired(self, message)
 	elseif message_id == Msg.Game.OPEN_CHEST then
 		on_open_chest(self, message)
 	end

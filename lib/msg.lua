@@ -48,8 +48,8 @@ local Game = {
   DISABLE_SPAWNER = hash("disable_spawner"),
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   PLAYER_LIFE_CHANGED = hash("player_life_changed"),
-  PLAYER_COLLECT_POINT = hash("player_collect_point"),
-  POINT_EXPIRED = hash("point_expired"),
+  PERROCOIN_PICKED = hash("perrocoin_picked"),
+  PERROCOIN_EXPIRED = hash("perrocoin_expired"),
   AUTO_COLLECT_POINT = hash("auto_collect_point"),
   OPEN_CHEST = hash("open_chest"),
 }

@@ -93,7 +93,7 @@ embedded_instances {
   data: "embedded_components {\n"
   "  id: \"sprite\"\n"
   "  type: \"sprite\"\n"
-  "  data: \"default_animation: \\\"perro_coin\\\"\\n"
+  "  data: \"default_animation: \\\"perrocoin\\\"\\n"
   "material: \\\"/builtins/materials/sprite.material\\\"\\n"
   "size {\\n"
   "  x: 16.0\\n"

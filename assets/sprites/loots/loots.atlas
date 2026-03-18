@@ -1,4 +1,20 @@
 images {
-  image: "/assets/sprites/loots/perro_coin.png"
+  image: "/assets/sprites/loots/perrocoin.png"
+}
+animations {
+  id: "perrocoin_disappear"
+  images {
+    image: "/assets/sprites/loots/perrocoin_disappear/perrocoin_disappear1.png"
+  }
+  images {
+    image: "/assets/sprites/loots/perrocoin_disappear/perrocoin_disappear2.png"
+  }
+  images {
+    image: "/assets/sprites/loots/perrocoin_disappear/perrocoin_disappear3.png"
+  }
+  images {
+    image: "/assets/sprites/loots/perrocoin_disappear/perrocoin_disappear4.png"
+  }
+  fps: 12
 }
 extrude_borders: 2
