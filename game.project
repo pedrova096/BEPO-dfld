@@ -31,3 +31,8 @@ scale = 0.1
 max_collision_object_count = 256
 max_collisions = 128
 
+[sound]
+max_sound_buffers = 64
+max_sound_sources = 24
+max_sound_data = 192
+

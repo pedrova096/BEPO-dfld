@@ -1,0 +1,134 @@
+local Msg         = require("lib.msg")
+local ManualTimer = require("lib.manual_timer")
+
+-- SFX: hash("id") -> component URL
+local SoundComponents = {
+  [hash("steps")] = "#snd_steps",
+  -- [hash("hurt")]         = "#snd_hurt",
+  -- [hash("enemy_kill")]   = "#snd_enemy_kill",
+  -- [hash("bullet")]       = "#snd_bullet",
+  -- [hash("coin")]         = "#snd_coin",
+  -- [hash("chest")]        = "#snd_chest",
+  -- [hash("door")]         = "#snd_door",
+}
+
+-- SFX config: can_overlap, cooldown (s), looping, loop_interval (s)
+local SoundConfig = {
+  [hash("steps")] = { can_overlap = false, cooldown = 0, looping = true, loop_interval = 0.14 },
+  -- [hash("hurt")]         = { can_overlap = false, cooldown = 0.3,  looping = false },
+  -- [hash("enemy_kill")]   = { can_overlap = true,  cooldown = 0,    looping = false },
+  -- [hash("bullet")]       = { can_overlap = false, cooldown = 0.05, looping = false },
+  -- [hash("coin")]         = { can_overlap = true,  cooldown = 0,    looping = false },
+  -- [hash("chest")]        = { can_overlap = false, cooldown = 0.5,  looping = false },
+  -- [hash("door")]         = { can_overlap = false, cooldown = 0.5,  looping = false },
+}
+
+-- Music: hash("id") -> component URL
+local MusicComponents = {
+  -- [hash("theme_01")] = "#mus_theme_01",
+}
+
+local function apply_sound(component, message)
+  -- go.set(component, "pan", message.pan or 0)
+  local opts = {}
+  if message.gain then opts.gain = message.gain end
+  return opts
+end
+
+local function play_looping_sound(self, id, component, config, message)
+  if self.playing_loops[id] then return end
+
+  self.playing_loops[id] = true
+
+  local opts = apply_sound(component, message)
+  sound.play(component, opts)
+
+  local t = ManualTimer:new({ interval = config.loop_interval or 0.35 })
+  t:start()
+  self.loop_timers[id] = { timer = t, component = component, opts = opts }
+end
+
+local function play_once_sound(self, id, component, config, message)
+  local now  = socket.gettime()
+  local last = self.last_played[id] or 0
+  if not config.can_overlap and (now - last) < config.cooldown then return end
+  self.last_played[id] = now
+  local opts = apply_sound(component, message)
+  sound.play(component, opts)
+end
+
+function init(self)
+  self.last_played   = {}  -- [hash_id] = socket.gettime() timestamp
+  self.playing_loops = {}  -- [hash_id] = true while actively looping
+  self.loop_timers   = {}  -- [hash_id] = { timer, component, opts }
+  self.current_music = nil -- hash_id of currently playing music
+  msg.post(".", "acquire_input_focus")
+end
+
+function update(self, dt)
+  for id, entry in pairs(self.loop_timers) do
+    if entry.timer:update(dt) then
+      sound.play(entry.component, entry.opts)
+    end
+  end
+end
+
+local function on_play_sfx_sound(self, message)
+  local id = message.id
+  local component = SoundComponents[id]
+  if not component then return end
+
+  local config = SoundConfig[id] or { can_overlap = true, cooldown = 0, looping = false }
+
+  if config.looping then
+    play_looping_sound(self, id, component, config, message)
+    return
+  end
+
+  play_once_sound(self, id, component, config, message)
+end
+
+local function on_stop_sfx_sound(self, message)
+  local id = message.id
+  local component = SoundComponents[id]
+  if not component then return end
+  self.playing_loops[id] = nil
+  if self.loop_timers[id] then
+    self.loop_timers[id].timer:stop()
+    self.loop_timers[id] = nil
+  end
+  sound.stop(component)
+end
+
+local function on_stop_all_sfx(self)
+  for id, component in pairs(SoundComponents) do
+    sound.stop(component)
+    self.playing_loops[id] = nil
+    if self.loop_timers[id] then
+      self.loop_timers[id].timer:stop()
+      self.loop_timers[id] = nil
+    end
+  end
+end
+
+local steps_id = hash("steps")
+function on_input(self, action_id, action)
+  if action_id == hash("debug_step_interval") and action.pressed then
+    local config = SoundConfig[steps_id]
+    config.loop_interval = config.loop_interval - 0.01
+    if self.loop_timers[steps_id] then
+      self.loop_timers[steps_id].timer:set_interval(config.loop_interval)
+    end
+    print("steps loop_interval:", config.loop_interval)
+  end
+end
+
+function on_message(self, message_id, message, sender)
+  if message_id == Msg.Sound.PLAY_SFX_SOUND then
+    on_play_sfx_sound(self, message)
+  elseif message_id == Msg.Sound.STOP_SFX_SOUND then
+    on_stop_sfx_sound(self, message)
+  elseif message_id == Msg.Sound.STOP_ALL_SFX then
+    on_stop_all_sfx(self)
+  end
+end

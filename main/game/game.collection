@@ -6,6 +6,10 @@ instances {
     z: 100.0
   }
 }
+instances {
+  id: "sound_controller"
+  prototype: "/main/game/sound/sound_controller.go"
+}
 collection_instances {
   id: "player"
   collection: "/main/game/player/player_composer.collection"

@@ -10,6 +10,7 @@ local Urls = {
 	UIController = "/ui",
 	Player = "/player/root",
 	MainController = "main:/main_controller",
+	SoundController = "/sound_controller",
 }
 
 local StatesEnum = {

@@ -68,6 +68,14 @@ local Main = {
   NEW_GAME = hash("new_game")
 }
 
+local Sound = {
+  PLAY_SFX_SOUND = hash("play_sfx_sound"),
+  STOP_SFX_SOUND = hash("stop_sfx_sound"),
+  STOP_ALL_SFX = hash("stop_all_sfx"),
+  MUTE = hash("sound_mute"),
+  UNMUTE = hash("sound_unmute"),
+}
+
 local UI = {
   ENABLE_MOVE = hash("enable_move"),
   DISABLE_MOVE = hash("disable_move"),
@@ -87,6 +95,7 @@ return {
   Game = Game,
   Main = Main,
   Player = Player,
+  Sound = Sound,
   Stager = Stager,
   UI = UI,
   Weapon = Weapon,

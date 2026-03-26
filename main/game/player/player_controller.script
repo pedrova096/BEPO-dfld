@@ -7,6 +7,7 @@ local Urls = {
 	Camera = "/camera",
 	Weapon = "weapon#controller",
 	GameController = "/controller",
+	SoundController = "/sound_controller",
 }
 local TriggerStatusEnum = {
 	Pressed = hash("pressed"),
@@ -83,6 +84,7 @@ local function on_move_pressed(self, message)
 	self.stater:apply_transition(StatesEnum.Move, {
 		direction = direction,
 	})
+	msg.post(Urls.SoundController, Msg.Sound.PLAY_SFX_SOUND, { id = hash("steps"), random_pitch = true })
 end
 
 local function on_move_released(self, message)
@@ -91,6 +93,7 @@ local function on_move_released(self, message)
 	end
 
 	self.stater.movement_active = false
+	msg.post(Urls.SoundController, Msg.Sound.STOP_SFX_SOUND, { id = hash("steps") })
 end
 
 local function on_apply_damage(self, message)

@@ -28,6 +28,7 @@ embedded_components {
   "  data: 17.5\n"
   "  data: 0.5\n"
   "}\n"
+  "event_trigger: false\n"
   ""
 }
 embedded_components {
