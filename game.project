@@ -18,6 +18,7 @@ scale_mode = stretch
 
 [project]
 title = BEPO
+dependencies#0 = https://github.com/KorolevSoftware/defold-faststream/archive/main.zip
 
 [graphics]
 default_texture_min_filter = nearest

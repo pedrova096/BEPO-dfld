@@ -32,6 +32,7 @@ local Stages = {}
 
 ---@type StagesConfig
 Stages[hash("Stage00")] = {
+  upgrade_type = hash("super_action"),
   inter_wave_delay = 2.0,
   waves = {
     -- Wave 1: Budget-based wave with basic enemies
@@ -61,6 +62,7 @@ Stages[hash("Stage00")] = {
 
 ---@type StagesConfig
 Stages[hash("Stage01")] = {
+  upgrade_type = hash("TODO"),
   inter_wave_delay = 2.0,
   waves = {
     -- Wave 1: Budget-based wave with basic enemies
@@ -133,6 +135,7 @@ Stages[hash("Stage01")] = {
 
 ---@type StagesConfig
 Stages[hash("Stage02_TimeLimited")] = {
+  upgrade_type = hash("TODO"),
   time_limit = 60, -- 60 seconds survival
   waves = {
     {
@@ -160,6 +163,7 @@ Stages[hash("Stage02_TimeLimited")] = {
 
 ---@type StagesConfig
 Stages[hash("Stage03_BossKill")] = {
+  upgrade_type = hash("TODO"),
   inter_wave_delay = 3.0,
   waves = {
     -- Pre-boss wave

@@ -1,0 +1,4 @@
+images {
+  image: "/assets/sprites/vending_machine/vending_machine.png"
+  pivot_y: 1.0
+}

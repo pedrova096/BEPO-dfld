@@ -14,7 +14,9 @@
   "Lua.workspace.library": [
     "~/.config/Cursor/User/globalStorage/astronachos.defold",
     "~/.config/Code/User/globalStorage/astronachos.defold",
-    "~/.config/Code/User/workspaceStorage/39f52268173e0facbb5f77bbba89f376/astronachos.defold"
+    "~/.config/Code/User/workspaceStorage/39f52268173e0facbb5f77bbba89f376/astronachos.defold",
+    "~/.config/Cursor/User/workspaceStorage/93c883c44d90647edecaf009f5d73be0/astronachos.defold",
+    "~/.config/Code/User/workspaceStorage/93c883c44d90647edecaf009f5d73be0/astronachos.defold"
   ],
   "files.associations": {
     "*.project": "ini",

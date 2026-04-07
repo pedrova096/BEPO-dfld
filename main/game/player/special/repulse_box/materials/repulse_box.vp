@@ -1,0 +1,21 @@
+#version 140
+
+in vec3 position;
+in vec2 texcoord0;
+in vec4 tint;
+
+uniform vp_uniforms
+{
+    mat4 world_view_proj;
+    vec4 uv_opts;
+};
+
+out mediump vec2 var_texcoord0;
+out mediump vec4 var_tint;
+
+void main() {
+    // Pre-multiply alpha since all runtime textures already are
+    var_tint = vec4(tint.xyz * tint.w, tint.w);
+    var_texcoord0 = vec2(texcoord0.x, texcoord0.y * uv_opts.x);
+    gl_Position = world_view_proj * vec4(position, 1.0);
+}

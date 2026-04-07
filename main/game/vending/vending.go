@@ -1,15 +1,15 @@
 components {
   id: "controller"
-  component: "/main/game/chests/chests_controller.script"
+  component: "/main/game/vending/vending.script"
 }
 embedded_components {
   id: "sprite"
   type: "sprite"
-  data: "default_animation: \"chest_a\"\n"
+  data: "default_animation: \"vending_machine\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "textures {\n"
   "  sampler: \"texture_sampler\"\n"
-  "  texture: \"/assets/sprites/chests/chests.atlas\"\n"
+  "  texture: \"/assets/sprites/vending_machine/vending.atlas\"\n"
   "}\n"
   ""
   position {
@@ -49,7 +49,7 @@ embedded_components {
   "mass: 0.0\n"
   "friction: 0.1\n"
   "restitution: 0.5\n"
-  "group: \"chest_trigger\"\n"
+  "group: \"vending_trigger\"\n"
   "mask: \"player\"\n"
   "embedded_collision_shape {\n"
   "  shapes {\n"
@@ -62,8 +62,8 @@ embedded_components {
   "    index: 0\n"
   "    count: 3\n"
   "  }\n"
-  "  data: 6.0\n"
-  "  data: 5.0\n"
+  "  data: 12.0\n"
+  "  data: 8.0\n"
   "  data: 10.0\n"
   "}\n"
   ""

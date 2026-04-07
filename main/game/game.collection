@@ -58,5 +58,11 @@ embedded_instances {
   "  data: \"prototype: \\\"/main/game/loots/perrocoin/perrocoin_composer.collection\\\"\\n"
   "\"\n"
   "}\n"
+  "embedded_components {\n"
+  "  id: \"vending_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/main/game/vending/vending.go\\\"\\n"
+  "\"\n"
+  "}\n"
   ""
 }

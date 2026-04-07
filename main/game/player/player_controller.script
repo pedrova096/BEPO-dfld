@@ -8,7 +8,9 @@ local Urls = {
 	Weapon = "weapon#controller",
 	GameController = "/controller",
 	SoundController = "/sound_controller",
+	SpecialFactories = "special_factories",
 }
+
 local TriggerStatusEnum = {
 	Pressed = hash("pressed"),
 	Released = hash("released"),
@@ -119,6 +121,12 @@ local function on_target_enemies(self, message)
 	self.target_enemies = message.enemies
 end
 
+local function on_set_super_action(self, message)
+	local special_factory = "#" .. message.id .. "_factory"
+	self.super_action_id = factory.create(Urls.SpecialFactories .. special_factory)
+	pprint("Urls.SpecialFactories .. special_factory", Urls.SpecialFactories .. special_factory)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Player.MOVE_PRESSED then
 		on_move_pressed(self, message)
@@ -128,6 +136,8 @@ function on_message(self, message_id, message, sender)
 		on_apply_damage(self, message)
 	elseif message_id == Msg.Player.TARGET_ENEMIES then
 		on_target_enemies(self, message)
+	elseif message_id == Msg.Player.SET_SUPER_ACTION then
+		on_set_super_action(self, message)
 	end
 end
 

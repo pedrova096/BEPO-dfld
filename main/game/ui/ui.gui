@@ -139,6 +139,7 @@ nodes {
     z: 4.0
     w: 8.0
   }
+  enabled: false
 }
 nodes {
   position {
@@ -218,6 +219,7 @@ nodes {
     z: 4.0
     w: 8.0
   }
+  enabled: false
 }
 nodes {
   position {
@@ -297,6 +299,7 @@ nodes {
     z: 4.0
     w: 8.0
   }
+  enabled: false
 }
 nodes {
   position {

@@ -4,7 +4,8 @@ local Pooler = require("utils.pooler")
 local Urls = {
 	Factories = {
 		Perrocoin = "/factories#perrocoin_cfactory",
-		Stage_01 = "/stages_factory#stage_01_factory"
+		Stage_01 = "/stages_factory#stage_01_factory",
+		VendingMachine = "/factories#vending_factory",
 	},
 	-- External
 	UIController = "/ui",
@@ -87,7 +88,7 @@ end
 
 local TIME_TO_SHOW_SHOP_MODAL = 0.3
 local TIME_TO_AUTO_COLLECT_POINT = TIME_TO_SHOW_SHOP_MODAL / 2
-local function on_open_chest(self, message)
+local function on_open_vending(self, message)
 	msg.post(Urls.UIController, Msg.UI.DISABLE_BUTTON_ACTION)
 	msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
 	msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
@@ -95,20 +96,35 @@ local function on_open_chest(self, message)
 	local pending_perrocoins = self.pool_perrocoin.in_use
 	if #pending_perrocoins > 0 then
 		for _, perrocoin_id in ipairs(pending_perrocoins) do
+			-- TODO: refactor this
 			msg.post(perrocoin_id, Msg.Game.AUTO_COLLECT_POINT, {
 				target = go.get_id(Urls.Player),
 				time = TIME_TO_AUTO_COLLECT_POINT,
 			})
 		end
 
+		local upgrade_type = message.upgrade_type
 		timer.delay(TIME_TO_SHOW_SHOP_MODAL, false, function()
-			msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL)
+			msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL, { upgrade_type = upgrade_type })
 		end)
 
 		return
 	end
 
-	msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL)
+	msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL, { upgrade_type = message.upgrade_type })
+end
+
+local function on_spawn_vending(self, message)
+	self.vending_id = factory.create(Urls.Factories.VendingMachine, message.position, nil, {
+		upgrade_type = message.upgrade_type,
+	})
+end
+
+local function on_upgrade_chosen(self, message)
+	if not self.vending_id then return end
+
+	msg.post(self.vending_id, Msg.Vending.DISAPPEAR)
+	self.vending_id = nil
 end
 
 function on_message(self, message_id, message, sender)
@@ -124,7 +140,11 @@ function on_message(self, message_id, message, sender)
 		on_perrocoin_picked(self, message)
 	elseif message_id == Msg.Game.PERROCOIN_EXPIRED then
 		on_perrocoin_expired(self, message)
-	elseif message_id == Msg.Game.OPEN_CHEST then
-		on_open_chest(self, message)
+	elseif message_id == Msg.Game.OPEN_VENDING then
+		on_open_vending(self, message)
+	elseif message_id == Msg.Stager.SPAWN_VENDING then
+		on_spawn_vending(self, message)
+	elseif message_id == Msg.Game.UPGRADE_CHOSEN then
+		on_upgrade_chosen(self, message)
 	end
 end

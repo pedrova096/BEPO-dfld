@@ -1,6 +1,7 @@
 local LimitStateTimer = require("lib.stater.limit_state_timer")
 local UtilsGUI = require("utils.utils_gui")
 local Msg = require("lib.msg")
+local SuperActionOptions = require("main.game.ui.super_actions")
 
 local ActionIds = {
 	TouchMulti = hash("touch_multi"),
@@ -17,7 +18,12 @@ local Urls = {
 	LifeNode = "life_node",
 	Footer = "footer",
 	Wipe = "wipe",
-	ShopModal = "shop_modal"
+	ShopModal = "shop_modal",
+	UpgradeContainer = "upgrade_container",
+}
+
+local UpgradeTypes = {
+	SuperAction = hash("super_action"),
 }
 
 local ActionStates = {
@@ -43,7 +49,7 @@ function init(self)
 		position = vmath.vector3(0),
 	}
 	self.button_action = {
-		enabled = true,
+		enabled = false,
 		touch_id = nil,
 		state = ActionStates.Idle,
 		position = vmath.vector3(0),
@@ -51,8 +57,14 @@ function init(self)
 	}
 
 	self.direction_keyboard = vmath.vector3(0)
+	self.upgrade_container_origin = gui.get_position(gui.get_node(Urls.UpgradeContainer))
 
 	self.life_nodes = {}
+	self.has_super_action = false
+	self.upgrade_options_active = false
+
+	-- button is hidden until the player gets a super_action
+	gui.set_enabled(button_node, false)
 end
 
 function final(self)
@@ -142,9 +154,97 @@ local function on_toggle_button_action(self, enabled)
 	self.button_action.enabled = enabled
 end
 
+local UPGRADE_NODES = { "upgrade_a", "upgrade_b", "upgrade_c" }
+local SLIDE_OFFSET_X = 120
+local SLIDE_DURATION = 0.35
+local SLIDE_STAGGER = 0.12
+local MODAL_VISIBLE_ALPHA = 0.75
+local MODAL_DISMISS_FADE_DURATION = 0.22
+local UPGRADE_DISMISS_OFFSET_Y = -84
+local UPGRADE_DISMISS_DURATION = 0.22
+local function upgrade_chosen(self, upgrade)
+	local shop_modal_node = gui.get_node(Urls.ShopModal)
+	local upgrade_container_node = gui.get_node(Urls.UpgradeContainer)
+	local current_upgrade_container_position = gui.get_position(upgrade_container_node)
+
+	gui.cancel_animations(shop_modal_node, "color.w")
+	gui.cancel_animations(upgrade_container_node, "position.y")
+
+	gui.animate(shop_modal_node, "color.w", 0, gui.EASING_INOUTQUAD, MODAL_DISMISS_FADE_DURATION)
+	gui.animate(upgrade_container_node, "position.y", current_upgrade_container_position.y + UPGRADE_DISMISS_OFFSET_Y,
+		gui.EASING_INQUAD, UPGRADE_DISMISS_DURATION, 0, function()
+			gui.set_enabled(shop_modal_node, false)
+			gui.set_alpha(shop_modal_node, MODAL_VISIBLE_ALPHA)
+			for _, node_id in ipairs(UPGRADE_NODES) do
+				local node = gui.get_node(node_id)
+				gui.set_enabled(node, false)
+			end
+		end)
+
+	self.upgrade_options_active = false
+	self.has_super_action = true
+
+	-- re-enable player controls
+	self.move_zone_action.enabled = true
+	self.button_action.enabled = true
+
+	-- show the button
+	local button_node = gui.get_node(Urls.Button)
+	gui.set_enabled(button_node, true)
+
+	msg.post(Urls.GameController, Msg.Game.UPGRADE_CHOSEN, { upgrade = upgrade })
+	if upgrade.type == UpgradeTypes.SuperAction then
+		msg.post(Urls.PlayerController, Msg.Player.SET_SUPER_ACTION, { id = upgrade.id })
+	end
+end
+local function show_super_action_selection(self)
+	local options = SuperActionOptions
+	local upgrade_container_node = gui.get_node(Urls.UpgradeContainer)
+
+	gui.set_position(upgrade_container_node, self.upgrade_container_origin)
+
+	if #options > #UPGRADE_NODES then
+		print("[ui_controller] not enough upgrade nodes for options!")
+		return
+	end
+
+	for i, option in ipairs(options) do
+		local node = gui.get_node(UPGRADE_NODES[i])
+		local title_node = gui.get_node(option.title_node)
+		local desc_node = gui.get_node(option.desc_node)
+
+		gui.set_enabled(node, true)
+		gui.set_text(title_node, option.title)
+		gui.set_text(desc_node, option.description)
+
+		-- set up slide start state
+		local orig_pos = gui.get_position(node)
+		gui.set_position(node, vmath.vector3(orig_pos.x + SLIDE_OFFSET_X, orig_pos.y, orig_pos.z))
+		gui.set_alpha(node, 0)
+
+		local delay = (i - 1) * SLIDE_STAGGER
+		local is_last = (i == #options)
+
+		gui.animate(node, "position.x", orig_pos.x, gui.EASING_OUTQUART, SLIDE_DURATION, delay)
+		gui.animate(node, "color.w", 1, gui.EASING_LINEAR, SLIDE_DURATION, delay, function()
+			if is_last then
+				self.upgrade_options_active = true
+			end
+		end)
+	end
+end
+
 local function on_show_shop_modal(self, message)
 	local shop_modal_node = gui.get_node(Urls.ShopModal)
+	gui.set_alpha(shop_modal_node, MODAL_VISIBLE_ALPHA)
 	gui.set_enabled(shop_modal_node, true)
+
+	local upgrade_type = message and message.upgrade_type
+	if upgrade_type == hash("super_action") then
+		show_super_action_selection(self)
+	else
+		print("[ui_controller] upgrade_type not implemented: " .. tostring(upgrade_type))
+	end
 end
 
 function on_message(self, message_id, message, sender)
@@ -226,6 +326,19 @@ function on_input(self, action_id, action)
 	if action_id == ActionIds.TouchMulti or action_id == ActionIds.Touch then
 		local move_zone_node = gui.get_node(Urls.MoveZone)
 		local button_node = gui.get_node(Urls.Button)
+
+		if self.upgrade_options_active then
+			for _, option in ipairs(SuperActionOptions) do
+				local node = gui.get_node(option.node)
+				local touched = UtilsGUI.get_touched_by_node(node, action)
+				if touched and touched.pressed then
+					upgrade_chosen(self, option)
+					handled = true
+					break
+				end
+			end
+			return handled
+		end
 
 		if self.move_zone_action.enabled then
 			local touched = UtilsGUI.get_touched_by_node(move_zone_node, action)

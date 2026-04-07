@@ -2,6 +2,7 @@ local Player = {
   MOVE_PRESSED = hash("move_pressed"),
   MOVE_RELEASED = hash("move_released"),
   TARGET_ENEMIES = hash("target_enemies"),
+  SET_SUPER_ACTION = hash("set_super_action"),
 }
 
 local Weapon = {
@@ -42,16 +43,20 @@ local Stager = {
   ENEMY_KILLED = hash("enemy_killed"),
   OPEN_DOOR = hash("open_door"),
   ENTER_DOOR = hash("enter_door"),
+  SPAWN_VENDING = hash("spawn_vending"),
 }
 
 local Game = {
-  DISABLE_SPAWNER = hash("disable_spawner"),
-  PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
-  PLAYER_LIFE_CHANGED = hash("player_life_changed"),
-  PERROCOIN_PICKED = hash("perrocoin_picked"),
-  PERROCOIN_EXPIRED = hash("perrocoin_expired"),
   AUTO_COLLECT_POINT = hash("auto_collect_point"),
-  OPEN_CHEST = hash("open_chest"),
+  DISABLE_SPAWNER = hash("disable_spawner"),
+  OPEN_VENDING = hash("open_vending"),
+  PERROCOIN_EXPIRED = hash("perrocoin_expired"),
+  PERROCOIN_PICKED = hash("perrocoin_picked"),
+  PLAYER_COLLECT_POINT = hash("player_collect_point"),
+  PLAYER_LIFE_CHANGED = hash("player_life_changed"),
+  PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
+  POINT_EXPIRED = hash("point_expired"),
+  UPGRADE_CHOSEN = hash("upgrade_chosen"),
 }
 
 local Attacker = {
@@ -85,12 +90,18 @@ local UI = {
   SET_LIFE_NODES = hash("set_life_nodes"),
   LIFE_CHANGED = hash("life_changed"), -- Split into added or removed
   SHOW_SHOP_MODAL = hash("show_shop_modal"),
+  UPGRADE_CHOSEN = hash("upgrade_chosen"),
+}
+
+local Vending = {
+  DISAPPEAR = hash("disappear_vending"),
 }
 
 return {
   Attacker = Attacker,
   Bullet = Bullet,
   Camera = Camera,
+  Vending = Vending,
   Enemy = Enemy,
   Game = Game,
   Main = Main,

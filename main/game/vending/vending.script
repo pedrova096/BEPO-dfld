@@ -5,6 +5,8 @@ local Urls = {
 	GameController = "/controller",
 }
 
+go.property("upgrade_type", hash("none"))
+
 function init(self)
 	-- Add initialization code here
 	-- Learn more: https://defold.com/manuals/script/
@@ -35,12 +37,19 @@ end
 local function on_trigger_response(self, message)
 	if not message.enter then return end
 
-	msg.post(Urls.GameController, Msg.Game.OPEN_CHEST)
+	msg.post(Urls.GameController, Msg.Game.OPEN_VENDING, { upgrade_type = self.upgrade_type })
+end
+
+local function on_disappear_vending()
+	-- TODO: Add animation
+	go.delete(".")
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.TRIGGER_RESPONSE then
 		on_trigger_response(self, message)
+	elseif message_id == Msg.Vending.DISAPPEAR then
+		on_disappear_vending()
 	end
 end
 

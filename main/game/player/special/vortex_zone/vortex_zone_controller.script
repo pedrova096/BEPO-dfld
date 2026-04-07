@@ -1,0 +1,24 @@
+local BufferCircleMaker = require("utils.buffer_maker.circle")
+
+go.property("segments", 16)
+go.property("radius", 100)
+go.property("color", vmath.vector4(1, 1, 1, 1))
+
+local Urls = {
+	Mesh = "#mesh"
+}
+
+function init(self)
+	self.mesh_url = Urls.Mesh
+	self.time = 0
+	BufferCircleMaker.init(self)
+end
+
+function final(self)
+	BufferCircleMaker.final(self)
+end
+
+function update(self, dt)
+	self.time = self.time + dt;
+	go.set(Urls.Mesh, "u_time.x", self.time)
+end

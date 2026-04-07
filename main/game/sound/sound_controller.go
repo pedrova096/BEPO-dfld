@@ -7,5 +7,6 @@ embedded_components {
   type: "sound"
   data: "sound: \"/assets/sounds/bepo_steps.ogg\"\n"
   "group: \"sfx\"\n"
+  "gain: 0.2\n"
   ""
 }
