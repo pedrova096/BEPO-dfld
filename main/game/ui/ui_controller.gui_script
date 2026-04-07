@@ -1,7 +1,8 @@
 local LimitStateTimer = require("lib.stater.limit_state_timer")
 local UtilsGUI = require("utils.utils_gui")
+local Inputs = require("lib.inputs")
 local Msg = require("lib.msg")
-local SuperActionOptions = require("main.game.ui.super_actions")
+local SuperActionOptions = require("lib.super_actions")
 
 local ActionIds = {
 	TouchMulti = hash("touch_multi"),
@@ -34,7 +35,6 @@ local ActionStates = {
 function init(self)
 	msg.post(".", "acquire_input_focus")
 
-
 	local move_pad_node = gui.get_node(Urls.MovePad)
 	local move_controller_node = gui.get_node(Urls.MoveController)
 	local button_node = gui.get_node(Urls.Button)
@@ -54,14 +54,19 @@ function init(self)
 		state = ActionStates.Idle,
 		position = vmath.vector3(0),
 		original_position = gui.get_position(button_node),
+		time = 0,
+		-- auto_timer = nil,
 	}
 
-	self.direction_keyboard = vmath.vector3(0)
 	self.upgrade_container_origin = gui.get_position(gui.get_node(Urls.UpgradeContainer))
 
 	self.life_nodes = {}
 	self.has_super_action = false
 	self.upgrade_options_active = false
+	self.debug = {
+		enabled = true,
+		keyboard_direction = vmath.vector3()
+	};
 
 	-- button is hidden until the player gets a super_action
 	gui.set_enabled(button_node, false)
@@ -89,8 +94,15 @@ local function wipe_view_pipe(self, dt)
 	gui.set(wipe_node, "progress.x", progress + 0.1)
 end
 
+function update_button_time_pipe(self, dt)
+	if not self.button_action.enabled then return end
+
+	self.button_action.time = self.button_action.time + dt
+end
+
 function update(self, dt)
 	wipe_view_pipe(self, dt)
+	update_button_time_pipe(self, dt)
 end
 
 local LIFE_NODE_SPACING = 32
@@ -197,6 +209,7 @@ local function upgrade_chosen(self, upgrade)
 		msg.post(Urls.PlayerController, Msg.Player.SET_SUPER_ACTION, { id = upgrade.id })
 	end
 end
+
 local function show_super_action_selection(self)
 	local options = SuperActionOptions
 	local upgrade_container_node = gui.get_node(Urls.UpgradeContainer)
@@ -318,7 +331,95 @@ local function input_move_zone(self, touched)
 	end
 end
 
+local MAX_BUTTON_ACTION_DISTANCE = 10
 local function input_button(self, touched)
+	local button_node = gui.get_node(Urls.Button)
+
+	local touch_position = vmath.vector3(touched.x, touched.y, 1)
+
+	if self.button_action.state == ActionStates.Idle and touched.pressed then
+		self.button_action.state = ActionStates.Pressed
+		self.button_action.touch_id = touched.id
+		self.button_action.position = touch_position
+		self.button_action.time = 0
+
+		msg.post(Urls.PlayerController, Msg.Player.PRESSED_SUPER_ACTION)
+		return true
+	end
+
+	if self.button_action.state == ActionStates.Pressed and touched.released then
+		self.button_action.state = ActionStates.Idle
+		self.button_action.touch_id = nil
+		self.button_action.position = vmath.vector3(0)
+		self.button_action.time = 0
+
+		gui.set_position(button_node, self.button_action.original_position)
+
+		msg.post(Urls.PlayerController, Msg.Player.RELEASED_SUPER_ACTION)
+		return true
+	end
+
+	if self.button_action.state == ActionStates.Pressed then
+		local delta = touch_position - self.button_action.position
+		local distance = vmath.length(delta)
+		local direction = distance > 0 and vmath.normalize(delta) or vmath.vector3(0)
+
+		if distance > MAX_BUTTON_ACTION_DISTANCE then
+			delta = direction * MAX_BUTTON_ACTION_DISTANCE
+		end
+
+		gui.set_position(button_node, self.button_action.original_position + delta)
+
+		msg.post(Urls.PlayerController, Msg.Player.MOVED_SUPER_ACTION, {
+			direction = direction,
+			force = distance,
+			time = self.button_action.time,
+		})
+
+		return true
+	end
+
+	return false
+end
+
+local function input_keyboards(self, action_id, action)
+	if not action_id then
+		return false
+	end
+
+	local is_up = action_id == Inputs.Up
+	local is_down = action_id == Inputs.Down
+	local is_left = action_id == Inputs.Left
+	local is_right = action_id == Inputs.Right
+
+	if not (is_up or is_down or is_left or is_right) then
+		return false
+	end
+
+	local x_direction = is_left and -1 or is_right and 1 or 0
+	local y_direction = is_up and 1 or is_down and -1 or 0
+
+	if action.pressed then
+		self.debug.keyboard_direction = self.debug.keyboard_direction + vmath.vector3(x_direction, y_direction, 0)
+	elseif action.released then
+		self.debug.keyboard_direction = self.debug.keyboard_direction - vmath.vector3(x_direction, y_direction, 0)
+	end
+
+	if vmath.length(self.debug.keyboard_direction) == 0 then
+		msg.post(Urls.PlayerController, Msg.Player.MOVE_RELEASED)
+		return true
+	end
+
+	msg.post(Urls.PlayerController, Msg.Player.MOVE_PRESSED, {
+		direction = vmath.normalize(self.debug.keyboard_direction),
+		force = 1,
+	})
+
+	return true
+end
+
+local function input_action(self, action_id, action)
+	return false
 end
 
 function on_input(self, action_id, action)
@@ -354,6 +455,16 @@ function on_input(self, action_id, action)
 				input_button(self, touched)
 				handled = true
 			end
+		end
+	end
+
+	if self.debug.enabled then
+		if input_keyboards(self, action_id, action) then
+			handled = true
+		end
+
+		if input_action(self, action_id, action) then
+			handled = true
 		end
 	end
 

@@ -29,7 +29,6 @@ local function get_files()
   return stage_file, obstacle_file
 end
 
-
 local stage_file, obstacle_file = get_files()
 print("Stage Tilemap file: " .. stage_file, "\nObstacle Tilemap file: " .. obstacle_file)
 

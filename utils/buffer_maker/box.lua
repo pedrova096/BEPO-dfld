@@ -1,47 +1,62 @@
 --
 -- Generates a filled box (quad) into a mesh using PRIMITIVE_TRIANGLES.
 --
--- Properties expected on `self`:
---
--- * width (number)  - Width of the box in pixels (default 100).
--- * height (number)  - Height of the box in pixels (default 100).
--- * color (vector4) - RGBA tint color (default white).
--- * mesh_url (hash) - URL to the mesh component.
---
 
+---@class BufferMakerBox
+---@field width number
+---@field height number
+---@field color vector4
+---@field mesh_url string|userdata
+---@field _mesh_buffer userdata
+---@field _position_stream userdata
+---@field _texcoord_stream userdata
+---@field _tint_stream userdata
+---@field _buffer_resource userdata|nil
 local M = {}
+M.__index = M
 
 local unique_buffer_id = 0
 
 local VERTEX_COUNT = 6
 
---- Initialize buffers and build the box geometry.
----@param self table Script instance or property table
-function M.init(self)
-	self._mesh_buffer = buffer.create(VERTEX_COUNT, {
+---@class BufferMakerBoxOptions
+---@field mesh_url string|userdata URL to the mesh component
+---@field width number? Width of the box in pixels (default 100)
+---@field height number? Height of the box in pixels (default 100)
+---@field color vector4? RGBA tint color (default white)
+
+---Create and initialize a BufferMakerBox instance.
+---@param opts BufferMakerBoxOptions
+---@return BufferMakerBox
+function M.new(opts)
+	local instance = setmetatable({}, M)
+
+	instance.mesh_url = opts.mesh_url
+	instance.width = opts.width or 100
+	instance.height = opts.height or 100
+	instance.color = opts.color or vmath.vector4(1, 1, 1, 1)
+
+	instance._mesh_buffer = buffer.create(VERTEX_COUNT, {
 		{ name = hash("position"),  type = buffer.VALUE_TYPE_FLOAT32, count = 3 },
 		{ name = hash("texcoord0"), type = buffer.VALUE_TYPE_FLOAT32, count = 2 },
 		{ name = hash("tint"),      type = buffer.VALUE_TYPE_FLOAT32, count = 4 },
 	})
 
-	self._position_stream = buffer.get_stream(self._mesh_buffer, "position")
-	self._texcoord_stream = buffer.get_stream(self._mesh_buffer, "texcoord0")
-	self._tint_stream = buffer.get_stream(self._mesh_buffer, "tint")
-	self._buffer_resource = nil
+	instance._position_stream = buffer.get_stream(instance._mesh_buffer, "position")
+	instance._texcoord_stream = buffer.get_stream(instance._mesh_buffer, "texcoord0")
+	instance._tint_stream = buffer.get_stream(instance._mesh_buffer, "tint")
+	instance._buffer_resource = nil
 
-	M.build(self)
+	instance:build()
+	return instance
 end
 
 --- Generate box vertices as two triangles (quad). Centered at origin.
 --- UVs: (0,0) bottom-left, (1,1) top-right.
----@param self table Script instance
-function M.build(self)
-	local width = self.width or 100
-	local height = self.height or 100
-	local color = self.color or vmath.vector4(1, 1, 1, 1)
-
-	local hw = width * 0.5
-	local hh = height * 0.5
+function M:build()
+	local hw = self.width * 0.5
+	local hh = self.height * 0.5
+	local color = self.color
 
 	-- Two triangles: (0,0)-(1,0)-(1,1) and (0,0)-(1,1)-(0,1) in UV
 	-- Triangle 1: bottom-left, bottom-right, top-right
@@ -80,26 +95,23 @@ function M.build(self)
 end
 
 --- Update the box size and rebuild geometry.
----@param self table Script instance
 ---@param width number Width in pixels
----@param height number Height in pixels (optional, uses width if nil)
-function M.set_size(self, width, height)
+---@param height number? Height in pixels (uses width if nil)
+function M:set_size(width, height)
 	self.width = width
 	self.height = height or width
-	M.build(self)
+	self:build()
 end
 
 --- Update the box color and rebuild geometry.
----@param self table Script instance
 ---@param color vector4 New RGBA color
-function M.set_color(self, color)
+function M:set_color(color)
 	self.color = color
-	M.build(self)
+	self:build()
 end
 
 --- Release the buffer resource.
----@param self table Script instance
-function M.final(self)
+function M:final()
 	if self._buffer_resource then
 		resource.release(self._buffer_resource)
 	end

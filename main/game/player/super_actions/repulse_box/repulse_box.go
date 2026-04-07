@@ -1,10 +1,10 @@
 components {
   id: "mesh"
-  component: "/main/game/player/special/repulse_box/repulse_box.mesh"
+  component: "/main/game/player/super_actions/repulse_box/repulse_box.mesh"
 }
 components {
   id: "controller"
-  component: "/main/game/player/special/repulse_box/repulse_box_controller.script"
+  component: "/main/game/player/super_actions/repulse_box/repulse_box_controller.script"
   properties {
     id: "width"
     value: "75.0"

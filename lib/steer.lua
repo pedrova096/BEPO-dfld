@@ -219,7 +219,6 @@ function M:update(dt, payload)
     DebugDraw.draw_circle(target_average_point, 4, vmath.vector4(0, 0, 1, 1))
   end
 
-
   if not self.state.target_on_sight then
     avg_target_direction = self:_apply_target_bias(avg_target_direction)
 

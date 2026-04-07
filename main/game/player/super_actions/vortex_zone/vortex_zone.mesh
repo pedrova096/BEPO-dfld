@@ -1,0 +1,3 @@
+material: "/main/game/player/super_actions/vortex_zone/materials/vortex_zone.material"
+vertices: "/main/game/player/super_actions/vortex_zone/vortex_zone.buffer"
+textures: "/assets/sprites/white.png"

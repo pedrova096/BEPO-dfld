@@ -8,7 +8,7 @@ local Urls = {
 	Weapon = "weapon#controller",
 	GameController = "/controller",
 	SoundController = "/sound_controller",
-	SpecialFactories = "special_factories",
+	SuperActionsFactories = "super_actions_factories",
 }
 
 local TriggerStatusEnum = {
@@ -19,6 +19,20 @@ local TriggerStatusEnum = {
 go.property("velocity", 60)
 go.property("lives", 3)
 go.property("bullet_damage", 20)
+go.property("default_super_action", hash("none"))
+
+local MAP_SUPER_ACTIONS = {
+	[hash("vortex_zone")] = "#vortex_zone_factory",
+	[hash("repulse_box")] = "#repulse_box_factory"
+}
+local function set_default_super_action(self)
+	if self.default_super_action == hash("none") then return end
+
+	local super_action_factory = MAP_SUPER_ACTIONS[self.default_super_action]
+	if not super_action_factory then return end
+
+	self.super_action_id = factory.create(Urls.SuperActionsFactories .. super_action_factory)
+end
 
 function init(self)
 	self.stater = PlayerStater:new({
@@ -33,6 +47,8 @@ function init(self)
 	msg.post(Urls.GameController, Msg.Game.PLAYER_SET_LIFE_COUNT, {
 		lives = self.lives,
 	})
+
+	set_default_super_action(self)
 end
 
 local function get_target_enemy(self)
@@ -122,9 +138,32 @@ local function on_target_enemies(self, message)
 end
 
 local function on_set_super_action(self, message)
-	local special_factory = "#" .. message.id .. "_factory"
-	self.super_action_id = factory.create(Urls.SpecialFactories .. special_factory)
-	pprint("Urls.SpecialFactories .. special_factory", Urls.SpecialFactories .. special_factory)
+	local super_factory = "#" .. message.id .. "_factory"
+	self.super_action_id = factory.create(Urls.SuperActionsFactories .. super_factory)
+end
+
+local function on_pressed_super_action(self, message)
+	if not self.super_action_id then return end
+	-- msg.post(self.super_action_id, Msg.SuperAction.AIMING, {
+	-- 	base_position = go.get_position(),
+	-- 	direction = self.stater.direction,
+	-- 	force = 0.5
+	-- })
+end
+
+local function on_moved_super_action(self, message)
+	if not self.super_action_id then return end
+
+	msg.post(self.super_action_id, Msg.SuperAction.AIMING, {
+		base_position = go.get_position(),
+		direction = message.direction,
+		force = message.force,
+	})
+end
+
+local function on_released_super_action(self, message)
+	if not self.super_action_id then return end
+	msg.post(self.super_action_id, Msg.SuperAction.AIM_RELEASED)
 end
 
 function on_message(self, message_id, message, sender)
@@ -138,6 +177,12 @@ function on_message(self, message_id, message, sender)
 		on_target_enemies(self, message)
 	elseif message_id == Msg.Player.SET_SUPER_ACTION then
 		on_set_super_action(self, message)
+	elseif message_id == Msg.Player.PRESSED_SUPER_ACTION then
+		on_pressed_super_action(self, message)
+	elseif message_id == Msg.Player.RELEASED_SUPER_ACTION then
+		on_released_super_action(self, message)
+	elseif message_id == Msg.Player.MOVED_SUPER_ACTION then
+		on_moved_super_action(self, message)
 	end
 end
 

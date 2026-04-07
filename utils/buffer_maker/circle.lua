@@ -1,46 +1,61 @@
 --
 -- Generates a filled circle into a mesh using PRIMITIVE_TRIANGLES.
 --
--- Properties expected on `self`:
---
--- * segments (number) - Number of segments around the circle (default 32).
--- * radius (number) - Radius of the circle in pixels (default 100).
--- * color (vector4) - RGBA tint color (default white).
--- * mesh_url (hash) - URL to the mesh component.
---
 
+---@class BufferMakerCircle
+---@field segments number
+---@field radius number
+---@field color vector4
+---@field mesh_url string|userdata
+---@field _mesh_buffer userdata
+---@field _position_stream userdata
+---@field _texcoord_stream userdata
+---@field _tint_stream userdata
+---@field _buffer_resource userdata|nil
 local M = {}
+M.__index = M
 
 local unique_buffer_id = 0
 
---- Initialize buffers and build the circle geometry.
----@param self table Script instance or property table
-function M.init(self)
-	local segments = self.segments or 32
-	local vertex_count = 3 * segments
+---@class BufferMakerCircleOptions
+---@field mesh_url string|userdata URL to the mesh component
+---@field segments number? Number of segments around the circle (default 32)
+---@field radius number? Radius of the circle in pixels (default 100)
+---@field color vector4? RGBA tint color (default white)
 
-	self._segments = segments
-	self._mesh_buffer = buffer.create(vertex_count, {
+---Create and initialize a BufferMakerCircle instance.
+---@param opts BufferMakerCircleOptions
+---@return BufferMakerCircle
+function M.new(opts)
+	local instance = setmetatable({}, M)
+
+	instance.mesh_url = opts.mesh_url
+	instance.segments = opts.segments or 32
+	instance.radius = opts.radius or 100
+	instance.color = opts.color or vmath.vector4(0)
+
+	local vertex_count = 3 * instance.segments
+	instance._mesh_buffer = buffer.create(vertex_count, {
 		{ name = hash("position"),  type = buffer.VALUE_TYPE_FLOAT32, count = 3 },
 		{ name = hash("texcoord0"), type = buffer.VALUE_TYPE_FLOAT32, count = 2 },
 		{ name = hash("tint"),      type = buffer.VALUE_TYPE_FLOAT32, count = 4 },
 	})
 
-	self._position_stream = buffer.get_stream(self._mesh_buffer, "position")
-	self._texcoord_stream = buffer.get_stream(self._mesh_buffer, "texcoord0")
-	self._tint_stream = buffer.get_stream(self._mesh_buffer, "tint")
-	self._buffer_resource = nil
+	instance._position_stream = buffer.get_stream(instance._mesh_buffer, "position")
+	instance._texcoord_stream = buffer.get_stream(instance._mesh_buffer, "texcoord0")
+	instance._tint_stream = buffer.get_stream(instance._mesh_buffer, "tint")
+	instance._buffer_resource = nil
 
-	M.build(self)
+	instance:build()
+	return instance
 end
 
 --- Generate circle vertices as independent triangles (center, rim[i], rim[i+1])
 --- and push them into the mesh buffer streams.
----@param self table Script instance
-function M.build(self)
-	local segments = self._segments
-	local radius = self.radius or 100
-	local color = self.color or vmath.vector4(1, 1, 1, 1)
+function M:build()
+	local segments = self.segments
+	local radius = self.radius
+	local color = self.color
 	local step = (2 * math.pi) / segments
 
 	local pos = {}
@@ -88,24 +103,21 @@ function M.build(self)
 end
 
 --- Update the circle radius and rebuild geometry.
----@param self table Script instance
 ---@param radius number New radius
-function M.set_radius(self, radius)
+function M:set_radius(radius)
 	self.radius = radius
-	M.build(self)
+	self:build()
 end
 
 --- Update the circle color and rebuild geometry.
----@param self table Script instance
 ---@param color vector4 New RGBA color
-function M.set_color(self, color)
+function M:set_color(color)
 	self.color = color
-	M.build(self)
+	self:build()
 end
 
 --- Release the buffer resource.
----@param self table Script instance
-function M.final(self)
+function M:final()
 	if self._buffer_resource then
 		resource.release(self._buffer_resource)
 	end

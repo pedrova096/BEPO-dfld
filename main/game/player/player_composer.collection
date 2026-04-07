@@ -9,15 +9,15 @@ instances {
   }
 }
 instances {
-  id: "special_factories"
-  prototype: "/main/game/player/special/special_factories.go"
+  id: "super_actions_factories"
+  prototype: "/main/game/player/super_actions/super_actions.go"
 }
 scale_along_z: 0
 embedded_instances {
   id: "root"
   children: "shadow"
   children: "smoke"
-  children: "special_factories"
+  children: "super_actions_factories"
   children: "visual"
   children: "weapon"
   data: "components {\n"

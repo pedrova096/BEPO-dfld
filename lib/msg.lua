@@ -3,6 +3,9 @@ local Player = {
   MOVE_RELEASED = hash("move_released"),
   TARGET_ENEMIES = hash("target_enemies"),
   SET_SUPER_ACTION = hash("set_super_action"),
+  PRESSED_SUPER_ACTION = hash("pressed_super_action"),
+  MOVED_SUPER_ACTION = hash("moved_super_action"),
+  RELEASED_SUPER_ACTION = hash("released_super_action"),
 }
 
 local Weapon = {
@@ -97,6 +100,12 @@ local Vending = {
   DISAPPEAR = hash("disappear_vending"),
 }
 
+local SuperAction = {
+  AIMING = hash("aiming"),
+  AIM_RELEASED = hash("aim_released"),
+  ACTION_DONE = hash("action_done"),
+}
+
 return {
   Attacker = Attacker,
   Bullet = Bullet,
@@ -110,6 +119,7 @@ return {
   Stager = Stager,
   UI = UI,
   Weapon = Weapon,
+  SuperAction = SuperAction,
   -- Globals
   APPLY_DAMAGE = hash("apply_damage"),
   COLLISION_RESPONSE = hash("collision_response"),

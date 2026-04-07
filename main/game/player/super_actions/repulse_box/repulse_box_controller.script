@@ -1,4 +1,4 @@
-local BufferBoxMaker = require("utils.buffer_maker.box")
+local BufferMakerBox = require("utils.buffer_maker.box")
 
 go.property("width", 100)
 go.property("height", 100)
@@ -9,16 +9,20 @@ local Urls = {
 }
 
 function init(self)
-	self.mesh_url = Urls.Mesh
 	self.time = 0
-	BufferBoxMaker.init(self)
+	self.box = BufferMakerBox.new({
+		mesh_url = Urls.Mesh,
+		width = self.width,
+		height = self.height,
+		color = self.color,
+	})
 end
 
 function final(self)
-	BufferBoxMaker.final(self)
+	self.box:final()
 end
 
 function update(self, dt)
-	self.time = self.time + dt;
+	self.time = self.time + dt
 	go.set(Urls.Mesh, "u_time.x", self.time)
 end

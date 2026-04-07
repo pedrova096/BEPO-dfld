@@ -55,7 +55,6 @@ function on_message(self, message_id, message, sender)
 			msg.post(sender, "enable")
 			msg.post(sender, "acquire_input_focus")
 			-- msg.post(sender, "set_time_step", { factor = 0.25, mode = 0 })
-
 			--msg.post(Urls.GameOver, "acquire_input_focus")
 
 			self.state = GameState.InGame
@@ -70,10 +69,6 @@ function on_message(self, message_id, message, sender)
 		on_game_over(self, message)
 	elseif message_id == Msg.Main.NEW_GAME then
 		on_new_game(self, message, sender.socket)
-	end
-
-
-	if message_id == Msg.PROXY_UNLOADED then
 	end
 end
 

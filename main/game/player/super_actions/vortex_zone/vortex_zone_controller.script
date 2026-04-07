@@ -1,0 +1,88 @@
+local BufferMakerCircle = require("utils.buffer_maker.circle")
+local ManualTimer = require("utils.manual_timer")
+local Msg = require("lib.msg")
+
+go.property("segments", 16)
+go.property("radius", 50)
+go.property("color", vmath.vector4(1, 1, 1, 1))
+go.property("duration", 3)
+
+local Urls = {
+	Mesh = "#mesh"
+}
+
+local StatusEnum = {
+	Idle = hash("idle"),
+	Aim = hash("aim"),
+	Active = hash("active"),
+	-- TODO: Done = hash("done"),
+}
+
+local HIDE_COLOR = vmath.vector4(1, 1, 1, 0)
+
+function init(self)
+	self.time = 0
+
+	self.circle = BufferMakerCircle.new({
+		mesh_url = Urls.Mesh,
+		segments = self.segments,
+		radius = self.radius,
+		color = HIDE_COLOR,
+	})
+	self.timer = ManualTimer:new({ interval = self.duration })
+	self.status = StatusEnum.Idle
+end
+
+function final(self)
+	self.circle:final()
+	self.timer:stop()
+end
+
+local function timer_pipe(self, dt)
+	if self.status ~= StatusEnum.Active then return end
+
+	self.timer:update(dt)
+	if self.timer:is_done() then
+		self.status = StatusEnum.Idle
+		self.circle:set_color(HIDE_COLOR)
+		-- TODO: post action done message
+		return
+	end
+
+	go.set(Urls.Mesh, "u_time.x", self.timer.elapsed)
+end
+
+function update(self, dt)
+	timer_pipe(self, dt)
+end
+
+local function on_aim(self, message, sender)
+	if self.status == StatusEnum.Idle then
+		self.status = StatusEnum.Aim
+		self.circle:set_color(self.color)
+	end
+
+	if self.status ~= StatusEnum.Aim then return end
+
+	local base_position = message.base_position
+	local direction = message.direction
+	local force = message.force
+
+	local new_position = base_position + direction * force
+	go.set_position(new_position)
+end
+
+local function on_release(self, message, sender)
+	if self.status ~= StatusEnum.Aim then return end
+
+	self.status = StatusEnum.Active
+	self.timer:start()
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.SuperAction.AIMING then
+		on_aim(self, message, sender)
+	elseif message_id == Msg.SuperAction.AIM_RELEASED then
+		on_release(self, message, sender)
+	end
+end

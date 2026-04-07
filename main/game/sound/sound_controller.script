@@ -1,5 +1,5 @@
-local Msg         = require("lib.msg")
-local ManualTimer = require("lib.manual_timer")
+local Msg             = require("lib.msg")
+local ManualTimer     = require("utils.manual_timer")
 
 -- SFX: hash("id") -> component URL
 local SoundComponents = {
@@ -13,7 +13,7 @@ local SoundComponents = {
 }
 
 -- SFX config: can_overlap, cooldown (s), looping, loop_interval (s)
-local SoundConfig = {
+local SoundConfig     = {
   [hash("steps")] = { can_overlap = false, cooldown = 0, looping = true, loop_interval = 0.14 },
   -- [hash("hurt")]         = { can_overlap = false, cooldown = 0.3,  looping = false },
   -- [hash("enemy_kill")]   = { can_overlap = true,  cooldown = 0,    looping = false },
