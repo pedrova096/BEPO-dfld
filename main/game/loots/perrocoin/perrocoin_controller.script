@@ -132,7 +132,7 @@ function on_message(self, message_id, message, sender)
 		disabled_perrocoin(self)
 	elseif message_id == Msg.SHOW_ELEMENT then
 		on_show_element(self, message)
-	elseif message_id == Msg.TRIGGER_RESPONSE then
+	elseif message_id == Msg.TRIGGER_OCCURRED then
 		on_trigger_response(self, message)
 	elseif message_id == Msg.Game.AUTO_COLLECT_POINT then
 		on_auto_collect_point(self, message)

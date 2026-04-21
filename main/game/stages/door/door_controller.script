@@ -18,7 +18,7 @@ local function on_trigger_response(self, message)
 
 	pprint("door_entered", message)
 
-	msg.post(Urls.GameController, Msg.Stager.ENTER_DOOR, {
+	msg.post(Urls.GameController, Msg.Stager.DOOR_ENTERED, {
 		door_option = self.door_option,
 	})
 end
@@ -26,7 +26,7 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.HIDE_ELEMENT then
 		on_hide_element(self, message)
-	elseif message_id == Msg.TRIGGER_RESPONSE then
+	elseif message_id == Msg.TRIGGER_OCCURRED then
 		on_trigger_response(self, message)
 	end
 end

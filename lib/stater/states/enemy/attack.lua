@@ -7,7 +7,7 @@ function M:enter(payload)
   local attacker = payload.attacker
 
   attacker:execute()
-  local duration = attacker:get_total_time_without_cooldown()
+  local duration = attacker:get_total_time()
   self.payload.limit_timer = LimitStateTimer:new({
     duration = duration,
   })

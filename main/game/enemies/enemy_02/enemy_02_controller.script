@@ -7,6 +7,7 @@ local WeaponAttack = require("utils.attacker.weapon_attack")
 local StatesEnum = EnemyStater.StatesEnum
 
 local Urls = {
+	WaveManager = "/wave_manager",
 	GameController = "/controller#controller",
 	PlayerRoot = "/player/root",
 	PlayerController = "/player/root#controller",
@@ -15,6 +16,7 @@ local Urls = {
 }
 
 go.property("health", 12)
+go.property("wave_id", 0)
 go.property("safe_distance", 100)
 go.property("velocity", 30)
 go.property("bullet_damage", 2)
@@ -58,7 +60,7 @@ function init(self)
 
 	Entity.hide_entity()
 
-	msg.post(Urls.WeaponController, Msg.Weapon.WEAPON_CONFIG_QUERY)
+	msg.post(Urls.WeaponController, Msg.Weapon.REQUEST_CONFIG)
 end
 
 function fixed_update(self, dt)
@@ -105,15 +107,17 @@ local function on_apply_damage(self, message)
 	})
 end
 
-local function on_spawned(self, message)
+local function on_activate_enemy(self, message)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
 	msg.post(Urls.WeaponController, Msg.SHOW_ELEMENT)
+	self.wave_id = message.wave_id
 end
 
 local function on_dead(self, message)
-	msg.post(Urls.GameController, Msg.Stager.ENEMY_KILLED, {
+	msg.post(Urls.WaveManager, Msg.Enemy.ENEMY_KILLED, {
 		enemy_id = go.get_id(),
 		position = go.get_position(),
+		wave_id = self.wave_id
 	})
 	msg.post(Urls.WeaponController, Msg.HIDE_ELEMENT)
 end
@@ -138,13 +142,13 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
-	elseif message_id == Msg.Enemy.SPAWNED then
-		on_spawned(self, message)
-	elseif message_id == Msg.Weapon.WEAPON_CONFIG_RESPONSE then
+	elseif message_id == Msg.Enemy.ACTIVATE_ENEMY then
+		on_activate_enemy(self, message)
+	elseif message_id == Msg.Weapon.CONFIG_RECEIVED then
 		on_weapon_config_response(self, message)
-	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Dead then
+	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Dead then
 		on_dead(self, message)
-	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Despawn then
+	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Despawn then
 		on_despawned(self, message)
 	end
 end

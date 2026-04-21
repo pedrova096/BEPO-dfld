@@ -85,7 +85,7 @@ local function input_new_game(self, action)
 			end
 		},
 		on_pressed = function()
-			msg.post(Urls.MainController, Msg.Main.NEW_GAME)
+			msg.post(Urls.MainController, Msg.Main.START_NEW_GAME)
 		end
 	}, action)
 end

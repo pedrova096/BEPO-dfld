@@ -71,16 +71,16 @@ local function on_trigger_response(self, message)
 
 	go.set(Urls.Body, "linear_velocity", vmath.vector3(0))
 	sprite.play_flipbook(Urls.Sprite, "disappear", function()
-		msg.post(self.owner_id, Msg.Bullet.BULLET_FINISHED, { id = self.id })
+		msg.post(self.owner_id, Msg.Bullet.FINISHED, { id = self.id })
 		disabled_bullet()
 		-- self.config = nil
 	end)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Bullet.BULLET_FIRED then
+	if message_id == Msg.Bullet.FIRED then
 		on_bullet_fired(self, message)
-	elseif message_id == Msg.TRIGGER_RESPONSE then
+	elseif message_id == Msg.TRIGGER_OCCURRED then
 		on_trigger_response(self, message)
 	end
 end

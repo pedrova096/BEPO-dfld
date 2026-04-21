@@ -1,78 +1,23 @@
 local Msg = require("lib.msg")
+local TilesInfo = require("utils.tiles_info")
 local Colors = require("lib.colors")
-local VMath = require("utils.vmath")
-local Stager = require("utils.stager.stager")
-local Stages = require("utils.stager.stages_config")
 
 local Urls = {
+	WaveManager = "/wave_manager",
 	PlayerController = "/player/root#controller",
 	-- Inner
-	Factory01 = "root#cfactory enemy_01",
-	Factory02 = "root#cfactory enemy_02",
-	Factory03 = "root#cfactory_enemy_03",
-	Factory04 = "root#cfactory_enemy_04",
 	ChestFactory = "root#chest_factory",
 	DoorFactory = "root#door_factory",
-	Stage = "tiles_lg#tileset",
-	Obstacles = "tiles_sm#tileset",
+	TilesLg = "tiles_lg#tileset",
+	TilesSM = "tiles_sm#tileset",
 }
 
-local TILE_LG_SIZE = 48
-local TILE_SM_SIZE = 24
-
-go.property("stage_name", hash("Stage00")) -- Stage01
+go.property("stage_name", hash("stage_0"))
 go.property("stage_width", 7)
 go.property("stage_height", 11)
 
-local LandmarksEnum = {
-	Door = 5,
-	Spawn = 6,
-	Chest = 7,
-}
 
 local DOOR_TILE_OPEN = 11
-
-local function get_stage_info_from_landmarks(self)
-	local stage_offset = go.get_position()
-	local left, bottom, columns_count, rows_count = tilemap.get_bounds(Urls.Obstacles)
-	local landmarks = tilemap.get_tiles(Urls.Obstacles, "landmarks")
-
-	local spawn_positions = {}
-	local doors_positions = {}
-	local chest_position = nil
-	-- TODO: player position
-
-	local tile_center = vmath.vector3(TILE_SM_SIZE / 2, TILE_SM_SIZE / 2, 0)
-	for row_index = bottom, bottom + rows_count - 1 do
-		for column_index = left, left + columns_count - 1 do
-			local tile = landmarks[row_index][column_index]
-
-			local x = column_index * TILE_SM_SIZE
-			local y = row_index * TILE_SM_SIZE
-
-			local position = vmath.vector3(x, y, 1) + stage_offset
-			local center_position = position - tile_center
-
-			if tile == LandmarksEnum.Door then
-				table.insert(doors_positions, {
-					position = position,
-					column_index = math.floor(column_index / 2) + 1,
-					row_index = math.floor(row_index / 2),
-				})
-			elseif tile == LandmarksEnum.Spawn then
-				table.insert(spawn_positions, center_position)
-			elseif tile == LandmarksEnum.Chest then
-				chest_position = center_position
-			end
-		end
-	end
-
-	return {
-		spawn_positions = spawn_positions,
-		doors_positions = doors_positions,
-		chest_position = chest_position,
-	}
-end
 
 local function spawn_doors(doors_positions)
 	local doors = {}
@@ -85,73 +30,26 @@ local function spawn_doors(doors_positions)
 end
 
 function init(self)
-	local stage_width = self.stage_width * TILE_LG_SIZE
-	local stage_height = self.stage_height * TILE_LG_SIZE
+	tilemap.set_visible(Urls.TilesSM, "landmarks", false)
 
-	tilemap.set_visible(Urls.Obstacles, "landmarks", false)
-	local stage_info = get_stage_info_from_landmarks(self)
-
-	pprint(
-		"Initializing stage: " .. self.stage_name .. " - " .. go.get_id(),
-		"size => width: " .. stage_width .. ", height: " .. stage_height
-	)
-	self.stager = Stager:new({
-		config = Stages[self.stage_name],
-		bounds = {
-			min = vmath.vector3(-stage_width / 2, -stage_height / 2, 0),
-			max = vmath.vector3(stage_width / 2, stage_height / 2, 0),
-		},
-		spawn_positions = stage_info.spawn_positions,
-		factories = {
-			enemy_01 = Urls.Factory01,
-			enemy_02 = Urls.Factory02,
-			enemy_03 = Urls.Factory03,
-			enemy_04 = Urls.Factory04,
-		},
-		debug = true,
+	local stage_info = TilesInfo.get_landmark_info({
+		offset = go.get_position(),
+		landmarks_tiles = tilemap.get_tiles(Urls.TilesSM, "landmarks"),
+		bounds = TilesInfo.get_bounds(Urls.TilesSM)
 	})
 
 	self.chest_position = stage_info.chest_position
-
 	self.doors = spawn_doors(stage_info.doors_positions)
 
+	msg.post(
+		Urls.WaveManager,
+		Msg.Wave.INIT_STAGE,
+		{ stage_name = self.stage_name, spawn_positions = stage_info.spawn_positions }
+	)
 	msg.post("@render:", "clear_color", { color = vmath.vector4(unpack(Colors["#272736"])) })
 end
 
-local function target_enemies_pipe(self, dt)
-	local active_enemies = self.stager:get_active_enemies()
-	local player_position = VMath.z_one(go.get_position(Urls.PlayerController))
-	-- map id,position
-	local enemy_positions = {}
-	for _, enemy in ipairs(active_enemies) do
-		local position = VMath.z_one(go.get_position(enemy.id)) + vmath.vector3(0, 12, 0) -- TODO: this should be a map
-		local delta = position - player_position
-		table.insert(enemy_positions, {
-			id = enemy.id,
-			position = position,
-			delta = delta,
-			distance = vmath.length(delta),
-			direction = vmath.normalize(delta)
-		})
-	end
-
-	-- Sort enemies by distance to player
-	table.sort(enemy_positions, function(a, b)
-		return a.distance < b.distance
-	end)
-
-	msg.post(Urls.PlayerController, Msg.Player.TARGET_ENEMIES, {
-		enemies = enemy_positions,
-	})
-end
-
 function fixed_update(self, dt)
-	self.stager:update(dt)
-	target_enemies_pipe(self, dt)
-end
-
-local function on_enemy_killed(self, message)
-	self.stager:on_enemy_killed(message.enemy_id)
 end
 
 local function on_open_door(self, message)
@@ -159,21 +57,12 @@ local function on_open_door(self, message)
 		msg.post(door.id, Msg.HIDE_ELEMENT)
 		local x = door.column_index
 		local y = door.row_index
-		tilemap.set_tile(Urls.Stage, "walls", x, y, DOOR_TILE_OPEN)
+		tilemap.set_tile(Urls.TilesLg, "walls", x, y, DOOR_TILE_OPEN)
 	end
 end
 
-local function on_stage_ended(self, message)
-	on_open_door(self, message)
-	factory.create(Urls.ChestFactory, self.chest_position, nil, {})
-end
-
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Stager.ENEMY_KILLED then
-		on_enemy_killed(self, message)
-	elseif message_id == Msg.Stager.STAGE_ENDED then
-		on_stage_ended(self, message)
-	elseif message_id == Msg.Stager.OPEN_DOOR then
+	if message_id == Msg.Stager.OPEN_DOOR then
 		on_open_door(self, message)
 	end
 end

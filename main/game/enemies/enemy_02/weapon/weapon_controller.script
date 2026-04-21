@@ -134,7 +134,7 @@ local function on_set_direction(self, message)
 end
 
 local function on_weapon_config_query(self, message, sender)
-  msg.post(sender, Msg.Weapon.WEAPON_CONFIG_RESPONSE, {
+  msg.post(sender, Msg.Weapon.CONFIG_RECEIVED, {
     config = self.weapon.config,
     bullet_config = self.weapon.bullet_config,
   })
@@ -145,22 +145,22 @@ function on_message(self, message_id, message, sender)
     on_show_element(self, message)
   elseif message_id == Msg.HIDE_ELEMENT then
     on_hide_element(self, message)
-  elseif message_id == Msg.Weapon.WEAPON_CONFIG_QUERY then
+  elseif message_id == Msg.Weapon.REQUEST_CONFIG then
     on_weapon_config_query(self, message, sender)
   elseif message_id == Msg.Weapon.SET_DIRECTION then
     on_set_direction(self, message)
-  elseif message_id == Msg.Weapon.TRIGGER_WEAPON then
+  elseif message_id == Msg.Weapon.FIRE then
     on_trigger_weapon(self, message)
-  elseif message_id == Msg.Weapon.RELEASE_WEAPON then
+  elseif message_id == Msg.Weapon.STOP_FIRING then
     on_release_weapon(self, message)
   elseif message_id == Msg.Weapon.SET_PROPERTIES then
     on_set_properties(self, message)
-  elseif message_id == Msg.Bullet.BULLET_FINISHED then
+  elseif message_id == Msg.Bullet.FINISHED then
     on_bullet_finished(self, message)
     -- Reload Start/Completed
-  elseif message_id == Msg.Weapon.LIB_RELOAD_STARTED then
+  elseif message_id == Msg.Weapon.RELOAD_STARTED then
     on_reload_started(self, message)
-  elseif message_id == Msg.Weapon.LIB_RELOAD_COMPLETED then
+  elseif message_id == Msg.Weapon.RELOAD_COMPLETED then
     on_reload_completed(self, message)
   end
 end

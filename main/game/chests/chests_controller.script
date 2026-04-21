@@ -39,7 +39,7 @@ local function on_trigger_response(self, message)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.TRIGGER_RESPONSE then
+	if message_id == Msg.TRIGGER_OCCURRED then
 		on_trigger_response(self, message)
 	end
 end

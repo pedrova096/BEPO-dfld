@@ -13,9 +13,20 @@ local CameraStates = {
 }
 
 local function setup_camera()
-	local zoom = Utils.get_zoom_level()
+	local display_width = sys.get_config_int("display.width")
+	local display_height = sys.get_config_int("display.height")
+
+	local windows_width, windows_height = window.get_size()
+
+	local zoom_y = math.max(1, math.floor((windows_height / display_height) * 2) / 2)
+	local zoom_x = math.max(1, math.floor((windows_width / display_width) * 2) / 2)
+
+	local zoom = math.min(zoom_y, zoom_x)
+
+	print("[camera] window:", windows_width, windows_height, "display:", display_width, display_height, "zoom:", zoom)
 	go.set(Urls.Camera, "orthographic_zoom", zoom)
 end
+
 
 function init(self)
 	msg.post(Urls.Camera, "acquire_camera_focus")
@@ -107,13 +118,13 @@ local function on_camera_shake_interrupt(self, sender, message)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Camera.CAMERA_FOLLOW then
+	if message_id == Msg.Camera.FOLLOW then
 		on_camera_follow(self, sender)
-	elseif message_id == Msg.Camera.CAMERA_UNFOLLOW then
+	elseif message_id == Msg.Camera.UNFOLLOW then
 		on_camera_unfollow(self, sender)
 	elseif message_id == Msg.Camera.SHAKE then
 		on_camera_shake(self, sender, message)
-	elseif message_id == Msg.Camera.SHAKE_INTERRUPT then
+	elseif message_id == Msg.Camera.STOP_SHAKE then
 		on_camera_shake_interrupt(self, sender, message)
 	end
 end

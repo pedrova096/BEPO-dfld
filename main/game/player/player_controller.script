@@ -6,7 +6,7 @@ local StatesEnum = PlayerStater.StatesEnum
 local Urls = {
 	Camera = "/camera",
 	Weapon = "weapon#controller",
-	GameController = "/controller",
+	SessionManager = "/session_manager",
 	SoundController = "/sound_controller",
 }
 local TriggerStatusEnum = {
@@ -28,7 +28,7 @@ function init(self)
 
 	self.target_enemies = {}
 
-	msg.post(Urls.GameController, Msg.Game.PLAYER_SET_LIFE_COUNT, {
+	msg.post(Urls.SessionManager, Msg.Game.PLAYER_SET_LIFE_COUNT, {
 		lives = self.lives,
 	})
 end
@@ -55,13 +55,13 @@ local function target_enemies_pipe(self, dt)
 	if not enemy then
 		local trigger_status = go.get(Urls.Weapon, "trigger_status")
 		if trigger_status == TriggerStatusEnum.Pressed then
-			msg.post(Urls.Weapon, Msg.Weapon.RELEASE_WEAPON)
+			msg.post(Urls.Weapon, Msg.Weapon.STOP_FIRING)
 		end
 
 		return
 	end
 
-	msg.post(Urls.Weapon, Msg.Weapon.TRIGGER_WEAPON, {
+	msg.post(Urls.Weapon, Msg.Weapon.FIRE, {
 		direction = enemy.direction,
 		damage = self.bullet_damage,
 	})
@@ -109,7 +109,7 @@ local function on_apply_damage(self, message)
 		shake_duration = 0.2,
 		shake_magnitude = 2,
 	})
-	msg.post(Urls.GameController, Msg.Game.PLAYER_LIFE_CHANGED, {
+	msg.post(Urls.SessionManager, Msg.Game.PLAYER_LIFE_CHANGED, {
 		current_lives = self.stater.stats.lives,
 		total_lives = self.lives,
 	})
@@ -126,7 +126,7 @@ function on_message(self, message_id, message, sender)
 		on_move_released(self, message)
 	elseif message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
-	elseif message_id == Msg.Player.TARGET_ENEMIES then
+	elseif message_id == Msg.Player.SET_TARGET_ENEMIES then
 		on_target_enemies(self, message)
 	end
 end

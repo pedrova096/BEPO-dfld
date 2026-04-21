@@ -131,19 +131,19 @@ local function on_fire_weapon(self, message)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Weapon.TRIGGER_WEAPON then
+	if message_id == Msg.Weapon.FIRE then
 		on_trigger_weapon(self, message)
-	elseif message_id == Msg.Weapon.RELEASE_WEAPON then
+	elseif message_id == Msg.Weapon.STOP_FIRING then
 		on_release_weapon(self, message)
 	elseif message_id == Msg.Weapon.SET_PROPERTIES then
 		on_set_properties(self, message)
-	elseif message_id == Msg.Bullet.BULLET_FINISHED then
+	elseif message_id == Msg.Bullet.FINISHED then
 		on_bullet_finished(self, message)
-	elseif message_id == Msg.Weapon.LIB_FIRE_WEAPON then
+	elseif message_id == Msg.Weapon.FIRED then
 		on_fire_weapon(self, message)
-	elseif message_id == Msg.Weapon.LIB_RELOAD_STARTED then
+	elseif message_id == Msg.Weapon.RELOAD_STARTED then
 		on_reload_started(self, message)
-	elseif message_id == Msg.Weapon.LIB_RELOAD_COMPLETED then
+	elseif message_id == Msg.Weapon.RELOAD_COMPLETED then
 		on_reload_completed(self, message)
 	end
 end

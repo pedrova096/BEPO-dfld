@@ -2,12 +2,13 @@ local Msg = require("lib.msg")
 local EnemyStater = require("lib.stater.enemy_stater")
 local Entity = require("utils.entity")
 local Steer = require("lib.steer")
-local DistanceChecker = require("utils.attacker.checker.distance_checker")
+local DistanceAttackChecker = require("utils.attacker.checkers.distance_attack")
 local BasicAttack = require("utils.attacker.basic_attack")
 
 local StatesEnum = EnemyStater.StatesEnum
 
 local Urls = {
+	WaveManager = "/wave_manager",
 	GameController = "/controller#controller",
 	PlayerRoot = "/player/root",
 	PlayerController = "/player/root#controller",
@@ -17,6 +18,7 @@ local Urls = {
 }
 
 go.property("health", 9)
+go.property("wave_id", 0)
 go.property("velocity", 40)
 
 function init(self)
@@ -34,8 +36,9 @@ function init(self)
 			attack = 0.3,
 			cooldown = 0.5,
 		},
-		checker = DistanceChecker:new({
-			target_id = Urls.PlayerRoot,
+		checker = DistanceAttackChecker:new({
+			target = Urls.PlayerRoot,
+			max_distance = 30,
 		}),
 		attack_url = Urls.Attack,
 	})
@@ -44,7 +47,7 @@ function init(self)
 		{
 			state = StatesEnum.Attack,
 			condition = function()
-				return self.attacker.checker:check()
+				return self.attacker:can_execute()
 			end,
 			get_payload = function()
 				return {
@@ -69,6 +72,9 @@ function fixed_update(self, dt)
 		target_position = go.get_position(Urls.PlayerController),
 		-- debug = true,
 	})
+
+	if self.stater:is(StatesEnum.Attack) then return end
+
 	self.stater:set_direction(direction)
 	self.attacker:set_direction(direction)
 end
@@ -84,14 +90,16 @@ local function on_apply_damage(self, message)
 	})
 end
 
-local function on_spawned(self, message)
+local function on_activate_enemy(self, message)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
+	self.wave_id = message.wave_id
 end
 
 local function on_dead(self, message)
-	msg.post(Urls.GameController, Msg.Stager.ENEMY_KILLED, {
+	msg.post(Urls.WaveManager, Msg.Enemy.ENEMY_KILLED, {
 		enemy_id = go.get_id(),
 		position = go.get_position(),
+		wave_id = self.wave_id
 	})
 end
 
@@ -103,11 +111,11 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
-	elseif message_id == Msg.Enemy.SPAWNED then
-		on_spawned(self, message)
-	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Dead then
+	elseif message_id == Msg.Enemy.ACTIVATE_ENEMY then
+		on_activate_enemy(self, message)
+	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Dead then
 		on_dead(self, message)
-	elseif message_id == Msg.STATE_TRANSITION and message.next_state == StatesEnum.Despawn then
+	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Despawn then
 		on_despawned(self, message)
 	end
 end

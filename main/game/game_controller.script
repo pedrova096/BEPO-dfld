@@ -9,7 +9,6 @@ local Urls = {
 	-- External
 	UIController = "/ui",
 	Player = "/player/root",
-	MainController = "main:/main_controller",
 	SoundController = "/sound_controller",
 }
 
@@ -37,25 +36,8 @@ function init(self)
 	self.state = StatesEnum.Active
 end
 
-local function on_set_life_count(self, message)
-	self.player_life_count = message.lives
-	msg.post(Urls.UIController, Msg.UI.SET_LIFE_NODES, {
-		lives = self.player_life_count,
-	})
-end
-
-local function on_player_life_changed(self, message)
-	self._current_player_life_count = message.current_lives
-
-	msg.post(Urls.UIController, Msg.UI.LIFE_CHANGED, message)
-	if self._current_player_life_count == 0 then
-		msg.post(Urls.MainController, hash("game_over"))
-		return
-	end
-end
-
 local function on_enemy_killed(self, message)
-	msg.post(self.current_stage["/root"], Msg.Stager.ENEMY_KILLED, message)
+	msg.post(self.current_stage["/root"], Msg.Enemy.ENEMY_KILLED, message)
 
 	-- spawn cogs points
 	local random_perrocoins = math.random(0, 2)
@@ -112,13 +94,9 @@ local function on_open_chest(self, message)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Game.PLAYER_SET_LIFE_COUNT then
-		on_set_life_count(self, message)
-	elseif message_id == Msg.Game.PLAYER_LIFE_CHANGED then
-		on_player_life_changed(self, message)
-	elseif message_id == Msg.Stager.ENEMY_KILLED then
+	if message_id == Msg.Enemy.ENEMY_KILLED then
 		on_enemy_killed(self, message)
-	elseif message_id == Msg.Stager.ENTER_DOOR then
+	elseif message_id == Msg.Stager.DOOR_ENTERED then
 		on_door_entered(self, message)
 	elseif message_id == Msg.Game.PERROCOIN_PICKED then
 		on_perrocoin_picked(self, message)

@@ -93,7 +93,7 @@ function M:apply_transition(next_state, data)
 
   self:_set_state(next_state, data)
 
-  msg.post(".", Msg.STATE_TRANSITION, {
+  msg.post(".", Msg.STATE_CHANGED, {
     previous_state = current_state,
     next_state = next_state,
   })

@@ -1,0 +1,35 @@
+local Msg = require("lib.msg")
+
+local Urls = {
+	UIController = "/ui",
+	MainController = "main:/main_controller",
+}
+
+function init(self)
+	self.run_ended = false
+	self.player_life_count = 0
+end
+
+local function on_set_life_count(self, message)
+	self.player_life_count = message.lives
+	msg.post(Urls.UIController, Msg.UI.SET_LIFE_NODES, {
+		lives = self.player_life_count,
+	})
+end
+
+local function on_player_life_changed(self, message)
+	msg.post(Urls.UIController, Msg.UI.LIFE_CHANGED, message)
+
+	if message.current_lives <= 0 and not self.run_ended then
+		self.run_ended = true
+		msg.post(Urls.MainController, Msg.Main.GAME_OVER)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Game.PLAYER_SET_LIFE_COUNT then
+		on_set_life_count(self, message)
+	elseif message_id == Msg.Game.PLAYER_LIFE_CHANGED then
+		on_player_life_changed(self, message)
+	end
+end

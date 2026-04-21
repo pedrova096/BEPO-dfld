@@ -39,7 +39,7 @@ end
 ---@param payload WeaponFirePayload
 function M:activate(payload)
   self.active = true
-  msg.post(self.object_id, Msg.Bullet.BULLET_FIRED, payload)
+  msg.post(self.object_id, Msg.Bullet.FIRED, payload)
 end
 
 ---Mark the bullet as finished (returned to pool).

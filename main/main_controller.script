@@ -68,7 +68,7 @@ function on_message(self, message_id, message, sender)
 		end
 	elseif message_id == Msg.Main.GAME_OVER then
 		on_game_over(self, message)
-	elseif message_id == Msg.Main.NEW_GAME then
+	elseif message_id == Msg.Main.START_NEW_GAME then
 		on_new_game(self, message, sender.socket)
 	end
 

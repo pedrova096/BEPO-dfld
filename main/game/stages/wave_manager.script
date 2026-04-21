@@ -1,0 +1,101 @@
+local Stage = require("utils.stager.stage")
+local StagesIndex = require("utils.stager.stages.index")
+local EnemyPool = require("utils.pooler.enemy_pool")
+local RandomPositionGenerator = require("utils.position_generator.random_position_generator")
+local SetPositionGenerator = require("utils.position_generator.set_position_generator")
+local VMath = require("utils.vmath")
+local Msg = require("lib.msg")
+
+local Urls = {
+  FactoryEnemy01 = "/wave_manager#cfactory_enemy_01",
+  FactoryEnemy02 = "/wave_manager#cfactory_enemy_02",
+  EnemyWarriorFactory = "/wave_factories#enemy_warrior_factory",
+  PlayerController = "/player/root#controller",
+  ChestFactory = "/wave_manager#chest_factory",
+}
+
+local FACTORIES_MAP = {
+  enemy_01 = Urls.FactoryEnemy01,
+  enemy_02 = Urls.FactoryEnemy02,
+}
+
+local function load_stage(self)
+  self.stage = Stage:new({
+    max_overlap = 2,
+    on_spawn = function(spawn_options)
+      self.enemies_pool:acquire_or_extend({
+        wave_id = spawn_options.wave_id,
+        type = spawn_options.enemy.id,
+      })
+    end,
+    on_wave_start = function(index, _wave)
+      msg.post("#wave_manager", Msg.Wave.WAVE_STARTED, { index = index })
+    end,
+    on_stage_complete = function()
+      factory.create(Urls.ChestFactory, self.chest_position, nil, {})
+    end,
+  })
+end
+
+go.property("debug", false)
+
+function init(self)
+  self.enemies_pool = EnemyPool.new({
+    factory_map = FACTORIES_MAP,
+    position_generator = RandomPositionGenerator:new(200, -200),
+  })
+  load_stage(self)
+end
+
+local function target_enemies_pipe(self, dt)
+  local active_enemies = self.enemies_pool:get_actives()
+  local player_position = VMath.z_one(go.get_position(Urls.PlayerController))
+  -- map id,position
+  local enemy_positions = {}
+  for _, enemy in ipairs(active_enemies) do
+    local position = VMath.z_one(go.get_position(enemy.id)) + vmath.vector3(0, 12, 0) -- TODO: adjust this offset
+    local delta = position - player_position
+    table.insert(enemy_positions, {
+      id = enemy.id,
+      position = position,
+      delta = delta,
+      distance = vmath.length(delta),
+      direction = vmath.normalize(delta)
+    })
+  end
+
+  -- Sort enemies by distance to player
+  table.sort(enemy_positions, function(a, b)
+    return a.distance < b.distance
+  end)
+
+  msg.post(Urls.PlayerController, Msg.Player.SET_TARGET_ENEMIES, {
+    enemies = enemy_positions,
+  })
+end
+
+function update(self, dt)
+  self.stage:update(dt)
+  target_enemies_pipe(self, dt)
+end
+
+local function on_enemy_killed(self, message)
+  self.stage:on_enemy_killed(message.wave_id)
+  self.enemies_pool:release(message.enemy_id)
+end
+
+local function on_init_stage(self, message)
+  local stage_waves = StagesIndex[message.stage_name]
+
+  self.enemies_pool:set_position_generator(SetPositionGenerator:new(message.spawn_positions))
+  self.stage:set_waves(stage_waves)
+  self.stage:start()
+end
+
+function on_message(self, message_id, message, sender)
+  if message_id == Msg.Enemy.ENEMY_KILLED then
+    on_enemy_killed(self, message)
+  elseif message_id == Msg.Wave.INIT_STAGE then
+    on_init_stage(self, message)
+  end
+end
