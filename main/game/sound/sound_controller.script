@@ -69,6 +69,7 @@ function update(self, dt)
   for id, entry in pairs(self.loop_timers) do
     if entry.timer:update(dt) then
       sound.play(entry.component, entry.opts)
+      entry.timer:start() -- restart timer for next loop
     end
   end
 end
