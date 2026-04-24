@@ -7,17 +7,33 @@ local VMath = require("utils.vmath")
 local Msg = require("lib.msg")
 
 local Urls = {
-  FactoryEnemy01 = "/wave_manager#cfactory_enemy_01",
-  FactoryEnemy02 = "/wave_manager#cfactory_enemy_02",
-  EnemyWarriorFactory = "/wave_factories#enemy_warrior_factory",
+  FactoryEnemy01 = "/stage_manger#cfactory_enemy_01",
+  FactoryEnemy02 = "/stage_manger#cfactory_enemy_02",
+  Stage01Factory = "/stage_manger#stage_01_factory",
+  Stage02Factory = "/stage_manger#stage_02_factory",
   PlayerController = "/player/root#controller",
-  ChestFactory = "/wave_manager#chest_factory",
+  StageController = "/root#controller",
 }
 
 local FACTORIES_MAP = {
   enemy_01 = Urls.FactoryEnemy01,
   enemy_02 = Urls.FactoryEnemy02,
 }
+
+local STAGE_FACTORY_MAP = {
+  [hash("stage_0")] = Urls.Stage01Factory,
+  [hash("stage_1")] = Urls.Stage02Factory,
+}
+
+local function create_stage(self, stage_name)
+  local stage_factory = STAGE_FACTORY_MAP[stage_name]
+  if not stage_factory then
+    error(("Stage factory not found for stage_name %s"):format(tostring(stage_name)))
+  end
+
+  local ids = collectionfactory.create(stage_factory)
+  self.current_stage = ids["/root"]
+end
 
 local function load_stage(self)
   self.stage = Stage:new({
@@ -29,22 +45,27 @@ local function load_stage(self)
       })
     end,
     on_wave_start = function(index, _wave)
-      msg.post("#wave_manager", Msg.Wave.WAVE_STARTED, { index = index })
+      msg.post("#stage_manger", Msg.Wave.WAVE_STARTED, { index = index })
     end,
     on_stage_complete = function()
-      factory.create(Urls.ChestFactory, self.chest_position, nil, {})
+      msg.post(self.current_stage, Msg.Stager.STAGE_ENDED, {
+        reward = self.stage_reward
+      })
     end,
   })
 end
 
 go.property("debug", false)
+go.property("stage_name", hash("stage_0"))
 
 function init(self)
   self.enemies_pool = EnemyPool.new({
     factory_map = FACTORIES_MAP,
     position_generator = RandomPositionGenerator:new(200, -200),
   })
+  self.current_stage = nil
   load_stage(self)
+  create_stage(self, self.stage_name)
 end
 
 local function target_enemies_pipe(self, dt)
@@ -81,21 +102,30 @@ end
 
 local function on_enemy_killed(self, message)
   self.stage:on_enemy_killed(message.wave_id)
-  self.enemies_pool:release(message.enemy_id)
+  self.enemies_pool:request_release(message.enemy_id)
 end
 
-local function on_init_stage(self, message)
-  local stage_waves = StagesIndex[message.stage_name]
+local function on_confirm_enemy_despawn(self, message)
+  self.enemies_pool:confirm_release(message.enemy_id)
+end
+
+local function on_init_stage(self, message, sender)
+  local stage_info = StagesIndex[message.stage_name]
 
   self.enemies_pool:set_position_generator(SetPositionGenerator:new(message.spawn_positions))
-  self.stage:set_waves(stage_waves)
+  self.stage:set_waves(stage_info.waves)
   self.stage:start()
+
+  self.current_stage = sender
+  self.stage_reward = stage_info.reward
 end
 
 function on_message(self, message_id, message, sender)
   if message_id == Msg.Enemy.ENEMY_KILLED then
     on_enemy_killed(self, message)
+  elseif message_id == Msg.Enemy.CONFIRM_ENEMY_DESPAWN then
+    on_confirm_enemy_despawn(self, message)
   elseif message_id == Msg.Wave.INIT_STAGE then
-    on_init_stage(self, message)
+    on_init_stage(self, message, sender)
   end
 end

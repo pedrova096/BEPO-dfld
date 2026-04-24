@@ -1,5 +1,6 @@
 local BudgetWave = require("utils.stager.budget_wave")
 local TimedWave = require("utils.stager.timed_wave")
+local Rewards = require("lib.enums.rewards")
 
 local pool = {
 	{ id = "enemy_01", cost = 1, chance = 0.5 },
@@ -10,7 +11,7 @@ local pool = {
 --- Overlaps into wave 2 after 20 seconds.
 local wave_1 = BudgetWave:new({
 	id = 101,
-	budget = 10,
+	budget = 10 / 3,
 	spawn_interval = 6,
 	spawn_concurrent = 3,
 	enemy_pool = pool,
@@ -21,7 +22,7 @@ local wave_1 = BudgetWave:new({
 --- Overlaps into wave 3 after 25 seconds.
 local wave_2 = BudgetWave:new({
 	id = 102,
-	budget = 16,
+	budget = 16 / 3,
 	spawn_interval = 2,
 	spawn_concurrent = 3,
 	enemy_pool = pool,
@@ -37,4 +38,7 @@ local wave_2 = BudgetWave:new({
 -- 	exclusive = true,
 -- })
 
-return { wave_1, wave_2 }
+return {
+	reward = Rewards.StatusSelector,
+	waves  = { wave_1, wave_2 }
+}

@@ -29,7 +29,6 @@ local function _unpressed_button(options)
 	gui.animate(label, "position.y", 1.5, gui.EASING_LINEAR, 0.1, 0)
 end
 
-
 local function _input_button(options, action)
 	local button = gui.get_node(options.button_name)
 	local label = gui.get_node(options.label_name)

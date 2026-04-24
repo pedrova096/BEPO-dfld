@@ -1,0 +1,7 @@
+images {
+  image: "/assets/sprites/cog/cog.png"
+}
+images {
+  image: "/assets/sprites/cog/toolbox.png"
+}
+extrude_borders: 2

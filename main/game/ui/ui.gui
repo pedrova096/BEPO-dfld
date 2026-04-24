@@ -114,6 +114,7 @@ nodes {
   pivot: PIVOT_SW
   adjust_mode: ADJUST_MODE_STRETCH
   parent: "shop_modal"
+  alpha: 0.0
   size_mode: SIZE_MODE_AUTO
   visible: false
 }
@@ -122,236 +123,139 @@ nodes {
     x: 180.0
     y: 72.0
   }
-  size {
-    x: 300.0
-    y: 64.0
-  }
-  type: TYPE_BOX
-  texture: "ui/upgrade_frame"
+  type: TYPE_TEMPLATE
   id: "upgrade_a"
-  xanchor: XANCHOR_LEFT
-  yanchor: YANCHOR_BOTTOM
   parent: "upgrade_container"
-  inherit_alpha: true
-  slice9 {
-    x: 60.0
-    y: 4.0
-    z: 4.0
-    w: 8.0
-  }
+  template: "/main/game/ui/upgrade_button.gui"
 }
 nodes {
-  position {
-    x: -52.0
-    y: 19.0
-  }
-  size {
-    x: 160.0
-    y: 16.0
-  }
-  color {
-    z: 0.922
-  }
-  type: TYPE_TEXT
-  text: "upgrade_a"
-  font: "ui_bold"
-  id: "upgrade_title_a"
-  pivot: PIVOT_W
-  outline {
-    x: 0.153
-    y: 0.153
-    z: 0.212
-  }
-  line_break: true
+  type: TYPE_BOX
+  id: "upgrade_a/button"
   parent: "upgrade_a"
-  inherit_alpha: true
+  template_node_child: true
 }
 nodes {
-  position {
-    x: -52.0
-    y: -4.0
-  }
-  scale {
-    x: 0.75
-    y: 0.75
-  }
-  size {
-    x: 160.0
-    y: 16.0
-  }
-  color {
-    z: 0.922
-  }
   type: TYPE_TEXT
-  text: "description_a"
-  font: "ui_bold"
-  id: "upgrade_description_a"
-  pivot: PIVOT_W
-  outline {
-    x: 0.153
-    y: 0.153
-    z: 0.212
-  }
-  line_break: true
-  parent: "upgrade_a"
-  inherit_alpha: true
+  id: "upgrade_a/title"
+  parent: "upgrade_a/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "upgrade_a/description"
+  parent: "upgrade_a/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "upgrade_a/tag_1"
+  parent: "upgrade_a/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "upgrade_a/text"
+  parent: "upgrade_a/tag_1"
+  template_node_child: true
 }
 nodes {
   position {
     x: 180.0
     y: 156.0
   }
-  size {
-    x: 300.0
-    y: 64.0
-  }
-  type: TYPE_BOX
-  texture: "ui/upgrade_frame"
+  type: TYPE_TEMPLATE
   id: "upgrade_b"
-  xanchor: XANCHOR_LEFT
-  yanchor: YANCHOR_BOTTOM
   parent: "upgrade_container"
-  inherit_alpha: true
-  slice9 {
-    x: 60.0
-    y: 4.0
-    z: 4.0
-    w: 8.0
-  }
+  template: "/main/game/ui/upgrade_button.gui"
 }
 nodes {
-  position {
-    x: -52.0
-    y: 19.0
-  }
-  size {
-    x: 160.0
-    y: 16.0
-  }
-  color {
-    z: 0.922
-  }
-  type: TYPE_TEXT
-  text: "upgrade_b"
-  font: "ui_bold"
-  id: "upgrade_title_b"
-  pivot: PIVOT_W
-  outline {
-    x: 0.153
-    y: 0.153
-    z: 0.212
-  }
-  line_break: true
+  type: TYPE_BOX
+  id: "upgrade_b/button"
   parent: "upgrade_b"
-  inherit_alpha: true
+  template_node_child: true
 }
 nodes {
-  position {
-    x: -52.0
-    y: -4.0
-  }
-  scale {
-    x: 0.75
-    y: 0.75
-  }
-  size {
-    x: 160.0
-    y: 16.0
-  }
-  color {
-    z: 0.922
-  }
   type: TYPE_TEXT
-  text: "description_b"
-  font: "ui_bold"
-  id: "upgrade_description_b"
-  pivot: PIVOT_W
-  outline {
-    x: 0.153
-    y: 0.153
-    z: 0.212
-  }
-  line_break: true
-  parent: "upgrade_b"
-  inherit_alpha: true
+  id: "upgrade_b/title"
+  parent: "upgrade_b/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "upgrade_b/description"
+  parent: "upgrade_b/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "upgrade_b/tag_1"
+  parent: "upgrade_b/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "upgrade_b/text"
+  parent: "upgrade_b/tag_1"
+  template_node_child: true
 }
 nodes {
   position {
     x: 180.0
     y: 240.0
   }
-  size {
-    x: 300.0
-    y: 64.0
-  }
-  type: TYPE_BOX
-  texture: "ui/upgrade_frame"
+  type: TYPE_TEMPLATE
   id: "upgrade_c"
-  xanchor: XANCHOR_LEFT
-  yanchor: YANCHOR_BOTTOM
   parent: "upgrade_container"
-  inherit_alpha: true
-  slice9 {
-    x: 60.0
-    y: 4.0
-    z: 4.0
-    w: 8.0
-  }
+  template: "/main/game/ui/upgrade_button.gui"
 }
 nodes {
-  position {
-    x: -52.0
-    y: 19.0
-  }
-  size {
-    x: 160.0
-    y: 16.0
-  }
-  color {
-    z: 0.922
-  }
-  type: TYPE_TEXT
-  text: "upgrade_c"
-  font: "ui_bold"
-  id: "upgrade_title_c"
-  pivot: PIVOT_W
-  outline {
-    x: 0.153
-    y: 0.153
-    z: 0.212
-  }
-  line_break: true
+  type: TYPE_BOX
+  id: "upgrade_c/button"
   parent: "upgrade_c"
-  inherit_alpha: true
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "upgrade_c/title"
+  parent: "upgrade_c/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "upgrade_c/description"
+  parent: "upgrade_c/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "upgrade_c/tag_1"
+  parent: "upgrade_c/button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "upgrade_c/text"
+  parent: "upgrade_c/tag_1"
+  template_node_child: true
 }
 nodes {
   position {
-    x: -52.0
-    y: -4.0
+    x: 180.0
+    y: 503.0
   }
   scale {
     x: 0.75
     y: 0.75
   }
   size {
-    x: 160.0
-    y: 16.0
-  }
-  color {
-    z: 0.922
+    x: 360.0
+    y: 100.0
   }
   type: TYPE_TEXT
-  text: "description_c"
+  text: "Selector de mejoras"
   font: "ui_bold"
-  id: "upgrade_description_c"
-  pivot: PIVOT_W
-  outline {
-    x: 0.153
-    y: 0.153
-    z: 0.212
-  }
-  line_break: true
-  parent: "upgrade_c"
+  id: "shop_title"
+  parent: "shop_modal"
   inherit_alpha: true
 }
 nodes {

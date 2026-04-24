@@ -1,26 +1,26 @@
-local Msg         = require("lib.msg")
-local ManualTimer = require("lib.manual_timer")
+local Msg = require("lib.msg")
+local ManualTimer = require("utils.manual_timer")
 
 -- SFX: hash("id") -> component URL
 local SoundComponents = {
   [hash("steps")] = "#snd_steps",
-  -- [hash("hurt")]         = "#snd_hurt",
-  -- [hash("enemy_kill")]   = "#snd_enemy_kill",
-  -- [hash("bullet")]       = "#snd_bullet",
-  -- [hash("coin")]         = "#snd_coin",
-  -- [hash("chest")]        = "#snd_chest",
-  -- [hash("door")]         = "#snd_door",
+  -- [hash("hurt")] = "#snd_hurt",
+  -- [hash("enemy_kill")] = "#snd_enemy_kill",
+  -- [hash("bullet")] = "#snd_bullet",
+  -- [hash("coin")] = "#snd_coin",
+  -- [hash("upgrader")] = "#snd_upgrader",
+  -- [hash("door")] = "#snd_door",
 }
 
 -- SFX config: can_overlap, cooldown (s), looping, loop_interval (s)
 local SoundConfig = {
   [hash("steps")] = { can_overlap = false, cooldown = 0, looping = true, loop_interval = 0.14 },
-  -- [hash("hurt")]         = { can_overlap = false, cooldown = 0.3,  looping = false },
-  -- [hash("enemy_kill")]   = { can_overlap = true,  cooldown = 0,    looping = false },
-  -- [hash("bullet")]       = { can_overlap = false, cooldown = 0.05, looping = false },
-  -- [hash("coin")]         = { can_overlap = true,  cooldown = 0,    looping = false },
-  -- [hash("chest")]        = { can_overlap = false, cooldown = 0.5,  looping = false },
-  -- [hash("door")]         = { can_overlap = false, cooldown = 0.5,  looping = false },
+  -- [hash("hurt")] = { can_overlap = false, cooldown = 0.3, looping = false },
+  -- [hash("enemy_kill")] = { can_overlap = true,cooldown = 0, looping = false },
+  -- [hash("bullet")] = { can_overlap = false, cooldown = 0.05, looping = false },
+  -- [hash("coin")] = { can_overlap = true,cooldown = 0, looping = false },
+  -- [hash("upgrader")] = { can_overlap = false, cooldown = 0.5, looping = false },
+  -- [hash("door")] = { can_overlap = false, cooldown = 0.5, looping = false },
 }
 
 -- Music: hash("id") -> component URL
@@ -49,7 +49,7 @@ local function play_looping_sound(self, id, component, config, message)
 end
 
 local function play_once_sound(self, id, component, config, message)
-  local now  = socket.gettime()
+  local now = socket.gettime()
   local last = self.last_played[id] or 0
   if not config.can_overlap and (now - last) < config.cooldown then return end
   self.last_played[id] = now
@@ -58,9 +58,9 @@ local function play_once_sound(self, id, component, config, message)
 end
 
 function init(self)
-  self.last_played   = {}  -- [hash_id] = socket.gettime() timestamp
+  self.last_played = {}    -- [hash_id] = socket.gettime() timestamp
   self.playing_loops = {}  -- [hash_id] = true while actively looping
-  self.loop_timers   = {}  -- [hash_id] = { timer, component, opts }
+  self.loop_timers = {}    -- [hash_id] = { timer, component, opts }
   self.current_music = nil -- hash_id of currently playing music
   msg.post(".", "acquire_input_focus")
 end
@@ -69,6 +69,7 @@ function update(self, dt)
   for id, entry in pairs(self.loop_timers) do
     if entry.timer:update(dt) then
       sound.play(entry.component, entry.opts)
+      entry.timer:start() -- restart timer for next loop
     end
   end
 end

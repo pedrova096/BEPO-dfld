@@ -33,6 +33,12 @@ embedded_instances {
   "  data: \"prototype: \\\"/main/game/stages/door/door.go\\\"\\n"
   "\"\n"
   "}\n"
+  "embedded_components {\n"
+  "  id: \"upgrader_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/main/game/upgrader/upgrader.go\\\"\\n"
+  "\"\n"
+  "}\n"
   ""
   position {
     x: -168.0

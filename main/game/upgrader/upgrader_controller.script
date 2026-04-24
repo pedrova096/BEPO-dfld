@@ -1,14 +1,33 @@
+local Rewards = require("lib.rewards.index")
+local Table = require("utils.table")
 local Msg = require("lib.msg")
 
 local Urls = {
 	-- External
 	GameController = "/controller",
+	Sprite = "#sprite",
+	StarFlareSprite = "#star_flare_sprite",
 }
 
+local StarFlare = {
+	RadialParams = vmath.vector4(0.0, 0.5, 0.0, 1.0),
+	RotationVelocity = 1.0,
+}
+
+go.property("reward", hash("none"))
+
 function init(self)
-	-- Add initialization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	self.elapsed_time = 0
+	go.set(Urls.StarFlareSprite, "sprite_size", go.get(Urls.StarFlareSprite, "size"))
+	go.set(Urls.StarFlareSprite, "radial_params", StarFlare.RadialParams)
+	go.set(Urls.StarFlareSprite, "rotation_params.y", 1.5)
+
+	self.options = {}
+	-- generate the rewards
+	local options_list = Rewards[self.reward]
+	if options_list then
+		self.options = Table.pick_random(options_list, 3)
+	end
 end
 
 function final(self)
@@ -18,9 +37,8 @@ function final(self)
 end
 
 function update(self, dt)
-	-- Add update code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	self.elapsed_time = self.elapsed_time + dt
+	go.set(Urls.StarFlareSprite, "rotation_params.x", self.elapsed_time)
 end
 
 function fixed_update(self, dt)
@@ -35,7 +53,9 @@ end
 local function on_trigger_response(self, message)
 	if not message.enter then return end
 
-	msg.post(Urls.GameController, Msg.Game.OPEN_CHEST)
+	msg.post(Urls.GameController, Msg.Game.OPEN_UPGRADER, {
+		options = self.options
+	})
 end
 
 function on_message(self, message_id, message, sender)

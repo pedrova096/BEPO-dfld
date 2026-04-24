@@ -1,4 +1,4 @@
-font: "/assets/fonts/ChakraPetch-Bold.ttf"
+font: "/assets/fonts/ChakraPetch-Bold/ChakraPetch-Bold.fnt"
 material: "/builtins/fonts/font.material"
 size: 12
 antialias: 0

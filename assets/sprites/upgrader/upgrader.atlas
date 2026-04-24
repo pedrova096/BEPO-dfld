@@ -1,0 +1,9 @@
+animations {
+  id: "upgrader"
+  images {
+    image: "/assets/sprites/upgrader/upgrader.png"
+    pivot_y: 1.0
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+}
+extrude_borders: 2

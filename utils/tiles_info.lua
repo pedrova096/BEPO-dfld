@@ -15,11 +15,11 @@ M.TILE_SM_SIZE = 24
 --- @class LandmarksEnum
 --- @field Door integer
 --- @field Spawn integer
---- @field Chest integer
+--- @field Upgrader integer
 M.LandmarksEnum = {
   Door = 5,
   Spawn = 6,
-  Chest = 7,
+  Upgrader = 7,
 }
 
 --- Bounds data returned from a tilemap query.
@@ -39,7 +39,7 @@ M.LandmarksEnum = {
 --- @class LandmarkInfo
 --- @field spawn_positions vector3[]
 --- @field doors_positions DoorPosition[]
---- @field chest_position vector3|nil
+--- @field upgrader_position vector3|nil
 
 --- Options for `get_landmark_info`.
 --- @class LandmarkInfoOptions
@@ -47,13 +47,13 @@ M.LandmarksEnum = {
 --- @field landmarks_tiles table 2D tile array returned by `tilemap.get_tiles`.
 --- @field bounds TileBounds Tilemap bounds for the landmarks layer.
 
---- Parse the landmarks tile layer into spawn, door, and chest positions.
+--- Parse the landmarks tile layer into spawn, door, and upgrader positions.
 --- @param options LandmarkInfoOptions
 --- @return LandmarkInfo
 function M.get_landmark_info(options)
   local spawn_positions = {}
   local doors_positions = {}
-  local chest_position = nil
+  local upgrader_position = nil
 
   local offset = options.offset
   local landmarks = options.landmarks_tiles
@@ -78,8 +78,8 @@ function M.get_landmark_info(options)
         })
       elseif tile == M.LandmarksEnum.Spawn then
         table.insert(spawn_positions, center_position)
-      elseif tile == M.LandmarksEnum.Chest then
-        chest_position = center_position
+      elseif tile == M.LandmarksEnum.Upgrader then
+        upgrader_position = center_position
       end
     end
   end
@@ -87,7 +87,7 @@ function M.get_landmark_info(options)
   return {
     spawn_positions = spawn_positions,
     doors_positions = doors_positions,
-    chest_position = chest_position,
+    upgrader_position = upgrader_position,
   }
 end
 

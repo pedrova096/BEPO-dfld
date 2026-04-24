@@ -1,0 +1,142 @@
+fonts {
+  name: "ui_bold"
+  font: "/assets/fonts/ui_bold.font"
+}
+textures {
+  name: "ui"
+  texture: "/assets/sprites/ui/ui.atlas"
+}
+nodes {
+  size {
+    x: 300.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  texture: "ui/upgrade_frame"
+  id: "button"
+  inherit_alpha: true
+  slice9 {
+    x: 60.0
+    y: 4.0
+    z: 4.0
+    w: 8.0
+  }
+}
+nodes {
+  position {
+    x: -85.0
+    y: 19.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 320.0
+    y: 32.0
+  }
+  color {
+    x: 0.19607843
+    y: 0.24313726
+    z: 0.30980393
+  }
+  type: TYPE_TEXT
+  text: "upgrade"
+  font: "ui_bold"
+  id: "title"
+  pivot: PIVOT_W
+  outline {
+    x: 0.153
+    y: 0.153
+    z: 0.212
+  }
+  line_break: true
+  parent: "button"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -86.0
+    y: 1.0
+  }
+  scale {
+    x: 0.25
+    y: 0.25
+  }
+  size {
+    x: 900.0
+    y: 84.0
+  }
+  color {
+    x: 0.35686275
+    y: 0.37254903
+    z: 0.34117648
+  }
+  type: TYPE_TEXT
+  text: "description"
+  font: "ui_bold"
+  id: "description"
+  pivot: PIVOT_W
+  outline {
+    x: 0.153
+    y: 0.153
+    z: 0.212
+  }
+  line_break: true
+  parent: "button"
+  inherit_alpha: true
+  alpha: 0.5
+}
+nodes {
+  position {
+    x: -85.0
+    y: -18.0
+  }
+  size {
+    x: 48.0
+    y: 11.0
+  }
+  color {
+    x: 0.19607843
+    y: 0.24313726
+    z: 0.30980393
+  }
+  type: TYPE_BOX
+  texture: "ui/upgrade_tag"
+  id: "tag_1"
+  pivot: PIVOT_W
+  parent: "button"
+  inherit_alpha: true
+  slice9 {
+    x: 4.0
+    y: 4.0
+    z: 4.0
+    w: 4.0
+  }
+}
+nodes {
+  position {
+    x: 4.0
+  }
+  scale {
+    x: 0.25
+    y: 0.25
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Dano +12"
+  font: "ui_bold"
+  id: "text"
+  pivot: PIVOT_W
+  parent: "tag_1"
+  layer: "text"
+  inherit_alpha: true
+}
+layers {
+  name: "text"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

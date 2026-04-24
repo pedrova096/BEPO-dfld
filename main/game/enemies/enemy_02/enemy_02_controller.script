@@ -7,7 +7,7 @@ local WeaponAttack = require("utils.attacker.weapon_attack")
 local StatesEnum = EnemyStater.StatesEnum
 
 local Urls = {
-	WaveManager = "/wave_manager",
+	StageManger = "/stage_manger",
 	GameController = "/controller#controller",
 	PlayerRoot = "/player/root",
 	PlayerController = "/player/root#controller",
@@ -114,7 +114,7 @@ local function on_activate_enemy(self, message)
 end
 
 local function on_dead(self, message)
-	msg.post(Urls.WaveManager, Msg.Enemy.ENEMY_KILLED, {
+	msg.post(Urls.StageManger, Msg.Enemy.ENEMY_KILLED, {
 		enemy_id = go.get_id(),
 		position = go.get_position(),
 		wave_id = self.wave_id
@@ -125,6 +125,9 @@ end
 local function on_despawned(self, message)
 	Entity.hide_entity()
 	print("Enemy despawned => " .. go.get_id())
+	msg.post(Urls.StageManger, Msg.Enemy.CONFIRM_ENEMY_DESPAWN, {
+		enemy_id = go.get_id(),
+	})
 end
 
 local function on_weapon_config_response(self, message)

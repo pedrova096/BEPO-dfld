@@ -1,0 +1,27 @@
+#version 140
+
+in highp vec4 position;
+in mediump vec2 texcoord0;
+in highp vec2 position_local;
+in mediump vec2 sprite_size;
+in mediump mat3 mtx_texture_transform_2d;
+
+out mediump vec2 var_atlas_origin;
+out mediump vec2 var_atlas_u;
+out mediump vec2 var_atlas_v;
+out mediump vec2 var_local_uv;
+
+uniform vs_uniforms
+{
+    highp mat4 view_proj;
+};
+
+void main()
+{
+    gl_Position = view_proj * vec4(position.xyz, 1.0);
+
+    var_atlas_origin = mtx_texture_transform_2d[2].xy;
+    var_atlas_u = mtx_texture_transform_2d[0].xy;
+    var_atlas_v = mtx_texture_transform_2d[1].xy;
+    var_local_uv = (position_local + sprite_size * 0.5) / sprite_size;
+}

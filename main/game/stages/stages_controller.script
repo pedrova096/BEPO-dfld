@@ -3,10 +3,10 @@ local TilesInfo = require("utils.tiles_info")
 local Colors = require("lib.colors")
 
 local Urls = {
-	WaveManager = "/wave_manager",
+	StageManger = "/stage_manger",
 	PlayerController = "/player/root#controller",
 	-- Inner
-	ChestFactory = "root#chest_factory",
+	UpgraderFactory = "root#upgrader_factory",
 	DoorFactory = "root#door_factory",
 	TilesLg = "tiles_lg#tileset",
 	TilesSM = "tiles_sm#tileset",
@@ -38,13 +38,13 @@ function init(self)
 		bounds = TilesInfo.get_bounds(Urls.TilesSM)
 	})
 
-	self.chest_position = stage_info.chest_position
+	self.upgrader_position = stage_info.upgrader_position
 	self.doors = spawn_doors(stage_info.doors_positions)
 
 	msg.post(
-		Urls.WaveManager,
+		Urls.StageManger,
 		Msg.Wave.INIT_STAGE,
-		{ stage_name = self.stage_name, spawn_positions = stage_info.spawn_positions }
+		{ spawn_positions = stage_info.spawn_positions }
 	)
 	msg.post("@render:", "clear_color", { color = vmath.vector4(unpack(Colors["#272736"])) })
 end
@@ -61,8 +61,17 @@ local function on_open_door(self, message)
 	end
 end
 
+local function on_stage_ended(self, message)
+	on_open_door(self, message)
+	factory.create(Urls.UpgraderFactory, self.upgrader_position, nil, {
+		reward = message.reward
+	})
+end
+
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Stager.OPEN_DOOR then
+	if message_id == Msg.Stager.STAGE_ENDED then
+		on_stage_ended(self, message)
+	elseif message_id == Msg.Stager.OPEN_DOOR then
 		on_open_door(self, message)
 	end
 end

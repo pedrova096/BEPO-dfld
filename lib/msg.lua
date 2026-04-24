@@ -4,6 +4,7 @@ local Player = {
   MOVE_RELEASED = hash("move_released"),
   -- commands
   SET_TARGET_ENEMIES = hash("set_target_enemies"),
+  APPLY_UPGRADE = hash("apply_upgrade"),
 }
 
 local Weapon = {
@@ -34,6 +35,7 @@ local Enemy = {
   ACTIVATE_ENEMY = hash("activate_enemy"),
   -- events
   ENEMY_KILLED = hash("enemy_killed"),
+  CONFIRM_ENEMY_DESPAWN = hash("confirm_enemy_despawn"),
 }
 
 local Bullet = {
@@ -62,7 +64,7 @@ local Game = {
   DISABLE_SPAWNER = hash("disable_spawner"),
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   AUTO_COLLECT_POINT = hash("auto_collect_point"),
-  OPEN_CHEST = hash("open_chest"),
+  OPEN_UPGRADER = hash("open_upgrader"),
 }
 
 local Attacker = {

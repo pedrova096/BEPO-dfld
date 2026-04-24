@@ -20,6 +20,7 @@ local RandomPositionGenerator = require("utils.position_generator.random_positio
 ---@field factory_map table<string, string> Map of enemy type to factory URL
 ---@field position_generator { next: fun(self: any): vector3 }
 ---@field pool Pool
+---@field pending EnemyItem[] Enemies waiting for despawn confirmation before reuse
 local M = {}
 M.__index = M
 
@@ -52,6 +53,7 @@ function M.new(options)
   local instance = setmetatable({}, M)
   instance.factory_map = options.factory_map
   instance.position_generator = options.position_generator or RandomPositionGenerator:new(200, -200)
+  instance.pending = {}
   instance.pool = Pooler.new({
     size = 0,
     create = create_enemy(instance),
@@ -77,6 +79,16 @@ local function find_active_index_by_id(self, id)
   local active_enemies = self.pool.state.active
 
   for i, enemy in ipairs(active_enemies) do
+    if enemy.id == id then
+      return i
+    end
+  end
+
+  return nil
+end
+
+local function find_pending_index_by_id(self, id)
+  for i, enemy in ipairs(self.pending) do
     if enemy.id == id then
       return i
     end
@@ -116,9 +128,41 @@ function M:release(enemy_id)
   self.pool:release_by_index(index)
 end
 
+---Mark an enemy as waiting for despawn confirmation before returning it to the free list.
+---@param enemy_id userdata
+function M:request_release(enemy_id)
+  local index = find_active_index_by_id(self, enemy_id)
+  if not index then return end
+
+  local enemy = table.remove(self.pool.state.active, index)
+  table.insert(self.pending, enemy)
+end
+
+---Confirm an enemy has fully despawned and can be reused.
+---@param enemy_id userdata
+function M:confirm_release(enemy_id)
+  local index = find_pending_index_by_id(self, enemy_id)
+  if not index then return end
+
+  local enemy = table.remove(self.pending, index)
+
+  if self.pool.config.reset then
+    self.pool.config.reset(enemy)
+  end
+
+  table.insert(self.pool.state.free, enemy)
+end
+
 ---Release all active enemies.
 function M:release_all()
   self.pool:release_all()
+  for i = #self.pending, 1, -1 do
+    local enemy = table.remove(self.pending, i)
+    if self.pool.config.reset then
+      self.pool.config.reset(enemy)
+    end
+    table.insert(self.pool.state.free, enemy)
+  end
 end
 
 ---Return the currently active enemies.

@@ -16,4 +16,7 @@ images {
 images {
   image: "/assets/sprites/ui/life_empty.png"
 }
+images {
+  image: "/assets/sprites/ui/upgrade_tag.png"
+}
 extrude_borders: 1

@@ -4,7 +4,6 @@ local Pooler = require("utils.pooler")
 local Urls = {
 	Factories = {
 		Perrocoin = "/factories#perrocoin_cfactory",
-		Stage_01 = "/stages_factory#stage_01_factory"
 	},
 	-- External
 	UIController = "/ui",
@@ -27,7 +26,6 @@ local function _spawn_perrocoin(self, options)
 end
 
 function init(self)
-	self.current_stage = collectionfactory.create(Urls.Factories.Stage_01)
 	self.pool_perrocoin = Pooler.new({
 		pool_size = 10,
 		spawner = _spawn_perrocoin,
@@ -37,8 +35,6 @@ function init(self)
 end
 
 local function on_enemy_killed(self, message)
-	msg.post(self.current_stage["/root"], Msg.Enemy.ENEMY_KILLED, message)
-
 	-- spawn cogs points
 	local random_perrocoins = math.random(0, 2)
 	if random_perrocoins > 0 then
@@ -69,28 +65,11 @@ end
 
 local TIME_TO_SHOW_SHOP_MODAL = 0.3
 local TIME_TO_AUTO_COLLECT_POINT = TIME_TO_SHOW_SHOP_MODAL / 2
-local function on_open_chest(self, message)
-	msg.post(Urls.UIController, Msg.UI.DISABLE_BUTTON_ACTION)
-	msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
+local function on_open_upgrader(self, message)
+	-- msg.post(Urls.UIController, Msg.UI.DISABLE_BUTTON_ACTION)
+	-- msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
 	msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
-
-	local pending_perrocoins = self.pool_perrocoin.in_use
-	if #pending_perrocoins > 0 then
-		for _, perrocoin_id in ipairs(pending_perrocoins) do
-			msg.post(perrocoin_id, Msg.Game.AUTO_COLLECT_POINT, {
-				target = go.get_id(Urls.Player),
-				time = TIME_TO_AUTO_COLLECT_POINT,
-			})
-		end
-
-		timer.delay(TIME_TO_SHOW_SHOP_MODAL, false, function()
-			msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL)
-		end)
-
-		return
-	end
-
-	msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL)
+	msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL, message)
 end
 
 function on_message(self, message_id, message, sender)
@@ -102,7 +81,7 @@ function on_message(self, message_id, message, sender)
 		on_perrocoin_picked(self, message)
 	elseif message_id == Msg.Game.PERROCOIN_EXPIRED then
 		on_perrocoin_expired(self, message)
-	elseif message_id == Msg.Game.OPEN_CHEST then
-		on_open_chest(self, message)
+	elseif message_id == Msg.Game.OPEN_UPGRADER then
+		on_open_upgrader(self, message)
 	end
 end
