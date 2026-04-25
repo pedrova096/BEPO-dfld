@@ -80,6 +80,8 @@ local function hide_shop_modal(self)
 end
 
 local BOOST_DROP = 24
+local ANIMATION_TIME = 0.25
+local DELAY_BETWEEN_BUTTONS_TIME = 0.15
 local function set_reward_options(self)
 	for i, upgrade_button in ipairs(UpgradeButtons) do
 		local reward_option = self.reward_options[i]
@@ -93,8 +95,10 @@ local function set_reward_options(self)
 			gui.set(upgrade_button_node, "position.y", position.y + BOOST_DROP)
 			gui.set(upgrade_button_node, "color.w", 0)
 
-			gui.animate(upgrade_button_node, "color.w", 1, gui.EASING_OUTEXPO, 0.25, (i - 1) * 0.15)
-			gui.animate(upgrade_button_node, "position.y", position.y, gui.EASING_OUTEXPO, 0.25, (i - 1) * 0.15)
+			gui.animate(upgrade_button_node, "color.w", 1, gui.EASING_OUTEXPO, ANIMATION_TIME,
+				(i - 1) * DELAY_BETWEEN_BUTTONS_TIME)
+			gui.animate(upgrade_button_node, "position.y", position.y, gui.EASING_OUTEXPO, ANIMATION_TIME,
+				(i - 1) * DELAY_BETWEEN_BUTTONS_TIME)
 		end
 	end
 end

@@ -1,0 +1,94 @@
+script: "/main/start_screen/ui/start_screen_ui_controller.gui_script"
+fonts {
+  name: "ui_bold"
+  font: "/assets/fonts/ui_bold.font"
+}
+textures {
+  name: "ui_base_button"
+  texture: "/assets/sprites/ui/buttons/ui_base_button.tilesource"
+}
+textures {
+  name: "ui_base_button_ghost"
+  texture: "/assets/sprites/ui/buttons/ui_base_button_ghost.tilesource"
+}
+nodes {
+  size {
+    x: 360.0
+    y: 640.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_BOX
+  id: "background"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_SW
+  adjust_mode: ADJUST_MODE_STRETCH
+  size_mode: SIZE_MODE_AUTO
+  material: "gradient_gui"
+}
+nodes {
+  position {
+    x: 180.0
+    y: 392.0
+  }
+  size {
+    x: 220.0
+    y: 72.0
+  }
+  type: TYPE_TEXT
+  text: "BEPO"
+  font: "ui_bold"
+  id: "title"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+}
+nodes {
+  position {
+    x: 180.0
+    y: 274.0
+  }
+  size {
+    x: 160.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  texture: "ui_base_button/default"
+  id: "start_button"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+  slice9 {
+    x: 6.0
+    y: 8.0
+    z: 6.0
+    w: 10.0
+  }
+}
+nodes {
+  position {
+    y: 1.5
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 24.0
+  }
+  type: TYPE_TEXT
+  text: "Jugar"
+  font: "ui_bold"
+  id: "start_label"
+  parent: "start_button"
+  inherit_alpha: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "gradient_gui"
+  material: "/main/materials/gradient_gui/gradient_gui.material"
+}

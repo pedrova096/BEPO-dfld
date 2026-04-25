@@ -110,13 +110,12 @@ local function on_confirm_enemy_despawn(self, message)
 end
 
 local function on_init_stage(self, message, sender)
-  local stage_info = StagesIndex[message.stage_name]
-
   self.enemies_pool:set_position_generator(SetPositionGenerator:new(message.spawn_positions))
+
+  local stage_info = StagesIndex[self.stage_name]
   self.stage:set_waves(stage_info.waves)
   self.stage:start()
 
-  self.current_stage = sender
   self.stage_reward = stage_info.reward
 end
 
