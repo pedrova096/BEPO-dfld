@@ -1,0 +1,31 @@
+name: "tilemap_01"
+instances {
+  id: "tiles_lg"
+  prototype: "/main/game/stages/tilemap_01/tiles_lg.go"
+}
+instances {
+  id: "tiles_sm"
+  prototype: "/main/game/stages/tilemap_01/tiles_sm.go"
+  position {
+    z: 1.0
+  }
+}
+instances {
+  id: "top_tiles_sm"
+  prototype: "/main/game/stages/tilemap_01/top_tiles_sm.go"
+  position {
+    z: 2.0
+  }
+}
+scale_along_z: 0
+embedded_instances {
+  id: "root"
+  children: "tiles_lg"
+  children: "tiles_sm"
+  children: "top_tiles_sm"
+  data: ""
+  position {
+    x: -168.0
+    y: 288.0
+  }
+}

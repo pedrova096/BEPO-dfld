@@ -1,0 +1,70 @@
+local LevelsIndex = require("lib.levels.index")
+local Msg = require("lib.msg")
+
+local Urls = {
+	StageManager = "/stage_manager",
+	UIController = "/ui",
+}
+
+go.property("default_level_id", hash("level_1"))
+
+function init(self)
+	self.level_id = nil
+	self.level = nil
+	self.current_stage_id = nil
+end
+
+local function get_stage_node(self, stage_id)
+	local stage_node = self.level and self.level.stages[stage_id]
+	if not stage_node then
+		error(("Stage %s not found in level %s"):format(tostring(stage_id), tostring(self.level_id)))
+	end
+
+	return stage_node
+end
+
+local function load_stage(self, stage_id)
+	local stage_node = get_stage_node(self, stage_id)
+	self.current_stage_id = stage_id
+
+	msg.post(Urls.StageManager, Msg.Stager.LOAD_STAGE, {
+		stage_id = stage_id,
+		stage_node = stage_node,
+	})
+end
+
+local function on_start_run(self, message)
+	local level_id = message.level_id
+	local level = LevelsIndex[level_id]
+	if not level then
+		error(("Level not found for level_id %s"):format(tostring(level_id)))
+	end
+
+	self.level_id = level_id
+	self.level = level
+
+	load_stage(self, self.level.start)
+end
+
+-- TODO: review
+local function on_door_entered(self, message)
+	local stage_node = get_stage_node(self, self.current_stage_id)
+	local door_option = message.door_option or 1
+	-- TODO: fix its not a map
+	local next_stage_id = stage_node.doors and stage_node.doors[door_option]
+
+	if not next_stage_id then
+		error(("Door %s from stage %s has no target"):format(tostring(door_option), tostring(self.current_stage_id)))
+	end
+
+	msg.post(Urls.UIController, Msg.UI.SHOW_WIPE)
+	load_stage(self, next_stage_id)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Game.START_RUN then
+		on_start_run(self, message)
+	elseif message_id == Msg.Stager.DOOR_ENTERED then
+		on_door_entered(self, message)
+	end
+end

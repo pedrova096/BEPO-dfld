@@ -38,7 +38,7 @@ local function input_start(self, action)
 	if action.released and self.start_pressed then
 		unpressed_button(button, label)
 		self.start_pressed = false
-		msg.post(Urls.MainController, Msg.Main.START_NEW_GAME)
+		msg.post(Urls.MainController, Msg.Main.START_NEW_GAME, { level_id = hash("level_1") })
 		return true
 	end
 

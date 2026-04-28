@@ -26,6 +26,10 @@ end
 --- @class BudgetWaveOptions : WaveOptions
 --- @field budget number? total spawn budget (default 10)
 
+--- @class BudgetWaveConfig
+--- @field type "budget"
+--- @field options BudgetWaveOptions
+
 --- @param options BudgetWaveOptions
 --- @return BudgetWave
 function M:new(options)

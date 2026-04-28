@@ -1,5 +1,5 @@
 image: "/assets/sprites/enemies/enemies_02.png"
-tile_width: 24
+tile_width: 26
 tile_height: 32
 animations {
   id: "attack"

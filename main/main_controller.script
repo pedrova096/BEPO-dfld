@@ -12,7 +12,10 @@ local Urls = {
 	StartScreenProxy = "/proxies#start_screen_proxy",
 	GameProxy = "/proxies#game_proxy",
 	GameOverProxy = "/proxies#game_over_proxy",
+	LevelManager = "game:/level_manager",
 }
+
+local DEFAULT_LEVEL_ID = hash("level_1")
 
 function init(self)
 	self.state = GameState.None
@@ -49,31 +52,27 @@ local function on_new_game(self, message, sender_socket)
 	msg.post(proxy, "unload")
 
 	msg.post(Urls.GameProxy, "load")
+
+	self.selected_level = message.level_id or DEFAULT_LEVEL_ID
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.PROXY_LOADED then
 		pprint("PROXY_LOADED", sender, message)
+		msg.post(sender, "enable")
+		msg.post(sender, "acquire_input_focus")
 		if sender == msg.url(Urls.StartScreenProxy) then
-			msg.post(sender, "enable")
-			msg.post(sender, "acquire_input_focus")
 			self.state = GameState.StartScreen
 		end
 
 		if sender == msg.url(Urls.GameProxy) then
-			msg.post(sender, "enable")
-			msg.post(sender, "acquire_input_focus")
+			msg.post(Urls.LevelManager, Msg.Game.START_RUN, { level_id = self.selected_level })
 			-- msg.post(sender, "set_time_step", { factor = 0.25, mode = 0 })
-
-			--msg.post(Urls.GameOver, "acquire_input_focus")
-
 			self.state = GameState.InGame
 		end
 
 		if sender == msg.url(Urls.GameOverProxy) then
 			self.state = GameState.GameOver
-			msg.post(sender, "enable")
-			msg.post(sender, "acquire_input_focus")
 		end
 	elseif message_id == Msg.Main.GAME_OVER then
 		on_game_over(self, message)

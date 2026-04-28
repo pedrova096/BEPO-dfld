@@ -47,12 +47,13 @@ local Bullet = {
 
 local Stager = {
   -- events
-  STAGE_ENDED = hash("stage_ended"),
-  WAVE_STARTED = hash("wave_started"),
-  WAVE_ENDED = hash("wave_ended"),
+  -- STAGE_ENDED = hash("stage_ended"),
+  -- WAVE_STARTED = hash("wave_started"),
+  -- WAVE_ENDED = hash("wave_ended"),
   DOOR_ENTERED = hash("door_entered"),
   -- commands
-  OPEN_DOOR = hash("open_door"),
+  LOAD_STAGE = hash("load_stage"),
+  OPEN_DOORS = hash("open_doors"),
 }
 
 local Game = {
@@ -63,8 +64,10 @@ local Game = {
   -- commands
   DISABLE_SPAWNER = hash("disable_spawner"),
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
+  START_RUN = hash("start_run"),
   AUTO_COLLECT_POINT = hash("auto_collect_point"),
   OPEN_UPGRADER = hash("open_upgrader"),
+  PROCESS_PLAYER_UPGRADE = hash("process_player_upgrade")
 }
 
 local Attacker = {
@@ -98,8 +101,6 @@ local Wave = {
   -- events
   WAVE_STARTED = hash("wave_started"),
   STAGE_COMPLETED = hash("stage_completed"),
-  -- commands
-  INIT_STAGE = hash("init_stage")
 }
 
 local UI = {

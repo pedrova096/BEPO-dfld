@@ -11,6 +11,10 @@ M.__index = M
 --- @class TimedWaveOptions : WaveOptions
 --- @field max_time number? maximum spawn duration in seconds (default 30)
 
+--- @class TimedWaveConfig
+--- @field type "time"
+--- @field options TimedWaveOptions
+
 --- @param options TimedWaveOptions
 --- @return TimedWave
 function M:new(options)

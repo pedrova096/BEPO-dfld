@@ -131,6 +131,31 @@ function M:release_all()
   end
 end
 
+---Clean the pool, applying the reset callback to every tracked item and
+---clearing all bookkeeping. Returns the collected items for optional disposal.
+---@return any[]
+function M:clean()
+  local state = self.state
+  local cleaned = {}
+  for _, item in ipairs(state.active) do
+    if self.config.reset then
+      self.config.reset(item)
+    end
+
+    table.insert(cleaned, item)
+  end
+
+  for _, item in ipairs(state.free) do
+    table.insert(cleaned, item)
+  end
+
+  state.free = {}
+  state.active = {}
+  state.size = 0
+
+  return cleaned
+end
+
 ---Number of items currently available.
 ---@return number
 function M:count_free()

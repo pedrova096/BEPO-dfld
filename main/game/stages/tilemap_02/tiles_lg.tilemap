@@ -574,7 +574,7 @@ layers {
   cell {
     x: 2
     y: -1
-    tile: 9
+    tile: 8
   }
   cell {
     x: 3
@@ -584,7 +584,7 @@ layers {
   cell {
     x: 4
     y: -1
-    tile: 9
+    tile: 8
   }
   cell {
     x: 5

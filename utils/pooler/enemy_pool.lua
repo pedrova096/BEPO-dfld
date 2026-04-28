@@ -138,11 +138,11 @@ function M:request_release(enemy_id)
   table.insert(self.pending, enemy)
 end
 
----Confirm an enemy has fully despawned and can be reused.
----@param enemy_id userdata
-function M:confirm_release(enemy_id)
-  local index = find_pending_index_by_id(self, enemy_id)
-  if not index then return end
+---Confirm a pending enemy by index and return it to the free list.
+---@param index number
+---@return EnemyItem?
+function M:confirm_release_by_index(index)
+  if index < 1 or index > #self.pending then return nil end
 
   local enemy = table.remove(self.pending, index)
 
@@ -151,17 +151,29 @@ function M:confirm_release(enemy_id)
   end
 
   table.insert(self.pool.state.free, enemy)
+  return enemy
 end
 
----Release all active enemies.
-function M:release_all()
-  self.pool:release_all()
-  for i = #self.pending, 1, -1 do
-    local enemy = table.remove(self.pending, i)
-    if self.pool.config.reset then
-      self.pool.config.reset(enemy)
-    end
-    table.insert(self.pool.state.free, enemy)
+---Confirm an enemy has fully despawned and can be reused.
+---@param enemy_id userdata
+function M:confirm_release(enemy_id)
+  local index = find_pending_index_by_id(self, enemy_id)
+  if not index then return end
+  return self:confirm_release_by_index(index)
+end
+
+---Reset the pool and destroy all enemies
+function M:reset()
+  -- Confirm all pending
+  for index = #self.pending, 1, -1 do
+    self:confirm_release_by_index(index)
+  end
+
+  ---@type EnemyItem[]
+  local to_destroy = self.pool:clean()
+
+  for _, enemy in ipairs(to_destroy) do
+    go.delete(enemy.id, true)
   end
 end
 

@@ -1,11 +1,11 @@
 components {
   id: "tileset"
-  component: "/main/game/stages/stage_02/tiles_sm.tilemap"
+  component: "/main/game/stages/tilemap_02/tiles_sm.tilemap"
 }
 embedded_components {
   id: "static"
   type: "collisionobject"
-  data: "collision_shape: \"/main/game/stages/stage_02/tiles_sm.tilemap\"\n"
+  data: "collision_shape: \"/main/game/stages/tilemap_02/tiles_sm.tilemap\"\n"
   "type: COLLISION_OBJECT_TYPE_STATIC\n"
   "mass: 0.0\n"
   "friction: 0.1\n"

@@ -426,7 +426,7 @@ local function input_shop_modal(self, action)
 			local button_node = get_template_node(upgrade_button.id, "button")
 			local touched = UtilsGUI.get_touched_by_node(button_node, action)
 			if touched and touched.pressed then
-				msg.post(Urls.PlayerController, Msg.Player.APPLY_UPGRADE, reward_option)
+				msg.post(Urls.GameController, Msg.Game.PROCESS_PLAYER_UPGRADE, reward_option)
 				hide_shop_modal(self)
 				return true
 			end
