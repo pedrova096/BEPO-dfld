@@ -10,6 +10,7 @@ local Msg = require("lib.msg")
 local Urls = {
 	FactoryEnemy01 = "/stage_manager#cfactory_enemy_01",
 	FactoryEnemy02 = "/stage_manager#cfactory_enemy_02",
+	GameController = "/controller",
 	Tilemap01Factory = "/stage_manager#tilemap_01_factory",
 	Tilemap02Factory = "/stage_manager#tilemap_02_factory",
 	PlayerController = "/player/root#controller",
@@ -34,6 +35,26 @@ local DoorsEnum = {
 	Hard = 13,
 	Boss = 14,
 }
+
+local function delete_id(id, recursive)
+	if not id then return end
+	go.delete(id, recursive or false)
+end
+
+local function clear_stage_objects(self)
+	if self.stage_info and self.stage_info.doors then
+		for _, door in ipairs(self.stage_info.doors) do
+			delete_id(door.id)
+		end
+	end
+
+	delete_id(self.upgrader_id)
+	delete_id(self.current_tilemap and self.current_tilemap.id, true)
+
+	self.upgrader_id = nil
+	self.current_tilemap = nil
+	self.stage_info = nil
+end
 
 local function spawn_doors(self, doors)
 	local tiles_lg_url = msg.url(nil, self.current_tilemap.tiles_lg, "tileset")
@@ -104,6 +125,11 @@ function init(self)
 			on_stage_complete(self)
 		end,
 	})
+
+	self.current_tilemap = nil
+	self.stage_info = nil
+	self.upgrader_id = nil
+	self.stage_waiting_to_start = false
 end
 
 local function target_enemies_pipe(self, dt)
@@ -146,7 +172,9 @@ local function on_confirm_enemy_despawn(self, message)
 end
 
 local function on_load_stage(self, message)
+	self.stage:set_waves({})
 	self.enemies_pool:reset()
+	clear_stage_objects(self)
 
 	local stage_data = message.stage_node.data
 	local next_doors = message.stage_node.doors
@@ -168,23 +196,50 @@ local function on_load_stage(self, message)
 	self.stage_info = parse_stage_info(self)
 	if next_doors then
 		spawn_doors(self, next_doors)
+	else
+		self.stage_info.doors = {}
 	end
 
 	self.enemies_pool:set_position_generator(SetPositionGenerator:new(self.stage_info.spawn_positions))
 
 	self.current_stage_reward = stage_data.reward
 	self.stage:set_waves(WaveBuilder.from_config(stage_data.waves))
+	if message.transition then
+		self.stage_waiting_to_start = true
+	else
+		self.stage:start()
+		self.stage_waiting_to_start = false
+	end
+
+	msg.post(Urls.GameController, Msg.Stager.STAGE_LOADED, {
+		stage_id = self.current_stage_id,
+		transition = message.transition or false,
+		duration = message.duration,
+	})
+end
+
+local function on_start_stage(self, _message)
+	if not self.stage_waiting_to_start then return end
+
+	self.stage_waiting_to_start = false
 	self.stage:start()
 end
 
 local function on_open_doors(self, _)
-	go.animate(self.upgrader_id, "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0), go.EASING_INBACK, 0.3, 0, function()
-		go.delete(self.upgrader_id)
-	end)
+	if self.upgrader_id then
+		local upgrader_id = self.upgrader_id
+		self.upgrader_id = nil
+		go.animate(upgrader_id, "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0), go.EASING_INBACK, 0.3, 0, function()
+			go.delete(upgrader_id)
+		end)
+	end
 
+	if not self.current_tilemap or not self.stage_info or not self.stage_info.doors then return end
 	local tiles_lg_url = msg.url(nil, self.current_tilemap.tiles_lg, "tileset")
 	for _, door in ipairs(self.stage_info.doors) do
-		msg.post(door.id, Msg.HIDE_ELEMENT)
+		if door.id then
+			msg.post(door.id, Msg.HIDE_ELEMENT)
+		end
 		tilemap.set_tile(tiles_lg_url, "walls", door.column_index, door.row_index, DoorsEnum.Opened)
 	end
 end
@@ -192,6 +247,8 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Stager.LOAD_STAGE then
 		on_load_stage(self, message)
+	elseif message_id == Msg.Stager.START_STAGE then
+		on_start_stage(self, message)
 	elseif message_id == Msg.Enemy.ENEMY_KILLED then
 		on_enemy_killed(self, message)
 	elseif message_id == Msg.Stager.OPEN_DOORS then

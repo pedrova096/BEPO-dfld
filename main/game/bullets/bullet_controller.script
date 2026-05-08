@@ -15,6 +15,42 @@ local Urls = {
 	Body = "#body",
 }
 
+local function set_normal_theme_colors(self)
+	if self.theme == 1 then
+		local color3 = vmath.vector4(unpack(Colors["#ffe478"])) * 0.5
+		go.set(Urls.Sprite, "target_color_1", vmath.vector4(unpack(Colors["#ffffeb"])))
+		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#f2a65e"])))
+		go.set(Urls.Sprite, "target_color_3", color3)
+	elseif self.theme == 2 then
+		local color3 = vmath.vector4(unpack(Colors["#b7ee7b"])) * 0.5
+		go.set(Urls.Sprite, "target_color_1", vmath.vector4(unpack(Colors["#ebffeb"])))
+		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#6dc170"])))
+		go.set(Urls.Sprite, "target_color_3", color3)
+	end
+end
+
+local function mix_theme_colors()
+	local target_color_1 = go.get(Urls.Sprite, "target_color_1")
+	local target_color_2 = go.get(Urls.Sprite, "target_color_2")
+	local target_color_3 = go.get(Urls.Sprite, "target_color_3")
+
+	go.set(Urls.Sprite, "target_color_1", target_color_2)
+	go.set(Urls.Sprite, "target_color_2", target_color_1)
+	go.set(Urls.Sprite, "target_color_3", vmath.vector4(
+		1 - target_color_3.z,
+		target_color_3.y,
+		1 - target_color_3.x,
+		target_color_3.w
+	))
+end
+
+local function stop_color_swap_timer(self)
+	if self.color_swap_timer then
+		timer.cancel(self.color_swap_timer)
+		self.color_swap_timer = nil
+	end
+end
+
 local function disabled_bullet()
 	Entity.disable_body(Urls.Zone)
 	Entity.disable_body(Urls.Body)
@@ -30,18 +66,7 @@ end
 
 function init(self)
 	physics.set_maskbit(Urls.Zone, self.target, true)
-
-	if self.theme == 1 then
-		local color3 = vmath.vector4(unpack(Colors["#ffe478"])) * 0.5
-		go.set(Urls.Sprite, "target_color_1", vmath.vector4(unpack(Colors["#ffffeb"])))
-		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#f2a65e"])))
-		go.set(Urls.Sprite, "target_color_3", color3)
-	elseif self.theme == 2 then
-		local color3 = vmath.vector4(unpack(Colors["#b7ee7b"])) * 0.5
-		go.set(Urls.Sprite, "target_color_1", vmath.vector4(unpack(Colors["#ebffeb"])))
-		go.set(Urls.Sprite, "target_color_2", vmath.vector4(unpack(Colors["#6dc170"])))
-		go.set(Urls.Sprite, "target_color_3", color3)
-	end
+	set_normal_theme_colors(self)
 
 	disabled_bullet()
 end
@@ -56,6 +81,12 @@ local function on_bullet_fired(self, message)
 	go.set_position(position)
 	go.set_rotation(vmath.quat_rotation_z(heading_angle))
 	go.set(Urls.Body, "linear_velocity", velocity)
+
+	if self.config.is_critic then
+		go.set_scale(vmath.vector3(1.5, 1.5, 1))
+		stop_color_swap_timer(self)
+		self.color_swap_timer = timer.delay(0.05, true, mix_theme_colors)
+	end
 end
 
 local function on_trigger_response(self, message)
@@ -69,6 +100,9 @@ local function on_trigger_response(self, message)
 		})
 	end
 
+	stop_color_swap_timer(self)
+	set_normal_theme_colors(self)
+	go.set_scale(vmath.vector3(1))
 	go.set(Urls.Body, "linear_velocity", vmath.vector3(0))
 	sprite.play_flipbook(Urls.Sprite, "disappear", function()
 		msg.post(self.owner_id, Msg.Bullet.FINISHED, { id = self.id })

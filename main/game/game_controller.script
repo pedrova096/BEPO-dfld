@@ -9,6 +9,7 @@ local Urls = {
 	UIController = "/ui",
 	Player = "/player/root",
 	StageManager = "/stage_manager",
+	LevelManager = "/level_manager",
 	SoundController = "/sound_controller",
 }
 
@@ -17,6 +18,30 @@ local StatesEnum = {
 	Paused = 2,
 	AutoCollect = 3,
 }
+
+local TransitionStates = {
+	Idle = 1,
+	WipingIn = 2,
+	LoadingStage = 3,
+	PositioningPlayer = 4,
+	WipingOut = 5,
+}
+
+local PLAYER_STAGE_ENTRY_POSITION = vmath.vector3(0, 0, 1)
+local FLOW_TRACE_ENABLED = true
+
+local function trace_flow(step, data)
+	if not FLOW_TRACE_ENABLED then return end
+
+	print("[flow]", step)
+	if data then
+		pprint(data)
+	end
+end
+
+local function set_transition_state(self, state)
+	self.transition_state = state
+end
 
 local function _spawn_perrocoin(self, options)
 	local properties = options and options.value and { value = options.value } or nil
@@ -33,8 +58,10 @@ function init(self)
 	})
 
 	self.state = StatesEnum.Active
-
-	-- what should i do?
+	self.loading_stage = false
+	self.pending_stage_load = nil
+	self.last_stage_loaded_message = nil
+	set_transition_state(self, TransitionStates.Idle)
 end
 
 local function on_enemy_killed(self, message)
@@ -63,22 +90,126 @@ local function on_perrocoin_expired(self, message)
 end
 
 local function on_open_upgrader(self, message)
-	-- msg.post(Urls.UIController, Msg.UI.DISABLE_BUTTON_ACTION)
-	-- msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
+	self.state = StatesEnum.Paused
+	msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
 	msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
 	msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL, message)
 end
 
 local function on_process_player_upgrade(self, message)
+	self.state = StatesEnum.Active
+	msg.post(Urls.UIController, Msg.UI.ENABLE_MOVE)
 	msg.post(Urls.Player, Msg.Player.APPLY_UPGRADE, message)
 	msg.post(Urls.StageManager, Msg.Stager.OPEN_DOORS)
+end
+
+local function request_stage_load(self, message)
+	trace_flow("stage_load_requested", {
+		stage_id = message.stage_id,
+		transition = message.transition or false,
+	})
+	msg.post(Urls.StageManager, Msg.Stager.LOAD_STAGE, {
+		stage_id = message.stage_id,
+		stage_node = message.stage_node,
+		transition = message.transition or false,
+		duration = message.duration,
+	})
+end
+
+local function on_load_level_stage(self, message)
+	if self.loading_stage then return end
+
+	self.loading_stage = true
+	if message.transition then
+		self.pending_stage_load = message
+		set_transition_state(self, TransitionStates.WipingIn)
+		trace_flow("wipe_show_requested", {
+			stage_id = message.stage_id,
+			duration = message.duration or 0.5,
+		})
+		msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
+		msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
+		msg.post(Urls.UIController, Msg.UI.SHOW_WIPE, {
+			duration = message.duration or 0.5,
+		})
+		return
+	end
+
+	set_transition_state(self, TransitionStates.LoadingStage)
+	request_stage_load(self, message)
+end
+
+local function on_stage_loaded(self, message)
+	trace_flow("stage_loaded", {
+		stage_id = message.stage_id,
+		transition = message.transition or false,
+	})
+
+	if not message.transition then
+		self.loading_stage = false
+		self.pending_stage_load = nil
+		self.last_stage_loaded_message = nil
+		set_transition_state(self, TransitionStates.Idle)
+		msg.post(Urls.LevelManager, Msg.Stager.STAGE_LOADED, message)
+		return
+	end
+
+	self.last_stage_loaded_message = message
+	set_transition_state(self, TransitionStates.PositioningPlayer)
+	msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
+	msg.post(Urls.Player, Msg.Player.SET_POSITION, {
+		position = PLAYER_STAGE_ENTRY_POSITION,
+	})
+	trace_flow("player_positioned", {
+		stage_id = message.stage_id,
+		position = PLAYER_STAGE_ENTRY_POSITION,
+	})
+	set_transition_state(self, TransitionStates.WipingOut)
+	trace_flow("wipe_hide_requested", {
+		stage_id = message.stage_id,
+		duration = message.duration or 0.5,
+	})
+	msg.post(Urls.UIController, Msg.UI.HIDE_WIPE, {
+		duration = message.duration or 0.5,
+	})
+end
+
+local function on_wipe_shown(self, _message)
+	if self.transition_state ~= TransitionStates.WipingIn or not self.pending_stage_load then
+		return
+	end
+
+	set_transition_state(self, TransitionStates.LoadingStage)
+	request_stage_load(self, self.pending_stage_load)
+end
+
+local function on_wipe_hidden(self, _message)
+	if self.transition_state ~= TransitionStates.WipingOut then
+		return
+	end
+
+	msg.post(Urls.StageManager, Msg.Stager.START_STAGE)
+	msg.post(Urls.UIController, Msg.UI.ENABLE_MOVE)
+	self.loading_stage = false
+	self.pending_stage_load = nil
+	msg.post(Urls.LevelManager, Msg.Stager.STAGE_LOADED, self.last_stage_loaded_message or {})
+	self.last_stage_loaded_message = nil
+	set_transition_state(self, TransitionStates.Idle)
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Game.OPEN_UPGRADER then
 		on_open_upgrader(self, message)
+	elseif message_id == Msg.Game.LOAD_LEVEL_STAGE then
+		on_load_level_stage(self, message)
 	elseif message_id == Msg.Game.PROCESS_PLAYER_UPGRADE then
 		on_process_player_upgrade(self, message)
+	elseif message_id == Msg.Stager.STAGE_LOADED then
+		on_stage_loaded(self, message)
+	elseif message_id == Msg.UI.WIPE_SHOWN then
+		on_wipe_shown(self, message)
+	elseif message_id == Msg.UI.WIPE_HIDDEN then
+		on_wipe_hidden(self, message)
 	elseif message_id == Msg.Game.PERROCOIN_PICKED then
 		on_perrocoin_picked(self, message)
 	elseif message_id == Msg.Game.PERROCOIN_EXPIRED then

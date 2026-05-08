@@ -119,6 +119,10 @@ local function on_target_enemies(self, message)
 	self.target_enemies = message.enemies
 end
 
+local function on_set_position(self, message)
+	go.set_position(message.position)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Player.MOVE_PRESSED then
 		on_move_pressed(self, message)
@@ -128,6 +132,8 @@ function on_message(self, message_id, message, sender)
 		on_apply_damage(self, message)
 	elseif message_id == Msg.Player.SET_TARGET_ENEMIES then
 		on_target_enemies(self, message)
+	elseif message_id == Msg.Player.SET_POSITION then
+		on_set_position(self, message)
 	end
 end
 

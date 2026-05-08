@@ -1,4 +1,4 @@
-local LimitStateTimer = require("lib.stater.limit_state_timer")
+local ManualTimer = require("utils.manual_timer")
 local UtilsGUI = require("utils.utils_gui")
 local Inputs = require("lib.inputs")
 local Msg = require("lib.msg")
@@ -135,6 +135,7 @@ function init(self)
 	self.reward_options = {}
 	self.has_super_action = false
 	self.upgrade_options_active = false
+	self.wipe_transition = nil
 	self.debug = {
 		enabled = true,
 		keyboard_direction = vmath.vector3()
@@ -151,19 +152,29 @@ function final(self)
 end
 
 local function wipe_view_pipe(self, dt)
-	if not self.wipe_timer then return end
+	if not self.wipe_transition then return end
 
-	self.wipe_timer:update(dt)
-	if self.wipe_timer:is_expired() then
-		self.wipe_timer = nil
-		return
-	end
-
-	local progress = self.wipe_timer:progress()
-
+	local transition = self.wipe_transition
 	local wipe_node = gui.get_node(Urls.Wipe)
+	transition.timer:update(dt)
 
-	gui.set(wipe_node, "progress.x", progress + 0.1)
+	local duration = transition.timer.interval
+	local progress = duration > 0 and math.min(transition.timer.elapsed / duration, 1) or 1
+	local wipe_progress = transition.from + (transition.to - transition.from) * progress
+
+	gui.set(wipe_node, "progress.x", wipe_progress)
+
+	if transition.timer:is_done() then
+		if transition.hide_on_complete then
+			gui.set_visible(wipe_node, false)
+		end
+
+		if transition.complete_message_id then
+			msg.post(Urls.GameController, transition.complete_message_id)
+		end
+
+		self.wipe_transition = nil
+	end
 end
 
 function update_button_time_pipe(self, dt)
@@ -222,11 +233,41 @@ local function on_player_life_changed(self, message)
 	end
 end
 
-local function on_show_wipe(self, message)
+local function start_wipe_transition(self, options)
 	local wipe_node = gui.get_node(Urls.Wipe)
+	local timer = ManualTimer:new({
+		interval = options.duration or 0.5,
+	})
+
 	gui.set_visible(wipe_node, true)
-	self.wipe_timer = LimitStateTimer:new({
+	gui.set(wipe_node, "progress.x", options.from)
+	timer:start()
+
+	self.wipe_transition = {
+		timer = timer,
+		from = options.from,
+		to = options.to,
+		hide_on_complete = options.hide_on_complete or false,
+		complete_message_id = options.complete_message_id,
+	}
+end
+
+local function on_show_wipe(self, message)
+	start_wipe_transition(self, {
+		from = 0.1,
+		to = 1.0,
 		duration = message.duration or 0.5,
+		complete_message_id = Msg.UI.WIPE_SHOWN,
+	})
+end
+
+local function on_hide_wipe(self, message)
+	start_wipe_transition(self, {
+		from = 0.9,
+		to = 0.0,
+		duration = message.duration or 0.5,
+		hide_on_complete = true,
+		complete_message_id = Msg.UI.WIPE_HIDDEN,
 	})
 end
 
@@ -259,6 +300,8 @@ function on_message(self, message_id, message, sender)
 		on_player_life_changed(self, message)
 	elseif message_id == Msg.UI.SHOW_WIPE then
 		on_show_wipe(self, message)
+	elseif message_id == Msg.UI.HIDE_WIPE then
+		on_hide_wipe(self, message)
 	elseif message_id == Msg.UI.ENABLE_BUTTON_ACTION then
 		on_toggle_button_action(self, true)
 	elseif message_id == Msg.UI.DISABLE_BUTTON_ACTION then

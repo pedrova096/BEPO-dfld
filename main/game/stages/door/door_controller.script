@@ -9,14 +9,21 @@ local Urls = {
 
 go.property("door_option", hash("none"))
 
+function init(self)
+	self.used = false
+end
+
 local function on_hide_element(self, message)
 	Entity.disable_body(Urls.Body)
 end
 
 local function on_trigger_response(self, message)
+	if self.used then return end
 	if message.own_group ~= hash("wall_trigger") then return end
 	if not message.enter then return end
 
+	self.used = true
+	Entity.disable_body(Urls.Body)
 	msg.post(Urls.LevelManager, Msg.Stager.DOOR_ENTERED, {
 		door_option = self.door_option,
 	})

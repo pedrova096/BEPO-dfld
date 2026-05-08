@@ -4,6 +4,7 @@ local Player = {
   MOVE_RELEASED = hash("move_released"),
   -- commands
   SET_TARGET_ENEMIES = hash("set_target_enemies"),
+  SET_POSITION = hash("set_position"),
   APPLY_UPGRADE = hash("apply_upgrade"),
 }
 
@@ -48,12 +49,14 @@ local Bullet = {
 local Stager = {
   -- events
   -- STAGE_ENDED = hash("stage_ended"),
+  STAGE_LOADED = hash("stage_loaded"),
   -- WAVE_STARTED = hash("wave_started"),
   -- WAVE_ENDED = hash("wave_ended"),
   DOOR_ENTERED = hash("door_entered"),
   -- commands
   LOAD_STAGE = hash("load_stage"),
   OPEN_DOORS = hash("open_doors"),
+  START_STAGE = hash("start_stage"),
 }
 
 local Game = {
@@ -65,9 +68,10 @@ local Game = {
   DISABLE_SPAWNER = hash("disable_spawner"),
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   START_RUN = hash("start_run"),
+  LOAD_LEVEL_STAGE = hash("load_level_stage"),
   AUTO_COLLECT_POINT = hash("auto_collect_point"),
   OPEN_UPGRADER = hash("open_upgrader"),
-  PROCESS_PLAYER_UPGRADE = hash("process_player_upgrade")
+  PROCESS_PLAYER_UPGRADE = hash("process_player_upgrade"),
 }
 
 local Attacker = {
@@ -106,12 +110,15 @@ local Wave = {
 local UI = {
   -- events
   LIFE_CHANGED = hash("life_changed"), -- Split into added or removed
+  WIPE_SHOWN = hash("wipe_shown"),
+  WIPE_HIDDEN = hash("wipe_hidden"),
   -- commands
   ENABLE_MOVE = hash("enable_move"),
   DISABLE_MOVE = hash("disable_move"),
   ENABLE_BUTTON_ACTION = hash("enable_button"),
   DISABLE_BUTTON_ACTION = hash("disable_button"),
   SHOW_WIPE = hash("show_wipe"),
+  HIDE_WIPE = hash("hide_wipe"),
   SET_LIFE_NODES = hash("set_life_nodes"),
   SHOW_SHOP_MODAL = hash("show_shop_modal"),
 }

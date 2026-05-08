@@ -1,10 +1,21 @@
 local LevelsIndex = require("lib.levels.index")
 local Msg = require("lib.msg")
+local Table = require("utils.table")
 
 local Urls = {
-	StageManager = "/stage_manager",
-	UIController = "/ui",
+	GameController = "/controller",
 }
+
+local FLOW_TRACE_ENABLED = true
+
+local function trace_flow(step, data)
+	if not FLOW_TRACE_ENABLED then return end
+
+	print("[flow]", step)
+	if data then
+		pprint(data)
+	end
+end
 
 go.property("default_level_id", hash("level_1"))
 
@@ -12,6 +23,7 @@ function init(self)
 	self.level_id = nil
 	self.level = nil
 	self.current_stage_id = nil
+	self.loading_stage = false
 end
 
 local function get_stage_node(self, stage_id)
@@ -23,18 +35,20 @@ local function get_stage_node(self, stage_id)
 	return stage_node
 end
 
-local function load_stage(self, stage_id)
+local function request_stage_load(self, stage_id, options)
 	local stage_node = get_stage_node(self, stage_id)
 	self.current_stage_id = stage_id
+	self.loading_stage = true
 
-	msg.post(Urls.StageManager, Msg.Stager.LOAD_STAGE, {
+	msg.post(Urls.GameController, Msg.Game.LOAD_LEVEL_STAGE, {
 		stage_id = stage_id,
 		stage_node = stage_node,
+		transition = options and options.transition or false,
 	})
 end
 
 local function on_start_run(self, message)
-	local level_id = message.level_id
+	local level_id = message.level_id or self.default_level_id
 	local level = LevelsIndex[level_id]
 	if not level then
 		error(("Level not found for level_id %s"):format(tostring(level_id)))
@@ -43,22 +57,39 @@ local function on_start_run(self, message)
 	self.level_id = level_id
 	self.level = level
 
-	load_stage(self, self.level.start)
+	request_stage_load(self, self.level.start, {
+		transition = false,
+	})
 end
 
--- TODO: review
 local function on_door_entered(self, message)
+	if self.loading_stage then return end
+
 	local stage_node = get_stage_node(self, self.current_stage_id)
 	local door_option = message.door_option or 1
-	-- TODO: fix its not a map
-	local next_stage_id = stage_node.doors and stage_node.doors[door_option]
 
-	if not next_stage_id then
-		error(("Door %s from stage %s has no target"):format(tostring(door_option), tostring(self.current_stage_id)))
+	local doors = stage_node.doors
+	if not doors then
+		return
 	end
 
-	msg.post(Urls.UIController, Msg.UI.SHOW_WIPE)
-	load_stage(self, next_stage_id)
+	if not Table.contains(doors, door_option) then
+		error(("Door target %s is not available from stage %s"):format(tostring(door_option), tostring(self.current_stage_id)))
+	end
+
+	local next_stage_id = door_option
+	trace_flow("door_entered", {
+		current_stage_id = self.current_stage_id,
+		next_stage_id = next_stage_id,
+	})
+
+	request_stage_load(self, next_stage_id, {
+		transition = true,
+	})
+end
+
+local function on_stage_loaded(self, _message)
+	self.loading_stage = false
 end
 
 function on_message(self, message_id, message, sender)
@@ -66,5 +97,7 @@ function on_message(self, message_id, message, sender)
 		on_start_run(self, message)
 	elseif message_id == Msg.Stager.DOOR_ENTERED then
 		on_door_entered(self, message)
+	elseif message_id == Msg.Stager.STAGE_LOADED then
+		on_stage_loaded(self, message)
 	end
 end

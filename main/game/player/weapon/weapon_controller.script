@@ -127,7 +127,7 @@ end
 
 local function on_fire_weapon(self, message)
 	sprite.play_flipbook(Urls.Sprite, "fire")
-	msg.post(Urls.SoundController, Msg.Sound.PLAY_SFX_SOUND, { id = hash("bullet") })
+	msg.post(Urls.SoundController, Msg.Sound.PLAY_SFX_SOUND, { id = hash("shot") })
 end
 
 function on_message(self, message_id, message, sender)
