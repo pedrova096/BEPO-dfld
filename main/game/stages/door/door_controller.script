@@ -4,13 +4,15 @@ local Entity = require("utils.entity")
 local Urls = {
 	Body = "#body",
 	BodyTrigger = "#body_trigger",
-	LevelManager = "/level_manager",
+	GameController = "/controller",
 }
 
-go.property("door_option", hash("none"))
+go.property("next_stage", hash("none"))
+go.property("reward", hash("none"))
 
 function init(self)
 	self.used = false
+	-- TODO: self.reward for icon
 end
 
 local function on_hide_element(self, message)
@@ -24,8 +26,8 @@ local function on_trigger_response(self, message)
 
 	self.used = true
 	Entity.disable_body(Urls.Body)
-	msg.post(Urls.LevelManager, Msg.Stager.DOOR_ENTERED, {
-		door_option = self.door_option,
+	msg.post(Urls.GameController, Msg.Stager.CONNECTION_ENTERED, {
+		next_stage = self.next_stage,
 	})
 end
 

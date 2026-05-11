@@ -1,5 +1,5 @@
-local Stage = require("utils.stager.stage")
-local WaveBuilder = require("utils.stager.wave_builder")
+local LevelRuntime = require("modules.level.runtime")
+local LevelEvents = require("modules.level.events")
 local EnemyPool = require("utils.pooler.enemy_pool")
 local RandomPositionGenerator = require("utils.position_generator.random_position_generator")
 local SetPositionGenerator = require("utils.position_generator.set_position_generator")
@@ -15,7 +15,7 @@ local Urls = {
 	Tilemap02Factory = "/stage_manager#tilemap_02_factory",
 	PlayerController = "/player/root#controller",
 	UpgraderFactory = "/stage_manager#upgrader_factory",
-	DoorFactory = "/stage_manager#door_factory"
+	ConnectionFactory = "/stage_manager#door_factory"
 }
 
 local FACTORIES_MAP = {
@@ -42,9 +42,9 @@ local function delete_id(id, recursive)
 end
 
 local function clear_stage_objects(self)
-	if self.stage_info and self.stage_info.doors then
-		for _, door in ipairs(self.stage_info.doors) do
-			delete_id(door.object_id)
+	if self.stage_info and self.stage_info.connections then
+		for _, connection in ipairs(self.stage_info.connections) do
+			delete_id(connection.object_id)
 		end
 	end
 
@@ -56,26 +56,25 @@ local function clear_stage_objects(self)
 	self.stage_info = nil
 end
 
-local function spawn_doors(self, doors)
+local function spawn_connections(self, connections)
 	local tiles_lg_url = msg.url(nil, self.current_tilemap.tiles_lg, "tileset")
 	local bounds = TilesInfo.get_bounds(tiles_lg_url)
 
 	local offset = go.get_position(self.current_tilemap.id)
 
-	self.stage_info.doors = TilesInfo.get_doors_positions({
+	self.stage_info.connections = TilesInfo.get_doors_positions({
 		offset = offset,
 		bounds = bounds,
-		doors_amount = #doors,
+		doors_amount = #connections,
 	})
 
-	for index, door in ipairs(self.stage_info.doors) do
-		tilemap.set_tile(tiles_lg_url, "walls", door.column_index, door.row_index, DoorsEnum.Normal)
-		local door_id = factory.create(Urls.DoorFactory, door.position, nil, {
-			door_option = doors[index].id,
-			door_difficulty = doors[index].difficulty,
-			door_reward = doors[index].reward,
+	for index, connection in ipairs(self.stage_info.connections) do
+		tilemap.set_tile(tiles_lg_url, "walls", connection.column_index, connection.row_index, DoorsEnum.Normal)
+		local connection_id = factory.create(Urls.ConnectionFactory, connection.position, nil, {
+			next_stage = connections[index].id,
+			reward = connections[index].reward,
 		})
-		door.object_id = door_id
+		connection.object_id = connection_id
 	end
 end
 
@@ -89,6 +88,28 @@ end
 
 local function on_stage_complete(self)
 	spawn_upgrader(self)
+end
+
+local function drain_runtime_events(self)
+	local events = self.runtime:drain_events()
+
+	for _, event in ipairs(events) do
+		local payload = event.payload or {}
+		if event.name == LevelEvents.SPAWN_ENEMY_REQUESTED then
+			self.enemies_pool:acquire_or_extend({
+				wave_id = payload.wave_id,
+				type = payload.enemy.id,
+			})
+		elseif event.name == LevelEvents.WAVE_STARTED then
+			msg.post("#stage_manager", Msg.Wave.WAVE_STARTED, { index = payload.index })
+		elseif event.name == LevelEvents.STAGE_COMPLETED then
+			on_stage_complete(self)
+		elseif event.name == LevelEvents.ENEMY_RELEASE_REQUESTED then
+			self.enemies_pool:request_release(payload.enemy_id)
+		elseif event.name == LevelEvents.ENEMY_RELEASE_CONFIRMED then
+			self.enemies_pool:confirm_release(payload.enemy_id)
+		end
+	end
 end
 
 local function parse_stage_info(self)
@@ -106,31 +127,18 @@ end
 go.property("debug", false)
 
 function init(self)
+	self.runtime = LevelRuntime:new({
+		max_overlap = 2,
+		debug = self.debug,
+	})
 	self.enemies_pool = EnemyPool.new({
 		factory_map = FACTORIES_MAP,
 		position_generator = RandomPositionGenerator:new(200, -200),
 	})
 
-	self.stage = Stage:new({
-		max_overlap = 2,
-		on_spawn = function(spawn_options)
-			self.enemies_pool:acquire_or_extend({
-				wave_id = spawn_options.wave_id,
-				type = spawn_options.enemy.id,
-			})
-		end,
-		on_wave_start = function(index, _wave)
-			msg.post("#stage_manager", Msg.Wave.WAVE_STARTED, { index = index })
-		end,
-		on_stage_complete = function()
-			on_stage_complete(self)
-		end,
-	})
-
 	self.current_tilemap = nil
 	self.stage_info = nil
 	self.upgrader_id = nil
-	self.stage_waiting_to_start = false
 end
 
 local function target_enemies_pipe(self, dt)
@@ -159,26 +167,33 @@ local function target_enemies_pipe(self, dt)
 end
 
 function update(self, dt)
-	self.stage:update(dt)
+	self.runtime:update(dt)
+	drain_runtime_events(self)
 	target_enemies_pipe(self, dt)
 end
 
 local function on_enemy_killed(self, message)
-	self.stage:on_enemy_killed(message.wave_id)
-	self.enemies_pool:request_release(message.enemy_id)
+	self.runtime:enemy_killed({
+		enemy_id = message.enemy_id,
+		position = message.position,
+		wave_id = message.wave_id,
+	})
+	drain_runtime_events(self)
 end
 
 local function on_confirm_enemy_despawn(self, message)
-	self.enemies_pool:confirm_release(message.enemy_id)
+	self.runtime:enemy_despawned({
+		enemy_id = message.enemy_id,
+	})
+	drain_runtime_events(self)
 end
 
 local function on_load_stage(self, message)
-	self.stage:set_waves({})
 	self.enemies_pool:reset()
 	clear_stage_objects(self)
 
 	local stage_data = message.stage.data
-	local next_doors = message.stage.doors
+	local next_connections = message.stage.connections
 	self.current_stage_id = message.stage.id
 
 	-- Create the tilemap
@@ -194,39 +209,37 @@ local function on_load_stage(self, message)
 		tiles_lg = ids["/tiles_lg"],
 	}
 
-	self.stage_info = parse_stage_info(self)
-	if next_doors then
-		spawn_doors(self, next_doors)
-	else
-		self.stage_info.doors = {}
+	local stage_info = parse_stage_info(self)
+	self.stage_info = {
+		connections = {},
+		upgrader_position = stage_info.upgrader_position
+	}
+	if next_connections then
+		spawn_connections(self, next_connections)
 	end
 
-	self.enemies_pool:set_position_generator(SetPositionGenerator:new(self.stage_info.spawn_positions))
+	self.enemies_pool:set_position_generator(SetPositionGenerator:new(stage_info.spawn_positions))
 
 	self.current_stage_reward = stage_data.reward
-	self.stage:set_waves(WaveBuilder.from_config(stage_data.waves))
-	if message.transition then
-		self.stage_waiting_to_start = true
-	else
-		self.stage:start()
-		self.stage_waiting_to_start = false
-	end
+	self.runtime:load_stage({
+		stage = message.stage,
+	})
+	drain_runtime_events(self)
 
 	msg.post(Urls.GameController, Msg.Stager.STAGE_LOADED, {
 		stage_id = self.current_stage_id,
+		stage = message.stage,
 		transition = message.transition or false,
 		duration = message.duration,
 	})
 end
 
 local function on_start_stage(self, _message)
-	if not self.stage_waiting_to_start then return end
-
-	self.stage_waiting_to_start = false
-	self.stage:start()
+	self.runtime:start_stage()
+	drain_runtime_events(self)
 end
 
-local function on_open_doors(self, _)
+local function on_enable_connections(self, _)
 	if self.upgrader_id then
 		local upgrader_id = self.upgrader_id
 		self.upgrader_id = nil
@@ -235,13 +248,12 @@ local function on_open_doors(self, _)
 		end)
 	end
 
-	if not self.current_tilemap or not self.stage_info or not self.stage_info.doors then return end
+	if not self.current_tilemap or not self.stage_info or not self.stage_info.connections then return end
+
 	local tiles_lg_url = msg.url(nil, self.current_tilemap.tiles_lg, "tileset")
-	for _, door in ipairs(self.stage_info.doors) do
-		if door.id then
-			msg.post(door.object_id, Msg.HIDE_ELEMENT)
-		end
-		tilemap.set_tile(tiles_lg_url, "walls", door.column_index, door.row_index, DoorsEnum.Opened)
+	for _, connection in ipairs(self.stage_info.connections) do
+		msg.post(connection.object_id, Msg.HIDE_ELEMENT)
+		tilemap.set_tile(tiles_lg_url, "walls", connection.column_index, connection.row_index, DoorsEnum.Opened)
 	end
 end
 
@@ -252,8 +264,8 @@ function on_message(self, message_id, message, sender)
 		on_start_stage(self, message)
 	elseif message_id == Msg.Enemy.ENEMY_KILLED then
 		on_enemy_killed(self, message)
-	elseif message_id == Msg.Stager.OPEN_DOORS then
-		on_open_doors(self, message)
+	elseif message_id == Msg.Stager.ENABLE_CONNECTIONS then
+		on_enable_connections(self, message)
 	elseif message_id == Msg.Enemy.CONFIRM_ENEMY_DESPAWN then
 		on_confirm_enemy_despawn(self, message)
 	end

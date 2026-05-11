@@ -1,3 +1,5 @@
+local Logger = require("modules.logger")
+
 --- @class WaveOptions
 --- @field id? number unique identifier for this wave (default 0)
 --- @field spawn_interval number? seconds between spawn ticks (default 2)
@@ -6,6 +8,7 @@
 --- @field overlap_time number? seconds after start before the next wave can begin alongside this one
 --- @field exclusive boolean? when true, this wave only starts once all previous waves are fully done (default false)
 --- @field on_spawn fun(spawn_options: SpawnOptions)? called each time an enemy should be spawned; the caller handles factory creation
+--- @field debug boolean? enable debug logging for this wave
 
 --- Abstract base wave class for enemy spawning.
 --- Handles spawn timing, weighted enemy selection, and alive tracking.
@@ -24,13 +27,11 @@
 --- @field total_spawned number total enemies spawned by this wave
 --- @field started boolean whether the wave has been started
 --- @field completed boolean whether the wave has finished
+--- @field debug boolean whether debug logging is enabled
 local M = {}
 M.__index = M
 
-local function log_info(self, message)
-	-- TODO: if self.debug then
-	print(string.format("%s %s", string.format("[STAGER.WAVE][wave:%s]", tostring(self.id)), message))
-end
+local logger = Logger.new_debugger()
 
 --- Create a new Wave instance.
 --- @param options WaveOptions
@@ -44,7 +45,10 @@ function M:new(options)
 	instance.enemy_pool = options.enemy_pool or {}
 	instance.overlap_time = options.overlap_time or nil
 	instance.exclusive = options.exclusive or false
-	instance.on_spawn = options.on_spawn or nil
+	instance.on_spawn = options.on_spawn
+	instance.debug = options.debug or false
+
+	logger = Logger.new_debugger(instance.debug, string.format("LEVEL.WAVE:%s", tostring(instance.id)))
 
 	instance.alive_count = 0
 	instance.elapsed = 0
@@ -62,30 +66,23 @@ function M:start()
 	self.elapsed = 0
 	self.spawn_timer = self.spawn_interval
 
-	log_info(
-		self,
-		string.format(
-			"started interval=%.2fs concurrent=%d overlap=%s exclusive=%s",
-			self.spawn_interval,
-			self.spawn_concurrent,
-			tostring(self.overlap_time),
-			tostring(self.exclusive)
-		)
-	)
+	logger:debug("started", {
+		interval = string.format("%.2f", self.spawn_interval),
+		concurrent = self.spawn_concurrent,
+		overlap = self.overlap_time,
+		exclusive = self.exclusive,
+	})
 end
 
 --- Handle spawning logic for the wave. Called by update() when it's time to spawn.
 function M:spawn_cycle()
 	if self.spawn_timer >= self.spawn_interval and self:can_spawn() then
-		log_info(
-			self,
-			string.format(
-				"spawn cycle triggered timer=%.2f alive=%d total_spawned=%d",
-				self.spawn_timer,
-				self.alive_count,
-				self.total_spawned
-			)
-		)
+		logger:debug("spawn_cycle", {
+			timer = string.format("%.2f", self.spawn_timer),
+			alive = self.alive_count,
+			total_spawned = self.total_spawned,
+		})
+
 		self.spawn_timer = 0
 
 		local concurrent = self.spawn_concurrent + math.random(-1, 1)
@@ -95,15 +92,9 @@ function M:spawn_cycle()
 			if enemy_def and self:validate_spawn(enemy_def) then
 				self:commit_spawn(enemy_def)
 			elseif enemy_def then
-				log_info(
-					self,
-					string.format(
-						"spawn skipped enemy=%s reason=validate_spawn_failed",
-						tostring(enemy_def.id)
-					)
-				)
+				logger:debug("spawn_skipped", { enemy = enemy_def.id, reason = "validate_spawn_failed" })
 			else
-				log_info(self, "spawn skipped reason=no_enemy_selected")
+				logger:debug("spawn_skipped", { reason = "no_enemy_selected" })
 			end
 		end
 	end
@@ -120,15 +111,11 @@ function M:update(dt)
 	self:spawn_cycle()
 	if self:is_complete() then
 		self.completed = true
-		log_info(
-			self,
-			string.format(
-				"completed elapsed=%.2f total_spawned=%d alive=%d",
-				self.elapsed,
-				self.total_spawned,
-				self.alive_count
-			)
-		)
+		logger:debug("completed", {
+			elapsed = string.format("%.2f", self.elapsed),
+			total_spawned = self.total_spawned,
+			alive = self.alive_count,
+		})
 	end
 end
 
@@ -168,15 +155,11 @@ function M:commit_spawn(enemy_def)
 	self.total_spawned = self.total_spawned + 1
 	self.alive_count = self.alive_count + 1
 
-	log_info(
-		self,
-		string.format(
-			"spawn committed enemy=%s alive=%d total_spawned=%d",
-			tostring(enemy_def.id),
-			self.alive_count,
-			self.total_spawned
-		)
-	)
+	logger:debug("spawn_committed", {
+		enemy = enemy_def.id,
+		alive = self.alive_count,
+		total_spawned = self.total_spawned,
+	})
 
 	if self.on_spawn then
 		self.on_spawn({
@@ -189,14 +172,16 @@ end
 --- Notify the wave that one of its enemies was killed.
 function M:on_enemy_killed()
 	self.alive_count = math.max(0, self.alive_count - 1)
-	log_info(self, string.format("enemy killed alive=%d", self.alive_count))
+	logger:debug("enemy_killed", { alive = self.alive_count })
 
 	if self.alive_count == 0 then
 		local old_spawn_timer = self.spawn_timer
 		self.spawn_timer = math.max(self.spawn_interval * 3 / 4, self.spawn_timer)
-		log_info(self,
-			string.format("spawn timer boosted timer=%.2f reason=no_alive_enemies before=%.2f", self.spawn_timer,
-				old_spawn_timer))
+		logger:debug("spawn_timer_boosted", {
+			timer = string.format("%.2f", self.spawn_timer),
+			before = string.format("%.2f", old_spawn_timer),
+			reason = "no_alive_enemies",
+		})
 	end
 end
 

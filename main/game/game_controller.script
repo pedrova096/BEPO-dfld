@@ -1,4 +1,7 @@
 local Msg = require("lib.msg")
+local Level = require("modules.level.level")
+local Logger = require("modules.logger")
+local LevelAdapter = require("lib.levels_adapter")
 local Pooler = require("utils.pooler")
 
 local Urls = {
@@ -9,7 +12,6 @@ local Urls = {
 	UIController = "/ui",
 	Player = "/player/root",
 	StageManager = "/stage_manager",
-	LevelManager = "/level_manager",
 	SoundController = "/sound_controller",
 }
 
@@ -29,15 +31,7 @@ local TransitionStates = {
 
 local PLAYER_STAGE_ENTRY_POSITION = vmath.vector3(0, 0, 1)
 local FLOW_TRACE_ENABLED = true
-
-local function trace_flow(step, data)
-	if not FLOW_TRACE_ENABLED then return end
-
-	print("[flow]", step)
-	if data then
-		pprint(data)
-	end
-end
+local logger = Logger.new_debugger(FLOW_TRACE_ENABLED, "FLOW")
 
 local function set_transition_state(self, state)
 	self.transition_state = state
@@ -52,6 +46,8 @@ local function _spawn_perrocoin(self, options)
 end
 
 function init(self)
+	self.level = Level:new()
+
 	self.pool_perrocoin = Pooler.new({
 		pool_size = 10,
 		spawner = _spawn_perrocoin,
@@ -60,25 +56,7 @@ function init(self)
 	self.state = StatesEnum.Active
 	self.loading_stage = false
 	self.pending_stage_load = nil
-	self.last_stage_loaded_message = nil
 	set_transition_state(self, TransitionStates.Idle)
-end
-
-local function on_enemy_killed(self, message)
-	-- spawn cogs points
-	local random_perrocoins = math.random(0, 2)
-	if random_perrocoins > 0 then
-		for i = 1, random_perrocoins do
-			local perrocoin_id = self.pool_perrocoin:pull()
-			if not perrocoin_id then
-				perrocoin_id = self.pool_perrocoin:extend()
-			end
-
-			msg.post(perrocoin_id, Msg.SHOW_ELEMENT, {
-				position = message.position,
-			})
-		end
-	end
 end
 
 local function on_perrocoin_picked(self, message)
@@ -100,16 +78,16 @@ local function on_process_player_upgrade(self, message)
 	self.state = StatesEnum.Active
 	msg.post(Urls.UIController, Msg.UI.ENABLE_MOVE)
 	msg.post(Urls.Player, Msg.Player.APPLY_UPGRADE, message)
-	msg.post(Urls.StageManager, Msg.Stager.OPEN_DOORS)
+	msg.post(Urls.StageManager, Msg.Stager.ENABLE_CONNECTIONS)
 end
 
 local function request_stage_load(self, message)
-	trace_flow("stage_load_requested", {
-		stage_id = message.stage_data.id,
+	logger:debug("stage_load_requested", {
+		stage_id = message.stage.id,
 		transition = message.transition or false,
 	})
 	msg.post(Urls.StageManager, Msg.Stager.LOAD_STAGE, {
-		stage = message.stage_data,
+		stage = message.stage,
 		transition = message.transition or false,
 		duration = message.duration,
 	})
@@ -122,8 +100,8 @@ local function on_load_level_stage(self, message)
 	if message.transition then
 		self.pending_stage_load = message
 		set_transition_state(self, TransitionStates.WipingIn)
-		trace_flow("wipe_show_requested", {
-			stage_id = message.stage_data.id,
+		logger:debug("wipe_show_requested", {
+			stage_id = message.stage.id,
 			duration = message.duration or 0.5,
 		})
 		msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
@@ -138,33 +116,61 @@ local function on_load_level_stage(self, message)
 	request_stage_load(self, message)
 end
 
+local function on_start_run(self, message)
+	local stage_payload = self.level:start_run({
+		level = LevelAdapter.get_level(message.level_id),
+	})
+
+	on_load_level_stage(self, {
+		stage = stage_payload,
+		transition = false,
+	})
+end
+
+local function on_connection_entered(self, message)
+	local stage_payload = self.level:choose_connection(message.next_stage, {
+		transition = true,
+	})
+	if not stage_payload then return end
+
+	on_load_level_stage(self, {
+		stage = stage_payload,
+		transition = true,
+	})
+end
+
 local function on_stage_loaded(self, message)
-	trace_flow("stage_loaded", {
+	self.level:load_stage({
+		stage = message.stage,
+		transition = message.transition or false,
+		duration = message.duration,
+	})
+
+	logger:debug("stage_loaded", {
 		stage_id = message.stage_id,
 		transition = message.transition or false,
 	})
 
 	if not message.transition then
+		self.level:start_stage()
+		msg.post(Urls.StageManager, Msg.Stager.START_STAGE)
 		self.loading_stage = false
 		self.pending_stage_load = nil
-		self.last_stage_loaded_message = nil
 		set_transition_state(self, TransitionStates.Idle)
-		msg.post(Urls.LevelManager, Msg.Stager.STAGE_LOADED, message)
 		return
 	end
 
-	self.last_stage_loaded_message = message
 	set_transition_state(self, TransitionStates.PositioningPlayer)
 	msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
 	msg.post(Urls.Player, Msg.Player.SET_POSITION, {
 		position = PLAYER_STAGE_ENTRY_POSITION,
 	})
-	trace_flow("player_positioned", {
+	logger:debug("player_positioned", {
 		stage_id = message.stage_id,
 		position = PLAYER_STAGE_ENTRY_POSITION,
 	})
 	set_transition_state(self, TransitionStates.WipingOut)
-	trace_flow("wipe_hide_requested", {
+	logger:debug("wipe_hide_requested", {
 		stage_id = message.stage_id,
 		duration = message.duration or 0.5,
 	})
@@ -187,18 +193,21 @@ local function on_wipe_hidden(self, _message)
 		return
 	end
 
+	self.level:start_stage()
 	msg.post(Urls.StageManager, Msg.Stager.START_STAGE)
 	msg.post(Urls.UIController, Msg.UI.ENABLE_MOVE)
 	self.loading_stage = false
 	self.pending_stage_load = nil
-	msg.post(Urls.LevelManager, Msg.Stager.STAGE_LOADED, self.last_stage_loaded_message or {})
-	self.last_stage_loaded_message = nil
 	set_transition_state(self, TransitionStates.Idle)
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Game.OPEN_UPGRADER then
 		on_open_upgrader(self, message)
+	elseif message_id == Msg.Game.START_RUN then
+		on_start_run(self, message)
+	elseif message_id == Msg.Stager.CONNECTION_ENTERED then
+		on_connection_entered(self, message)
 	elseif message_id == Msg.Game.LOAD_LEVEL_STAGE then
 		on_load_level_stage(self, message)
 	elseif message_id == Msg.Game.PROCESS_PLAYER_UPGRADE then

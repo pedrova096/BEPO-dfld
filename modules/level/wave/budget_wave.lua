@@ -3,7 +3,7 @@
 --- @field budget number total spawn budget
 --- @field spent number budget consumed so far
 --- @field _costliest_index number index of the costliest enemy
-local Wave = require("utils.stager.wave")
+local Wave = require("modules.level.wave.wave")
 
 local M = setmetatable({}, { __index = Wave })
 M.__index = M

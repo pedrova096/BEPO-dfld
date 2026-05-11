@@ -1,3 +1,5 @@
+local Logger = require("modules.logger")
+
 --- @class EnemyDef
 --- @field id string unique identifier for this enemy type (e.g. "slime", "warrior")
 --- @field cost number budget cost to spawn this enemy
@@ -6,6 +8,12 @@
 --- @class SpawnOptions
 --- @field wave_id number unique identifier of the wave
 --- @field enemy EnemyDef enemy data to spawn
+
+--- @class StageConfig
+--- @field waves WaveConfig[] Ordered wave configs played by this stage.
+--- @field difficulty number Stage difficulty rating.
+--- @field reward hash Reward id available after completing this stage.
+--- @field tilemap_id hash Tilemap id used to build this stage.
 
 --- Stage orchestrator. Manages an ordered sequence of waves with overlap support.
 --- Waves advance when the front wave's overlap_time triggers or when a wave completes.
@@ -20,20 +28,25 @@
 --- @field next_index number index of the next wave to activate
 --- @field running boolean whether the stage is currently in progress
 --- @field completed boolean whether the stage is finished
+--- @field debug boolean whether debug logging is enabled
 local M = {}
 M.__index = M
 
+local logger = Logger.new_debugger()
+
 --- Create a new Stage instance.
---- @param options {waves: Wave[]?, max_overlap: number?, on_spawn: fun(spawn_options: SpawnOptions)?, on_wave_start: fun(index: number, wave: Wave)?, on_stage_complete: fun()?}
+--- @param options {waves: Wave[]?, max_overlap: number?, on_spawn: fun(spawn_options: SpawnOptions), on_wave_start: fun(index: number, wave: Wave), on_stage_complete: fun(), debug: boolean?}
 --- @return Stage
 function M:new(options)
 	local instance = setmetatable({}, self)
 
 	instance.waves = options.waves or {}
 	instance.max_overlap = options.max_overlap or 3
-	instance.on_spawn = options.on_spawn or nil
-	instance.on_wave_start = options.on_wave_start or nil
-	instance.on_stage_complete = options.on_stage_complete or nil
+	instance.on_spawn = options.on_spawn
+	instance.on_wave_start = options.on_wave_start
+	instance.on_stage_complete = options.on_stage_complete
+	instance.debug = options.debug or false
+	logger = Logger.new_debugger(instance.debug, "LEVEL.STAGE")
 
 	instance.active_waves = {}
 	instance.next_index = 1
@@ -52,6 +65,8 @@ function M:set_waves(waves)
 	self.next_index = 1
 	self.running = false
 	self.completed = false
+
+	logger:log("waves_set", { count = #self.waves, })
 end
 
 --- Start the stage by activating the first wave.
@@ -60,6 +75,10 @@ function M:start()
 	if #self.waves == 0 then return end
 
 	self.running = true
+	logger:log("started", {
+		waves = #self.waves,
+		max_overlap = self.max_overlap,
+	})
 	self:activate_next_wave()
 end
 
@@ -80,6 +99,12 @@ function M:activate_next_wave()
 	table.insert(self.active_waves, entry)
 	wave.on_spawn = self.on_spawn
 	wave:start()
+
+	logger:log("wave_activated", {
+		index = entry.index,
+		wave_id = wave.id,
+		active = #self.active_waves,
+	})
 
 	if self.on_wave_start then
 		self.on_wave_start(self.next_index, wave)
@@ -105,6 +130,7 @@ function M:update(dt)
 			and not front.overlap_triggered
 	then
 		front.overlap_triggered = true
+		logger:log("wave_overlap_triggered", { index = front.index, wave_id = front.wave.id })
 		self:activate_next_wave()
 	end
 
@@ -113,6 +139,11 @@ function M:update(dt)
 		local entry = self.active_waves[i]
 		if entry.wave.completed then
 			table.remove(self.active_waves, i)
+			logger:log("wave_completed", {
+				index = entry.index,
+				wave_id = entry.wave.id,
+				active = #self.active_waves,
+			})
 			if not entry.overlap_triggered then
 				self:activate_next_wave()
 			end
@@ -123,6 +154,7 @@ function M:update(dt)
 	if #self.active_waves == 0 and self.next_index > #self.waves then
 		self.running = false
 		self.completed = true
+		logger:log("completed", { waves = #self.waves })
 		if self.on_stage_complete then
 			self.on_stage_complete()
 		end
@@ -135,10 +167,13 @@ function M:on_enemy_killed(wave_id)
 	for _, entry in ipairs(self.active_waves) do
 		local wave = entry.wave
 		if wave.id == wave_id then
+			logger:log("enemy_killed_routed", { wave_id = wave_id })
 			wave:on_enemy_killed()
 			return
 		end
 	end
+
+	logger:log("enemy_killed_unmatched", { wave_id = wave_id, })
 end
 
 --- @return boolean

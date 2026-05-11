@@ -12,7 +12,7 @@ local Urls = {
 	StartScreenProxy = "/proxies#start_screen_proxy",
 	GameProxy = "/proxies#game_proxy",
 	GameOverProxy = "/proxies#game_over_proxy",
-	LevelManager = "game:/level_manager",
+	GameController = "game:/controller",
 }
 
 local DEFAULT_LEVEL_ID = hash("level_1")
@@ -66,7 +66,7 @@ function on_message(self, message_id, message, sender)
 		end
 
 		if sender == msg.url(Urls.GameProxy) then
-			msg.post(Urls.LevelManager, Msg.Game.START_RUN, { level_id = self.selected_level })
+			msg.post(Urls.GameController, Msg.Game.START_RUN, { level_id = self.selected_level })
 			-- msg.post(sender, "set_time_step", { factor = 0.25, mode = 0 })
 			self.state = GameState.InGame
 		end

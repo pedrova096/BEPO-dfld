@@ -52,10 +52,10 @@ local Stager = {
   STAGE_LOADED = hash("stage_loaded"),
   -- WAVE_STARTED = hash("wave_started"),
   -- WAVE_ENDED = hash("wave_ended"),
-  DOOR_ENTERED = hash("door_entered"),
+  CONNECTION_ENTERED = hash("connection_entered"),
   -- commands
   LOAD_STAGE = hash("load_stage"),
-  OPEN_DOORS = hash("open_doors"),
+  ENABLE_CONNECTIONS = hash("enable_connections"),
   START_STAGE = hash("start_stage"),
 }
 

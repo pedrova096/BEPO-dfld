@@ -59,14 +59,6 @@ embedded_instances {
   ""
 }
 embedded_instances {
-  id: "level_manager"
-  data: "components {\n"
-  "  id: \"level_manager\"\n"
-  "  component: \"/main/game/levels/level_manager.script\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
   id: "stage_manager"
   data: "components {\n"
   "  id: \"stage_manager\"\n"

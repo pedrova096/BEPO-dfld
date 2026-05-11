@@ -2,7 +2,7 @@
 --- Complete when elapsed time exceeds max_time and all alive enemies are dead.
 --- @class TimedWave : Wave
 --- @field max_time number maximum duration in seconds
-local Wave = require("utils.stager.wave")
+local Wave = require("modules.level.wave.wave")
 
 local M = setmetatable({}, { __index = Wave })
 M.__index = M
