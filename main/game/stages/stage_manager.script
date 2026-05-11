@@ -44,7 +44,7 @@ end
 local function clear_stage_objects(self)
 	if self.stage_info and self.stage_info.doors then
 		for _, door in ipairs(self.stage_info.doors) do
-			delete_id(door.id)
+			delete_id(door.object_id)
 		end
 	end
 
@@ -68,13 +68,14 @@ local function spawn_doors(self, doors)
 		doors_amount = #doors,
 	})
 
-
 	for index, door in ipairs(self.stage_info.doors) do
 		tilemap.set_tile(tiles_lg_url, "walls", door.column_index, door.row_index, DoorsEnum.Normal)
 		local door_id = factory.create(Urls.DoorFactory, door.position, nil, {
-			door_option = doors[index],
+			door_option = doors[index].id,
+			door_difficulty = doors[index].difficulty,
+			door_reward = doors[index].reward,
 		})
-		door.id = door_id
+		door.object_id = door_id
 	end
 end
 
@@ -176,9 +177,9 @@ local function on_load_stage(self, message)
 	self.enemies_pool:reset()
 	clear_stage_objects(self)
 
-	local stage_data = message.stage_node.data
-	local next_doors = message.stage_node.doors
-	self.current_stage_id = message.stage_id
+	local stage_data = message.stage.data
+	local next_doors = message.stage.doors
+	self.current_stage_id = message.stage.id
 
 	-- Create the tilemap
 	local tilemap_factory = TILEMAP_FACTORY_MAP[stage_data.tilemap_id]
@@ -238,7 +239,7 @@ local function on_open_doors(self, _)
 	local tiles_lg_url = msg.url(nil, self.current_tilemap.tiles_lg, "tileset")
 	for _, door in ipairs(self.stage_info.doors) do
 		if door.id then
-			msg.post(door.id, Msg.HIDE_ELEMENT)
+			msg.post(door.object_id, Msg.HIDE_ELEMENT)
 		end
 		tilemap.set_tile(tiles_lg_url, "walls", door.column_index, door.row_index, DoorsEnum.Opened)
 	end

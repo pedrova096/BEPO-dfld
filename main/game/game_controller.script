@@ -105,12 +105,11 @@ end
 
 local function request_stage_load(self, message)
 	trace_flow("stage_load_requested", {
-		stage_id = message.stage_id,
+		stage_id = message.stage_data.id,
 		transition = message.transition or false,
 	})
 	msg.post(Urls.StageManager, Msg.Stager.LOAD_STAGE, {
-		stage_id = message.stage_id,
-		stage_node = message.stage_node,
+		stage = message.stage_data,
 		transition = message.transition or false,
 		duration = message.duration,
 	})
@@ -124,7 +123,7 @@ local function on_load_level_stage(self, message)
 		self.pending_stage_load = message
 		set_transition_state(self, TransitionStates.WipingIn)
 		trace_flow("wipe_show_requested", {
-			stage_id = message.stage_id,
+			stage_id = message.stage_data.id,
 			duration = message.duration or 0.5,
 		})
 		msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)

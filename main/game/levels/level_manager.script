@@ -26,23 +26,41 @@ function init(self)
 	self.loading_stage = false
 end
 
-local function get_stage_node(self, stage_id)
+local function get_stage_data(self, stage_id)
 	local stage_node = self.level and self.level.stages[stage_id]
 	if not stage_node then
 		error(("Stage %s not found in level %s"):format(tostring(stage_id), tostring(self.level_id)))
 	end
 
-	return stage_node
+	local doors = nil
+	if stage_node.doors then
+		doors = {}
+		for _, value in ipairs(stage_node.doors) do
+			local next_stage = self.level.stages[value]
+			table.insert(doors, {
+				stage_id = value,
+				stage_difficulty = next_stage.difficulty,
+				stage_reward = next_stage.reward,
+			})
+		end
+	end
+
+	return {
+		id = stage_id,
+		data = stage_node.data,
+		doors = doors,
+	}
 end
 
 local function request_stage_load(self, stage_id, options)
-	local stage_node = get_stage_node(self, stage_id)
+	local stage_data = get_stage_data(self, stage_id)
 	self.current_stage_id = stage_id
 	self.loading_stage = true
 
 	msg.post(Urls.GameController, Msg.Game.LOAD_LEVEL_STAGE, {
-		stage_id = stage_id,
-		stage_node = stage_node,
+		-- stage_id = stage_id,
+		-- stage_node = stage_node,
+		stage_data = stage_data,
 		transition = options and options.transition or false,
 	})
 end
@@ -65,7 +83,7 @@ end
 local function on_door_entered(self, message)
 	if self.loading_stage then return end
 
-	local stage_node = get_stage_node(self, self.current_stage_id)
+	local stage_node = get_stage_data(self, self.current_stage_id)
 	local door_option = message.door_option or 1
 
 	local doors = stage_node.doors
