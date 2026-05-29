@@ -1,4 +1,9 @@
 local Player = {
+  -- events
+  LIFE_CHANGED = hash("life_changed"),
+  LIFE_INITIALIZED = hash("life_initialized"),
+  SPECIAL_ACTION_USED = hash("special_action_used"),
+
   -- commands
   MOVE = hash("player_move"),
   STOP_MOVE = hash("stop_move"),
@@ -68,14 +73,12 @@ local Stager = {
 
 local Game = {
   -- events
-  PLAYER_LIFE_CHANGED = hash("player_life_changed"),
   PERROCOIN_PICKED = hash("perrocoin_picked"),
   COG_PICKED = hash("COG_PICKED"),
   PERROCOIN_EXPIRED = hash("perrocoin_expired"),
 
   -- commands
   DISABLE_SPAWNER = hash("disable_spawner"),
-  PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   START_RUN = hash("start_run"),
   LOAD_LEVEL_STAGE = hash("load_level_stage"),
   OPEN_UPGRADER = hash("open_upgrader"),

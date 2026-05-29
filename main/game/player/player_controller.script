@@ -1,4 +1,5 @@
 local PlayerStater = require("lib.stater.player_stater")
+local SpecialAction = require("modules.special_action.special_action")
 local Msg = require("lib.msg")
 local SpecialType = require("lib.rewards.special.special_type")
 local EnhancementType = require("lib.rewards.enhancement.enhancement_type")
@@ -24,6 +25,10 @@ local MAP_SPECIAL_ACTIONS = {
 	[SpecialType.Bomb] = Urls.SpecialActions.Bomb
 }
 
+local MAP_SPECIAL_ACTION_REQUIRED_RECHARGE = {
+	[SpecialType.Bomb] = 5,
+}
+
 go.property("velocity", 60)
 go.property("lives", 3)
 go.property("bullet_damage", 20)
@@ -36,6 +41,7 @@ function init(self)
 			lives = self.lives,
 		}
 	})
+	self.special_action = SpecialAction:new()
 	self.target_enemies = {}
 
 	msg.post(Urls.SessionManager, Msg.Game.PLAYER_SET_LIFE_COUNT, {
@@ -163,30 +169,46 @@ local function on_set_special_action(self, message)
 		{ [hash("/root")] = { owner_id = go.get_id() } }
 	)
 
-	self.current_special_action = special_actions_ids["/root"]
-	-- go.set_parent(self.current_special_action, ".", false)
+	self.special_action:set_action({
+		id = message.id,
+		max_uses = 1,
+		required_recharge = MAP_SPECIAL_ACTION_REQUIRED_RECHARGE[message.id] or 0,
+		object_id = special_actions_ids["/root"]
+	})
+end
+
+local function on_add_special_action_charge(self, message)
+	if not self.special_action then return end
+
+	self.special_action:add_recharge(message.amount or 1)
 end
 
 local function on_run_special_action(self, message)
-	if not self.current_special_action then return end
+	if not self.special_action:is_ready() then return end
 
-	msg.post(self.current_special_action, Msg.SpecialAction.PREPARE)
+	msg.post(self.special_action.state.object_id, Msg.SpecialAction.PREPARE)
 end
 
 local function on_move_special_action(self, message)
-	if not self.current_special_action then return end
+	if not self.special_action:is_ready() then return end
 
-	msg.post(self.current_special_action, Msg.SpecialAction.AIM, message)
+	msg.post(self.special_action.state.object_id, Msg.SpecialAction.AIM, message)
 end
 
 local function on_release_special_action(self, message)
-	if not self.current_special_action then return end
-	msg.post(self.current_special_action, Msg.SpecialAction.LAUNCHED)
+	if not self.special_action:is_ready() then return end
+
+	msg.post(self.special_action.state.object_id, Msg.SpecialAction.LAUNCHED)
+	local is_active = self.special_action:consume()
+
+	msg.post(Urls.SessionManager, Msg.Player.SPECIAL_ACTION_USED, {
+		is_active = is_active,
+	})
 end
 
 local function on_cancel_special_action(self, message)
-	if not self.current_special_action then return end
-	msg.post(self.current_special_action, Msg.SpecialAction.CANCELED)
+	if not self.special_action or not self.special_action.state.object_id then return end
+	msg.post(self.special_action.state.object_id, Msg.SpecialAction.CANCELED)
 end
 
 function on_message(self, message_id, message, sender)
@@ -204,6 +226,8 @@ function on_message(self, message_id, message, sender)
 		on_apply_upgrade(self, message)
 	elseif message_id == Msg.Player.SET_SPECIAL_ACTION then
 		on_set_special_action(self, message)
+	elseif message_id == Msg.Player.ADD_SPECIAL_ACTION_CHARGE then
+		on_add_special_action_charge(self, message)
 	elseif message_id == Msg.Player.RUN_SPECIAL_ACTION then
 		on_run_special_action(self, message)
 	elseif message_id == Msg.Player.MOVE_SPECIAL_ACTION then

@@ -10,7 +10,7 @@ function init(self)
 	self.player_life_count = 0
 end
 
-local function on_set_life_count(self, message)
+local function on_player_life_initialized(self, message)
 	self.player_life_count = message.lives
 	msg.post(Urls.UIController, Msg.HudUI.SET_LIFE_NODES, {
 		lives = self.player_life_count,
@@ -26,10 +26,18 @@ local function on_player_life_changed(self, message)
 	end
 end
 
+local function on_player_special_action_used(self, message)
+	if message.is_active then return end
+
+	msg.post(Urls.UIController, Msg.ControlsUI.DISABLE_BUTTON_ACTION)
+end
+
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.Game.PLAYER_SET_LIFE_COUNT then
-		on_set_life_count(self, message)
-	elseif message_id == Msg.Game.PLAYER_LIFE_CHANGED then
+	if message_id == Msg.Player.LIFE_INITIALIZED then
+		on_player_life_initialized(self, message)
+	elseif message_id == Msg.Player.LIFE_CHANGED then
 		on_player_life_changed(self, message)
+	elseif message_id == Msg.Player.SPECIAL_ACTION_USED then
+		on_player_special_action_used(self, message)
 	end
 end

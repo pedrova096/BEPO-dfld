@@ -182,6 +182,10 @@ local function on_enemy_killed(self, message)
 		position = message.position,
 		wave_id = message.wave_id,
 	})
+	msg.post(Urls.PlayerController, Msg.Player.ADD_SPECIAL_ACTION_CHARGE, {
+		amount = 1,
+		source = Msg.Enemy.ENEMY_KILLED,
+	})
 	drain_runtime_events(self)
 end
 

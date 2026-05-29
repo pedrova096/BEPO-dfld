@@ -21,8 +21,12 @@ scale_along_z: 0
 embedded_instances {
   id: "ui"
   data: "components {\n"
-  "  id: \"ui\"\n"
-  "  component: \"/main/game/ui/ui.gui\"\n"
+  "  id: \"controls_ui\"\n"
+  "  component: \"/main/game/ui/components/controls_ui.gui\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"hud_ui\"\n"
+  "  component: \"/main/game/ui/components/hud_ui.gui\"\n"
   "}\n"
   ""
 }
