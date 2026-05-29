@@ -1,4 +1,4 @@
-local Rewards = require("lib.enums.rewards")
+local Rewards = require("lib.rewards.reward_types")
 
 local pool = {
 	{ id = "enemy_01", cost = 1, chance = 0.8 },
@@ -10,7 +10,7 @@ local wave_1 = {
 	type = "budget",
 	options = {
 		id = 101,
-		budget = 10 / 3,
+		budget = 2,
 		spawn_interval = 6,
 		spawn_concurrent = 3,
 		enemy_pool = pool,
@@ -23,7 +23,7 @@ local wave_2 = {
 	type = "budget",
 	options = {
 		id = 102,
-		budget = 16 / 3,
+		budget = 2,
 		spawn_interval = 2,
 		spawn_concurrent = 3,
 		enemy_pool = pool,
@@ -34,6 +34,6 @@ local wave_2 = {
 return {
 	waves = { wave_1, wave_2 },
 	difficulty = 1,
-	reward = Rewards.StatusSelector,
+	reward = Rewards.EnhancementUpgrade,
 	tilemap_id = hash("tilemap_01")
 }

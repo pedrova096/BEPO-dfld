@@ -289,6 +289,34 @@ nodes {
 nodes {
   position {
     x: 180.0
+    y: 600.0
+    z: 1.0
+  }
+  type: TYPE_TEMPLATE
+  id: "toast"
+  template: "/main/game/ui/toast.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "toast/frame"
+  parent: "toast"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "toast/text"
+  parent: "toast/frame"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "toast/icon"
+  parent: "toast/frame"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 180.0
     y: 320.0
   }
   size {

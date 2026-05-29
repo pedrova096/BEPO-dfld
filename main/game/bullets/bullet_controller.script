@@ -3,6 +3,7 @@ local Msg = require("lib.msg")
 local Math = require("utils.math")
 local VMath = require("utils.vmath")
 local Entity = require("utils.entity")
+local Ricochet = require("utils.weapon.ricochet")
 
 go.property("id", 0)
 go.property("target", hash("none"))
@@ -64,17 +65,66 @@ local function enabled_bullet()
 	Entity.show_sprite(Urls.Sprite)
 end
 
+local function finish_bullet(self)
+	stop_color_swap_timer(self)
+	set_normal_theme_colors(self)
+	go.set_scale(vmath.vector3(1))
+	go.set(Urls.Body, "linear_velocity", vmath.vector3(0))
+	sprite.play_flipbook(Urls.Sprite, "disappear", function()
+		msg.post(self.owner_id, Msg.Bullet.FINISHED, { id = self.id })
+		disabled_bullet()
+		-- self.config = nil
+	end)
+end
+
+local function set_bullet_direction(self, direction)
+	self.config.direction = VMath.normalize_or_zero(direction)
+	local velocity = self.config.direction * self.config.speed
+	local heading_angle = Math.heading_angle(velocity) + math.pi / 2
+	go.set_rotation(vmath.quat_rotation_z(heading_angle))
+	go.set(Urls.Body, "linear_velocity", velocity)
+end
+
+local function try_ricochet(self, hit_id)
+	local direction = self.ricochet:try_ricochet({
+		position = go.get_position(),
+		target_group = self.target,
+		hit_id = hit_id,
+	})
+	if not direction then
+		return false
+	end
+
+	set_bullet_direction(self, direction)
+	return true
+end
+
 function init(self)
 	physics.set_maskbit(Urls.Zone, self.target, true)
 	set_normal_theme_colors(self)
+	self.ricochet = Ricochet:new()
 
 	disabled_bullet()
+end
+
+function update(self, dt)
+	self.ricochet:update(dt)
 end
 
 local function on_bullet_fired(self, message)
 	enabled_bullet()
 
 	self.config = message
+	self.ricochet:reset({
+		remaining = self.config.ricochets,
+		config = {
+			ray_count = self.config.ricochet_ray_count,
+			ray_range = self.config.ricochet_ray_range,
+			ray_start_offset = self.config.ricochet_ray_start_offset,
+			check_obstacles = self.config.ricochet_check_obstacles,
+		}
+	})
+
 	local velocity = self.config.direction * self.config.speed
 	local position = VMath.z_extends(self.config.position, 3)
 	local heading_angle = Math.heading_angle(velocity) + math.pi / 2
@@ -98,17 +148,13 @@ local function on_trigger_response(self, message)
 			direction = self.config.direction,
 			force = self.config.force,
 		})
+
+		if try_ricochet(self, message.other_id) then
+			return
+		end
 	end
 
-	stop_color_swap_timer(self)
-	set_normal_theme_colors(self)
-	go.set_scale(vmath.vector3(1))
-	go.set(Urls.Body, "linear_velocity", vmath.vector3(0))
-	sprite.play_flipbook(Urls.Sprite, "disappear", function()
-		msg.post(self.owner_id, Msg.Bullet.FINISHED, { id = self.id })
-		disabled_bullet()
-		-- self.config = nil
-	end)
+	finish_bullet(self)
 end
 
 function on_message(self, message_id, message, sender)

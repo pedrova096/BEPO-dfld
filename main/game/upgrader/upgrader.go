@@ -9,11 +9,11 @@ embedded_components {
   "material: \"/builtins/materials/sprite.material\"\n"
   "textures {\n"
   "  sampler: \"texture_sampler\"\n"
-  "  texture: \"/assets/sprites/cog/upgrader.atlas\"\n"
+  "  texture: \"/assets/sprites/global/global.atlas\"\n"
   "}\n"
   ""
   position {
-    y: 11.0
+    y: 5.0
     z: 2.0
   }
 }
@@ -29,7 +29,7 @@ embedded_components {
   "  w: 8.0\n"
   "}\n"
   "size {\n"
-  "  x: 36.0\n"
+  "  x: 30.0\n"
   "  y: 14.0\n"
   "}\n"
   "size_mode: SIZE_MODE_MANUAL\n"
@@ -53,18 +53,16 @@ embedded_components {
   "mask: \"player\"\n"
   "embedded_collision_shape {\n"
   "  shapes {\n"
-  "    shape_type: TYPE_BOX\n"
+  "    shape_type: TYPE_SPHERE\n"
   "    position {\n"
-  "      y: 8.0\n"
+  "      y: 4.0\n"
   "    }\n"
   "    rotation {\n"
   "    }\n"
   "    index: 0\n"
-  "    count: 3\n"
+  "    count: 1\n"
   "  }\n"
-  "  data: 9.0\n"
-  "  data: 7.0\n"
-  "  data: 10.0\n"
+  "  data: 8.0\n"
   "}\n"
   ""
 }
@@ -83,7 +81,7 @@ embedded_components {
   "}\n"
   ""
   position {
-    y: 9.0
+    y: 6.0
     z: 1.0
   }
 }

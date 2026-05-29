@@ -14,9 +14,15 @@
 ---@class WeaponFirePayload
 ---@field direction vector3
 ---@field position vector3
+---@field damage number
 ---@field force number
 ---@field speed number
 ---@field spread number?
+---@field ricochets number?                    -- remaining enemy-chain bounces for this fired bullet
+---@field ricochet_ray_count number?           -- number of radial rays used to find the next ricochet target
+---@field ricochet_ray_range number?           -- length of each ricochet target ray
+---@field ricochet_ray_start_offset number?    -- distance from the bullet before each ricochet ray starts
+---@field ricochet_check_obstacles boolean?    -- whether ricochet target rays are blocked by obstacle groups
 
 ---@class WeaponState
 ---@field ammo number
@@ -27,6 +33,45 @@
 ---@class BulletConfig
 ---@field speed number
 ---@field force number
+---@field ricochets number?                    -- enemy-chain bounces granted to each fired bullet
+---@field ricochet_ray_count number?           -- number of radial rays used to find the next ricochet target
+---@field ricochet_ray_range number?           -- length of each ricochet target ray
+---@field ricochet_ray_start_offset number?    -- distance from the bullet before each ricochet ray starts
+---@field ricochet_check_obstacles boolean?    -- whether ricochet target rays are blocked by obstacle groups
+
+---@class WeaponProperties
+---@field reload_time number?
+---@field ammo_capacity number?
+---@field pool_size number?
+---@field bullet_config BulletConfig?
+
+---@class RicochetRay
+---@field angle number
+---@field direction vector3
+
+---@class RicochetState
+---@field remaining number
+---@field hit_targets table<userdata, boolean>
+---@field rays RicochetRay[]
+
+---@class RicochetConfig
+---@field ray_count number?
+---@field ray_range number?
+---@field ray_start_offset number?
+---@field check_obstacles boolean?
+---@field obstacle_groups hash[]?
+
+---@class RicochetOptions
+---@field config RicochetConfig?
+
+---@class RicochetResetOptions
+---@field remaining number?
+---@field config RicochetConfig?
+
+---@class RicochetPayload
+---@field position vector3
+---@field target_group hash
+---@field hit_id userdata
 
 --#region WIP of extensible types
 

@@ -1,11 +1,16 @@
 local Player = {
-  -- events
-  MOVE_PRESSED = hash("move_pressed"),
-  MOVE_RELEASED = hash("move_released"),
   -- commands
+  MOVE = hash("player_move"),
+  STOP_MOVE = hash("stop_move"),
+  SET_SPECIAL_ACTION = hash("set_special_action"),
   SET_TARGET_ENEMIES = hash("set_target_enemies"),
   SET_POSITION = hash("set_position"),
   APPLY_UPGRADE = hash("apply_upgrade"),
+  START_SPECIAL_ACTION = hash("start_special_action"),
+  RUN_SPECIAL_ACTION = hash("run_special_action"),
+  RELEASE_SPECIAL_ACTION = hash("release_special_action"),
+  CANCEL_SPECIAL_ACTION = hash("cancel_special_action"),
+  MOVE_SPECIAL_ACTION = hash("move_special_action"),
 }
 
 local Weapon = {
@@ -29,6 +34,7 @@ local Camera = {
   STOP_SHAKE = hash("stop_camera_shake"),
   FOLLOW = hash("follow_camera_target"),
   UNFOLLOW = hash("unfollow_camera_target"),
+  SET_BOUNDS = hash("set_camera_bounds"),
 }
 
 local Enemy = {
@@ -48,8 +54,8 @@ local Bullet = {
 
 local Stager = {
   -- events
-  -- STAGE_ENDED = hash("stage_ended"),
   STAGE_LOADED = hash("stage_loaded"),
+  STAGE_COMPLETED = hash("stage_completed"),
   -- WAVE_STARTED = hash("wave_started"),
   -- WAVE_ENDED = hash("wave_ended"),
   CONNECTION_ENTERED = hash("connection_entered"),
@@ -63,13 +69,14 @@ local Game = {
   -- events
   PLAYER_LIFE_CHANGED = hash("player_life_changed"),
   PERROCOIN_PICKED = hash("perrocoin_picked"),
+  COG_PICKED = hash("COG_PICKED"),
   PERROCOIN_EXPIRED = hash("perrocoin_expired"),
+
   -- commands
   DISABLE_SPAWNER = hash("disable_spawner"),
   PLAYER_SET_LIFE_COUNT = hash("player_set_life_count"),
   START_RUN = hash("start_run"),
   LOAD_LEVEL_STAGE = hash("load_level_stage"),
-  AUTO_COLLECT_POINT = hash("auto_collect_point"),
   OPEN_UPGRADER = hash("open_upgrader"),
   PROCESS_PLAYER_UPGRADE = hash("process_player_upgrade"),
 }
@@ -101,12 +108,6 @@ local Sound = {
   UNMUTE = hash("sound_unmute"),
 }
 
-local Wave = {
-  -- events
-  WAVE_STARTED = hash("wave_started"),
-  STAGE_COMPLETED = hash("stage_completed"),
-}
-
 local UI = {
   -- events
   LIFE_CHANGED = hash("life_changed"), -- Split into added or removed
@@ -121,6 +122,16 @@ local UI = {
   HIDE_WIPE = hash("hide_wipe"),
   SET_LIFE_NODES = hash("set_life_nodes"),
   SHOW_SHOP_MODAL = hash("show_shop_modal"),
+  SHOW_TOAST = hash("show_toast"),
+  HIDE_TOAST = hash("hide_toast"),
+}
+
+local SpecialAction = {
+  -- commands
+  PREPARE = hash("special_action_prepare"),
+  AIM = hash("special_action_aim"),
+  LAUNCHED = hash("special_action_launched"),
+  CANCELED = hash("special_action_canceled"),
 }
 
 return {
@@ -132,9 +143,9 @@ return {
   Main = Main,
   Player = Player,
   Sound = Sound,
+  SpecialAction = SpecialAction,
   Stager = Stager,
   UI = UI,
-  Wave = Wave,
   Weapon = Weapon,
   -- global events
   COLLISION_OCCURRED = hash("collision_response"),
@@ -145,5 +156,6 @@ return {
   -- global commands
   APPLY_DAMAGE = hash("apply_damage"),
   HIDE_ELEMENT = hash("hide_element"),
+  REMOVE_ELEMENT = hash("remove_element"),
   SHOW_ELEMENT = hash("show_element"),
 }

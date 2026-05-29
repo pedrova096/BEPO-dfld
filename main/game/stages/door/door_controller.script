@@ -1,18 +1,21 @@
 local Msg = require("lib.msg")
 local Entity = require("utils.entity")
+local RewardInfo = require("lib.rewards.reward_info")
 
 local Urls = {
 	Body = "#body",
 	BodyTrigger = "#body_trigger",
+	IconTrigger = "#icon_trigger",
+	UIController = "/ui",
 	GameController = "/controller",
 }
 
 go.property("next_stage", hash("none"))
 go.property("reward", hash("none"))
+go.property("reward_variant", hash("none"))
 
 function init(self)
 	self.used = false
-	-- TODO: self.reward for icon
 end
 
 local function on_hide_element(self, message)
@@ -20,6 +23,19 @@ local function on_hide_element(self, message)
 end
 
 local function on_trigger_response(self, message)
+	if message.own_group == hash("ui_trigger") then
+		if message.enter then
+			msg.post(Urls.UIController, Msg.UI.SHOW_TOAST, {
+				id = go.get_id(),
+				icon = RewardInfo.get_icon(self.reward, self.reward_variant),
+				text = RewardInfo.get_name(self.reward, self.reward_variant),
+				duration = 1 -- duration its optional
+			})
+		else
+			msg.post(Urls.UIController, Msg.UI.HIDE_TOAST, { toast_id = go.get_id() })
+		end
+	end
+
 	if self.used then return end
 	if message.own_group ~= hash("wall_trigger") then return end
 	if not message.enter then return end

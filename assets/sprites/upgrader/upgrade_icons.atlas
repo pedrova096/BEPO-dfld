@@ -1,0 +1,21 @@
+images {
+  image: "/assets/sprites/upgrader/icons/cog_icon_ammo.png"
+}
+images {
+  image: "/assets/sprites/upgrader/icons/cog_icon_critic.png"
+}
+images {
+  image: "/assets/sprites/upgrader/icons/cog_icon_damage.png"
+}
+images {
+  image: "/assets/sprites/upgrader/icons/cog_icon_life.png"
+}
+images {
+  image: "/assets/sprites/upgrader/icons/cog_icon_velocity.png"
+}
+images {
+  image: "/assets/sprites/upgrader/toolbox_icon.png"
+}
+images {
+  image: "/assets/sprites/upgrader/icons/cog_icon.png"
+}

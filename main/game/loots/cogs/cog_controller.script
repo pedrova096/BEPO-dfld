@@ -1,0 +1,97 @@
+local VMath = require("utils.vmath")
+local Msg = require("lib.msg")
+local Entity = require("utils.entity")
+local StatusTypeColors = require("lib.rewards.status.type_colors")
+
+local Urls = {
+	Body = "root#body",
+	Visual = "visual",
+	Sprite = "visual#sprite",
+	ShadowSprite = "shadow#sprite",
+	-- External
+	GameController = "/controller#controller",
+}
+
+local function clear_life_timer(self)
+	if not self.current_life_timer then return end
+
+	timer.cancel(self.current_life_timer)
+	self.current_life_timer = nil
+end
+
+local function disabled_cog(self)
+	Entity.disable_body(Urls.Body)
+	Entity.hide_sprite(Urls.Sprite)
+	Entity.hide_sprite(Urls.ShadowSprite)
+	self.target = nil
+
+	clear_life_timer(self)
+end
+
+go.property("chase_speed", 200)
+go.property("variant", hash("none"))
+go.property("value", 0)
+
+function init(self)
+	local colors = StatusTypeColors[self.variant]
+	go.set(Urls.Sprite, "target_color_1", colors[1])
+	go.set(Urls.Sprite, "target_color_3", colors[2])
+	go.set(Urls.Sprite, "target_color_4", colors[3])
+
+	local direction = VMath.random_direction()
+	local distance = math.random(25, 30)
+
+	go.animate(
+		".",
+		"position",
+		go.PLAYBACK_ONCE_FORWARD,
+		VMath.z_extends(go.get_position() + direction * distance, go.get_position().z),
+		go.EASING_OUTEXPO,
+		1)
+	go.animate("visual", "position.y", go.PLAYBACK_ONCE_PINGPONG, 10, go.EASING_OUTEXPO, 0.5)
+end
+
+local DISTANCE_THRESHOLD = 5
+local function chase_target_pipe(self, dt)
+	if not self.target then return end
+
+	local position = go.get_position()
+	local target_position = go.get_position(self.target)
+	local distance = vmath.length(position - target_position)
+
+	if distance < DISTANCE_THRESHOLD then
+		msg.post(Urls.GameController, Msg.Game.COG_PICKED, {
+			variant = self.variant,
+			value = self.value,
+			cog_id = go.get_id(),
+		})
+		go.delete(".", true)
+		return
+	end
+
+	local direction = vmath.normalize(target_position - position)
+
+	go.set(Urls.Body, "linear_velocity", direction * self.chase_speed)
+end
+
+function update(self, dt)
+	chase_target_pipe(self, dt)
+end
+
+local function on_trigger_response(self, message)
+	if not message.enter then return end
+
+	go.cancel_animations("visual", "position.y")
+	go.cancel_animations(".", "position")
+	go.set("visual", "position.y", 0)
+
+	self.target = msg.url(message.other_id)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.HIDE_ELEMENT then
+		disabled_cog(self)
+	elseif message_id == Msg.TRIGGER_OCCURRED then
+		on_trigger_response(self, message)
+	end
+end

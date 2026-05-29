@@ -7,6 +7,7 @@
 --- @field id hash Stage id.
 --- @field data table Stage config table consumed by the level runtime.
 --- @field connections LevelConnectionPayload[]|nil Available connection targets for this stage.
+--- @field reward hash|nil Reward id available from this stage.
 
 --- @class LevelStageMap
 --- @field data StageConfig Stage config table consumed by the level runtime.
@@ -174,22 +175,11 @@ end
 --- @return LevelStagePayload
 function M:request_stage_load(stage_id)
 	local stage = self:get_stage(stage_id)
-	local connections
-
-	if stage.connections then
-		connections = {}
-		for _, connection in ipairs(stage.connections) do
-			table.insert(connections, {
-				id = connection.next_stage,
-				reward = connection.reward,
-			})
-		end
-	end
-
 	local stage_payload = {
 		id = stage_id,
 		data = stage.data,
-		connections = connections,
+		connections = stage.connections,
+		reward = stage.reward,
 	}
 
 	self.state.pending_stage_id = stage_id
@@ -261,6 +251,15 @@ end
 --- @return hash|nil
 function M:get_current_stage_id()
 	return self.state.current_stage_id
+end
+
+--- Return the current stage reward id.
+--- @return hash|nil
+function M:get_current_reward()
+	local current_stage = self.state.current_stage
+	if not current_stage then return nil end
+
+	return current_stage.reward or current_stage.data and current_stage.data.reward or nil
 end
 
 --- @return boolean

@@ -1,3 +1,6 @@
 images {
   image: "/assets/sprites/global/star_flare.png"
 }
+images {
+  image: "/assets/sprites/upgrader/toolbox.png"
+}

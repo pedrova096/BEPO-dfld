@@ -2,6 +2,7 @@ local ManualTimer = require("utils.manual_timer")
 local UtilsGUI = require("utils.utils_gui")
 local Inputs = require("lib.inputs")
 local Msg = require("lib.msg")
+local ToastGUI = require("lib.toast_gui")
 
 local ActionIds = {
 	TouchMulti = hash("touch_multi"),
@@ -20,10 +21,14 @@ local Urls = {
 	Wipe = "wipe",
 	ShopModal = "shop_modal",
 	UpgradeContainer = "upgrade_container",
+	Toast = "toast/frame",
+	ToastText = "toast/text",
+	ToastIcon = "toast/icon",
 }
 
-local ActionStates = {
+local ActionStatus = {
 	Idle = hash("idle"),
+	LongPressed = hash("long_pressed"),
 	Pressed = hash("pressed"),
 }
 
@@ -116,13 +121,13 @@ function init(self)
 	self.move_zone_action = {
 		enabled = true,
 		touch_id = nil,
-		state = ActionStates.Idle,
+		state = ActionStatus.Idle,
 		position = vmath.vector3(0),
 	}
 	self.button_action = {
 		enabled = false,
 		touch_id = nil,
-		state = ActionStates.Idle,
+		state = ActionStatus.Idle,
 		position = vmath.vector3(0),
 		original_position = gui.get_position(button_node),
 		time = 0,
@@ -133,15 +138,20 @@ function init(self)
 
 	self.life_nodes = {}
 	self.reward_options = {}
-	self.has_super_action = false
+	self.has_special_action = false
 	self.upgrade_options_active = false
 	self.wipe_transition = nil
+	self.toast = ToastGUI:new({
+		frame_node_id = Urls.Toast,
+		text_node_id = Urls.ToastText,
+		icon_node_id = Urls.ToastIcon,
+	})
 	self.debug = {
 		enabled = true,
 		keyboard_direction = vmath.vector3()
 	};
 
-	-- button is hidden until the player gets a super_action
+	-- button is hidden until the player gets a special_action
 	gui.set_enabled(button_node, false)
 end
 
@@ -178,7 +188,7 @@ local function wipe_view_pipe(self, dt)
 end
 
 function update_button_time_pipe(self, dt)
-	if not self.button_action.enabled then return end
+	if not self.button_action.state == ActionStatus.Idle then return end
 
 	self.button_action.time = self.button_action.time + dt
 end
@@ -271,12 +281,28 @@ local function on_hide_wipe(self, message)
 	})
 end
 
-local function on_toggle_move(self, enabled)
-	self.move_zone_action.enabled = enabled
+local function set_button_action_enabled(self, enabled)
+	local button_node = gui.get_node(Urls.Button)
+
+	self.button_action.enabled = enabled
+	gui.set_enabled(button_node, enabled)
 end
 
-local function on_toggle_button_action(self, enabled)
-	self.button_action.enabled = enabled
+local function on_enable_move(self, message)
+	self.move_zone_action.enabled = true
+end
+
+local function on_disable_move(self, message)
+	self.move_zone_action.enabled = false
+end
+
+local function on_enable_button_action(self, message)
+	set_button_action_enabled(self, true)
+	self.button_action.movable = message.movable
+end
+
+local function on_disable_button_action(self, message)
+	set_button_action_enabled(self, false)
 end
 
 local SHOP_MODAL_ALPHA = 0.75
@@ -293,6 +319,14 @@ local function on_show_shop_modal(self, message)
 	set_reward_options(self)
 end
 
+local function on_show_toast(self, message)
+	self.toast:show(message)
+end
+
+local function on_hide_toast(self, message)
+	self.toast:hide(message.toast_id)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.UI.SET_LIFE_NODES then
 		on_set_life_count(self, message)
@@ -303,15 +337,19 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == Msg.UI.HIDE_WIPE then
 		on_hide_wipe(self, message)
 	elseif message_id == Msg.UI.ENABLE_BUTTON_ACTION then
-		on_toggle_button_action(self, true)
+		on_enable_button_action(self, message)
 	elseif message_id == Msg.UI.DISABLE_BUTTON_ACTION then
-		on_toggle_button_action(self, false)
+		on_disable_button_action(self, message)
 	elseif message_id == Msg.UI.ENABLE_MOVE then
-		on_toggle_move(self, true)
+		on_enable_move(self, message)
 	elseif message_id == Msg.UI.DISABLE_MOVE then
-		on_toggle_move(self, false)
+		on_disable_move(self, message)
 	elseif message_id == Msg.UI.SHOW_SHOP_MODAL then
 		on_show_shop_modal(self, message)
+	elseif message_id == Msg.UI.SHOW_TOAST then
+		on_show_toast(self, message)
+	elseif message_id == Msg.UI.HIDE_TOAST then
+		on_hide_toast(self, message)
 	end
 end
 
@@ -323,8 +361,8 @@ local function input_move_zone(self, touched)
 	local move_controller_node = gui.get_node(Urls.MoveController)
 	local footer_node = gui.get_node(Urls.Footer)
 
-	if self.move_zone_action.state == ActionStates.Idle and touched.pressed then
-		self.move_zone_action.state = ActionStates.Pressed
+	if self.move_zone_action.state == ActionStatus.Idle and touched.pressed then
+		self.move_zone_action.state = ActionStatus.Pressed
 		self.move_zone_action.touch_id = touched.id
 		self.move_zone_action.position = touch_position
 
@@ -335,19 +373,19 @@ local function input_move_zone(self, touched)
 		return
 	end
 
-	if self.move_zone_action.state == ActionStates.Pressed and touched.released then
-		self.move_zone_action.state = ActionStates.Idle
+	if self.move_zone_action.state == ActionStatus.Pressed and touched.released then
+		self.move_zone_action.state = ActionStatus.Idle
 		self.move_zone_action.touch_id = nil
 		self.move_zone_action.position = vmath.vector3(0)
 
 		gui.set_position(move_pad_node, self.original_move_pad_position)
 		gui.set_position(move_controller_node, self.original_move_controller_position)
 
-		msg.post(Urls.PlayerController, Msg.Player.MOVE_RELEASED)
+		msg.post(Urls.PlayerController, Msg.Player.STOP_MOVE)
 		return
 	end
 
-	if self.move_zone_action.state == ActionStates.Pressed then
+	if self.move_zone_action.state == ActionStatus.Pressed then
 		local delta = touch_position - self.move_zone_action.position
 		local distance = vmath.length(delta)
 		local direction = distance > 0 and vmath.normalize(delta) or vmath.vector3(0)
@@ -359,7 +397,7 @@ local function input_move_zone(self, touched)
 		local move_pad_position = gui.get_position(move_pad_node)
 		gui.set_position(move_controller_node, move_pad_position + delta)
 
-		msg.post(Urls.PlayerController, Msg.Player.MOVE_PRESSED, {
+		msg.post(Urls.PlayerController, Msg.Player.MOVE, {
 			direction = direction,
 			force = distance,
 		})
@@ -367,48 +405,62 @@ local function input_move_zone(self, touched)
 end
 
 local MAX_BUTTON_ACTION_DISTANCE = 10
+local LONG_PRESS_THRESHOLD = 0.35 -- Threshold for long press in seconds
 local function input_button(self, touched)
 	local button_node = gui.get_node(Urls.Button)
 
 	local touch_position = vmath.vector3(touched.x, touched.y, 1)
 
-	if self.button_action.state == ActionStates.Idle and touched.pressed then
-		self.button_action.state = ActionStates.Pressed
+	if touched.pressed and self.button_action.state == ActionStatus.Idle then
+		self.button_action.state = ActionStatus.Pressed
 		self.button_action.touch_id = touched.id
 		self.button_action.position = touch_position
 		self.button_action.time = 0
 
-		msg.post(Urls.PlayerController, Msg.Player.PRESSED_SUPER_ACTION)
+		msg.post(Urls.PlayerController, Msg.Player.START_SPECIAL_ACTION)
 		return true
 	end
 
-	if self.button_action.state == ActionStates.Pressed and touched.released then
-		self.button_action.state = ActionStates.Idle
+	if self.button_action.state == ActionStatus.Pressed then
+		if self.button_action.time > LONG_PRESS_THRESHOLD then
+			self.button_action.state = ActionStatus.LongPressed
+			msg.post(Urls.PlayerController, Msg.Player.RUN_SPECIAL_ACTION)
+		end
+	end
+
+	if touched.released and self.button_action.state ~= ActionStatus.Idle then
+		local previous_state = self.button_action.state
+
+		self.button_action.state = ActionStatus.Idle
 		self.button_action.touch_id = nil
 		self.button_action.position = vmath.vector3(0)
 		self.button_action.time = 0
 
 		gui.set_position(button_node, self.button_action.original_position)
 
-		msg.post(Urls.PlayerController, Msg.Player.RELEASED_SUPER_ACTION)
+		msg.post(
+			Urls.PlayerController,
+			previous_state == ActionStatus.LongPressed
+			and Msg.Player.RELEASE_SPECIAL_ACTION or Msg.Player.CANCEL_SPECIAL_ACTION
+		)
 		return true
 	end
 
-	if self.button_action.state == ActionStates.Pressed then
+	if self.button_action.state == ActionStatus.LongPressed then
 		local delta = touch_position - self.button_action.position
 		local distance = vmath.length(delta)
 		local direction = distance > 0 and vmath.normalize(delta) or vmath.vector3(0)
 
 		if distance > MAX_BUTTON_ACTION_DISTANCE then
 			delta = direction * MAX_BUTTON_ACTION_DISTANCE
+			distance = MAX_BUTTON_ACTION_DISTANCE
 		end
 
 		gui.set_position(button_node, self.button_action.original_position + delta)
 
-		msg.post(Urls.PlayerController, Msg.Player.MOVED_SUPER_ACTION, {
+		msg.post(Urls.PlayerController, Msg.Player.MOVE_SPECIAL_ACTION, {
 			direction = direction,
-			force = distance,
-			time = self.button_action.time,
+			force = distance / MAX_BUTTON_ACTION_DISTANCE,
 		})
 
 		return true
@@ -441,11 +493,11 @@ local function input_keyboards(self, action_id, action)
 	end
 
 	if vmath.length(self.debug.keyboard_direction) == 0 then
-		msg.post(Urls.PlayerController, Msg.Player.MOVE_RELEASED)
+		msg.post(Urls.PlayerController, Msg.Player.STOP_MOVE)
 		return true
 	end
 
-	msg.post(Urls.PlayerController, Msg.Player.MOVE_PRESSED, {
+	msg.post(Urls.PlayerController, Msg.Player.MOVE, {
 		direction = vmath.normalize(self.debug.keyboard_direction),
 		force = 1,
 	})
@@ -469,7 +521,9 @@ local function input_shop_modal(self, action)
 			local button_node = get_template_node(upgrade_button.id, "button")
 			local touched = UtilsGUI.get_touched_by_node(button_node, action)
 			if touched and touched.pressed then
-				msg.post(Urls.GameController, Msg.Game.PROCESS_PLAYER_UPGRADE, reward_option)
+				msg.post(Urls.GameController, Msg.Game.PROCESS_PLAYER_UPGRADE, {
+					selected = reward_option,
+				})
 				hide_shop_modal(self)
 				return true
 			end

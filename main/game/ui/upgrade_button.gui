@@ -132,11 +132,7 @@ nodes {
   id: "text"
   pivot: PIVOT_W
   parent: "tag_1"
-  layer: "text"
   inherit_alpha: true
-}
-layers {
-  name: "text"
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT

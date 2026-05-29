@@ -8,14 +8,15 @@ local VMath = require("utils.vmath")
 local Msg = require("lib.msg")
 
 local Urls = {
-	FactoryEnemy01 = "/stage_manager#cfactory_enemy_01",
-	FactoryEnemy02 = "/stage_manager#cfactory_enemy_02",
+	FactoryEnemy01 = "/level_manager#cfactory_enemy_01",
+	FactoryEnemy02 = "/level_manager#cfactory_enemy_02",
 	GameController = "/controller",
-	Tilemap01Factory = "/stage_manager#tilemap_01_factory",
-	Tilemap02Factory = "/stage_manager#tilemap_02_factory",
+	Camera = "/camera",
+	Tilemap01Factory = "/level_manager#tilemap_01_factory",
+	Tilemap02Factory = "/level_manager#tilemap_02_factory",
 	PlayerController = "/player/root#controller",
-	UpgraderFactory = "/stage_manager#upgrader_factory",
-	ConnectionFactory = "/stage_manager#door_factory"
+	UpgraderFactory = "/level_manager#upgrader_factory",
+	ConnectionFactory = "/level_manager#door_factory"
 }
 
 local FACTORIES_MAP = {
@@ -70,24 +71,25 @@ local function spawn_connections(self, connections)
 
 	for index, connection in ipairs(self.stage_info.connections) do
 		tilemap.set_tile(tiles_lg_url, "walls", connection.column_index, connection.row_index, DoorsEnum.Normal)
+
 		local connection_id = factory.create(Urls.ConnectionFactory, connection.position, nil, {
-			next_stage = connections[index].id,
+			next_stage = connections[index].next_stage,
 			reward = connections[index].reward,
 		})
 		connection.object_id = connection_id
 	end
 end
 
-local function spawn_upgrader(self)
+local function on_stage_complete(self)
 	if not self.stage_info.upgrader_position then return end
 
-	self.upgrader_id = factory.create(Urls.UpgraderFactory, self.upgrader_position, nil, {
+	self.upgrader_id = factory.create(Urls.UpgraderFactory, self.stage_info.upgrader_position, nil, {
 		reward = self.current_stage_reward
 	})
-end
 
-local function on_stage_complete(self)
-	spawn_upgrader(self)
+	msg.post(Urls.GameController, Msg.Stager.STAGE_COMPLETED, {
+		upgrader_position = self.stage_info.upgrader_position
+	})
 end
 
 local function drain_runtime_events(self)
@@ -101,7 +103,7 @@ local function drain_runtime_events(self)
 				type = payload.enemy.id,
 			})
 		elseif event.name == LevelEvents.WAVE_STARTED then
-			msg.post("#stage_manager", Msg.Wave.WAVE_STARTED, { index = payload.index })
+			-- msg.post("#level_manager", Msg.Wave.WAVE_STARTED, { index = payload.index })
 		elseif event.name == LevelEvents.STAGE_COMPLETED then
 			on_stage_complete(self)
 		elseif event.name == LevelEvents.ENEMY_RELEASE_REQUESTED then
@@ -114,14 +116,16 @@ end
 
 local function parse_stage_info(self)
 	local tiles_sm_url = msg.url(nil, self.current_tilemap.tiles_sm, "tileset")
+	local tiles_lg_url = msg.url(nil, self.current_tilemap.tiles_lg, "tileset")
 
 	tilemap.set_visible(tiles_sm_url, "landmarks", false)
 
+	local stage_size = TilesInfo.get_lg_size(tiles_lg_url)
 	return TilesInfo.get_landmark_info({
 		offset = go.get_position(self.current_tilemap.id),
 		landmarks_tiles = tilemap.get_tiles(tiles_sm_url, "landmarks"),
 		bounds = TilesInfo.get_bounds(tiles_sm_url),
-	})
+	}), stage_size
 end
 
 go.property("debug", false)
@@ -209,7 +213,7 @@ local function on_load_stage(self, message)
 		tiles_lg = ids["/tiles_lg"],
 	}
 
-	local stage_info = parse_stage_info(self)
+	local stage_info, stage_size = parse_stage_info(self)
 	self.stage_info = {
 		connections = {},
 		upgrader_position = stage_info.upgrader_position
@@ -231,7 +235,9 @@ local function on_load_stage(self, message)
 		stage = message.stage,
 		transition = message.transition or false,
 		duration = message.duration,
+		player_position = stage_info.player_position
 	})
+	msg.post(Urls.Camera, Msg.Camera.SET_BOUNDS, stage_size)
 end
 
 local function on_start_stage(self, _message)
@@ -243,9 +249,7 @@ local function on_enable_connections(self, _)
 	if self.upgrader_id then
 		local upgrader_id = self.upgrader_id
 		self.upgrader_id = nil
-		go.animate(upgrader_id, "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0), go.EASING_INBACK, 0.3, 0, function()
-			go.delete(upgrader_id)
-		end)
+		msg.post(upgrader_id, Msg.REMOVE_ELEMENT)
 	end
 
 	if not self.current_tilemap or not self.stage_info or not self.stage_info.connections then return end

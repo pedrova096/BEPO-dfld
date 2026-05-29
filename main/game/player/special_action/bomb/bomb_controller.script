@@ -1,0 +1,118 @@
+local Msg = require("lib.msg")
+local Vmath = require("utils.vmath")
+local Entity = require("utils.entity")
+
+local Urls = {
+	Body = "root#body",
+	Visual = "visual",
+	VisualSprite = "visual#sprite",
+	ShadowSprite = "shadow#sprite"
+}
+
+local StatusEnum = {
+	Idle = hash("idle"),
+	Prepared = hash("prepared"),
+	Aiming = hash("aiming"),
+	Launched = hash("launched"),
+	Canceled = hash("canceled"),
+}
+
+local function enabled_special_action()
+	Entity.enable_body(Urls.Body)
+	Entity.show_sprite(Urls.VisualSprite)
+	Entity.show_sprite(Urls.ShadowSprite)
+end
+
+local function disabled_special_action()
+	Entity.disable_body(Urls.Body)
+	Entity.hide_sprite(Urls.VisualSprite)
+	Entity.hide_sprite(Urls.ShadowSprite)
+end
+
+go.property("owner_id", hash("none"))
+go.property("max_distance", 60)
+go.property("min_distance", 15)
+
+function init(self)
+	disabled_special_action()
+	self.status = StatusEnum.Idle
+	self.direction = vmath.vector3()
+	self.target_position = vmath.vector3()
+	self.force = 0
+end
+
+local function get_origin_position(self)
+	local target_id = self.owner_id
+	if self.owner_id == hash("none") then
+		target_id = nil
+	end
+
+	return go.get_position(target_id)
+end
+
+local AIM_SMOOTHING = 16
+local function on_aiming_pipe(self, dt)
+	if self.status ~= StatusEnum.Aiming then return end
+	local origin_position = get_origin_position(self)
+	local new_position = vmath.lerp(self.force, self.direction * self.min_distance, self.direction * self.max_distance)
+	self.target_position = origin_position + Vmath.z_extends(new_position, 1)
+
+	local current_position = go.get_position()
+	local smoothing = math.min(dt * AIM_SMOOTHING, 1)
+	go.set_position(vmath.lerp(smoothing, current_position, self.target_position))
+end
+
+function update(self, dt)
+	on_aiming_pipe(self, dt)
+end
+
+local function on_prepare(self, message)
+	self.status = StatusEnum.Prepared
+	enabled_special_action()
+
+	local origin_position = get_origin_position(self)
+	go.set_position(origin_position)
+
+	sprite.play_flipbook(Urls.VisualSprite, "default")
+end
+
+local function on_aim(self, message)
+	self.status = StatusEnum.Aiming
+	self.target_position = vmath.vector3()
+	self.direction = message.direction or vmath.vector3()
+	self.force = message.force or 0.1
+end
+
+local function on_launched(self, message)
+	self.status = StatusEnum.Launched
+	local origin_position = get_origin_position(self)
+	go.set_position(origin_position + self.direction * self.min_distance)
+	go.animate(Urls.Visual, "position.y", go.PLAYBACK_ONCE_PINGPONG, 20, go.EASING_LINEAR, 0.4)
+	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, self.target_position, go.EASING_OUTQUAD, 0.8, 0, function()
+		sprite.play_flipbook(Urls.VisualSprite, "explosion", function()
+			disabled_special_action()
+			self.status = StatusEnum.Idle
+		end)
+	end)
+end
+
+local function on_canceled(self, message)
+	self.status = StatusEnum.Canceled
+	self.target_position = vmath.vector3()
+	self.direction = vmath.vector3()
+	self.force = 0
+	disabled_special_action()
+end
+
+function on_message(self, message_id, message, sender)
+	if self.status == StatusEnum.Launched then return end
+	if message_id == Msg.SpecialAction.PREPARE then
+		on_prepare(self, message)
+	elseif message_id == Msg.SpecialAction.AIM then
+		on_aim(self, message)
+	elseif message_id == Msg.SpecialAction.LAUNCHED then
+		on_launched(self, message)
+	elseif message_id == Msg.SpecialAction.CANCELED then
+		on_canceled(self, message)
+	end
+end

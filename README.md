@@ -6,7 +6,7 @@ This project it's a simple top-down shooter with typical roguelite systems. The 
 
 Similar to Ember Knight or Hades, we will have a clean stage -> reward system. The player could receive one of this types of rewards:
 
-- **Boost**: Typical roguelite stats boost
+- **Boost**: Typical roguelite stats boost %
   - Health
   - Speed
   - Ammo
@@ -27,3 +27,12 @@ Similar to Ember Knight or Hades, we will have a clean stage -> reward system. T
   - **Pierce**: Bullet pass through enemies
   - **Ricochet**: Bullet bounce n times of enemies
   - **Shield**: Armor layer before health
+
+## In Progress
+
+When the clean the stage, a loot box will appear and will free drop one of: 2~4 cogs that make +1 status update, one big that makes 10% or coins.
+The status selector reward will give the player 30% of upgrade.
+
+### First Level
+
+Super -> Enhancement -> Status/Fork -> Enhancement -> (Super) Enhancement

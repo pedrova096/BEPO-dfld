@@ -1,17 +1,21 @@
 local Msg = require("lib.msg")
+local Table = require("utils.table")
 local Level = require("modules.level.level")
 local Logger = require("modules.logger")
 local LevelAdapter = require("lib.levels_adapter")
 local Pooler = require("utils.pooler")
+local RewardTypes = require("lib.rewards.reward_types")
+local CogsData = require("lib.rewards.status.cogs_data")
 
 local Urls = {
 	Factories = {
 		Perrocoin = "/factories#perrocoin_cfactory",
+		Cog = "/factories#cog_cfactory",
 	},
 	-- External
 	UIController = "/ui",
 	Player = "/player/root",
-	StageManager = "/stage_manager",
+	LevelManager = "/level_manager",
 	SoundController = "/sound_controller",
 }
 
@@ -33,10 +37,6 @@ local PLAYER_STAGE_ENTRY_POSITION = vmath.vector3(0, 0, 1)
 local FLOW_TRACE_ENABLED = true
 local logger = Logger.new_debugger(FLOW_TRACE_ENABLED, "FLOW")
 
-local function set_transition_state(self, state)
-	self.transition_state = state
-end
-
 local function _spawn_perrocoin(self, options)
 	local properties = options and options.value and { value = options.value } or nil
 	local position = options and options.position or vmath.vector3()
@@ -45,11 +45,22 @@ local function _spawn_perrocoin(self, options)
 	return new_collection["/root"]
 end
 
+local function spawn_cog(self, options)
+	local properties = options and { value = options.value, variant = options.variant } or nil
+	local position = options and options.position or vmath.vector3()
+	local new_collection = collectionfactory.create(Urls.Factories.Cog, position, nil, { [hash("/root")] = properties })
+	return new_collection["/root"]
+end
+
+local function set_transition_state(self, state)
+	self.transition_state = state
+end
+
 function init(self)
 	self.level = Level:new()
 
 	self.pool_perrocoin = Pooler.new({
-		pool_size = 10,
+		pool_size = 5,
 		spawner = _spawn_perrocoin,
 	})
 
@@ -57,14 +68,6 @@ function init(self)
 	self.loading_stage = false
 	self.pending_stage_load = nil
 	set_transition_state(self, TransitionStates.Idle)
-end
-
-local function on_perrocoin_picked(self, message)
-	self.pool_perrocoin:push_item(message.perrocoin_id)
-end
-
-local function on_perrocoin_expired(self, message)
-	self.pool_perrocoin:push_item(message.perrocoin_id)
 end
 
 local function on_open_upgrader(self, message)
@@ -76,9 +79,20 @@ end
 
 local function on_process_player_upgrade(self, message)
 	self.state = StatesEnum.Active
+
 	msg.post(Urls.UIController, Msg.UI.ENABLE_MOVE)
-	msg.post(Urls.Player, Msg.Player.APPLY_UPGRADE, message)
-	msg.post(Urls.StageManager, Msg.Stager.ENABLE_CONNECTIONS)
+	msg.post(Urls.LevelManager, Msg.Stager.ENABLE_CONNECTIONS)
+
+	local reward = self.level:get_current_reward()
+
+	if reward == RewardTypes.StatusSelector or reward == RewardTypes.EnhancementUpgrade then
+		msg.post(Urls.Player, Msg.Player.APPLY_UPGRADE, message.selected)
+	elseif reward == RewardTypes.SpecialAction then
+		msg.post(Urls.UIController, Msg.UI.ENABLE_BUTTON_ACTION, {
+			movable = true
+		})
+		msg.post(Urls.Player, Msg.Player.SET_SPECIAL_ACTION, message.selected)
+	end
 end
 
 local function request_stage_load(self, message)
@@ -86,7 +100,7 @@ local function request_stage_load(self, message)
 		stage_id = message.stage.id,
 		transition = message.transition or false,
 	})
-	msg.post(Urls.StageManager, Msg.Stager.LOAD_STAGE, {
+	msg.post(Urls.LevelManager, Msg.Stager.LOAD_STAGE, {
 		stage = message.stage,
 		transition = message.transition or false,
 		duration = message.duration,
@@ -151,24 +165,26 @@ local function on_stage_loaded(self, message)
 		transition = message.transition or false,
 	})
 
+	local player_position = message.player_position or PLAYER_STAGE_ENTRY_POSITION
+	set_transition_state(self, TransitionStates.PositioningPlayer)
+	msg.post(Urls.Player, Msg.Player.STOP_MOVE)
+	msg.post(Urls.Player, Msg.Player.SET_POSITION, {
+		position = player_position,
+	})
+	logger:debug("player_positioned", {
+		stage_id = message.stage_id,
+		position = player_position,
+	})
+
 	if not message.transition then
 		self.level:start_stage()
-		msg.post(Urls.StageManager, Msg.Stager.START_STAGE)
+		msg.post(Urls.LevelManager, Msg.Stager.START_STAGE)
 		self.loading_stage = false
 		self.pending_stage_load = nil
 		set_transition_state(self, TransitionStates.Idle)
 		return
 	end
 
-	set_transition_state(self, TransitionStates.PositioningPlayer)
-	msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
-	msg.post(Urls.Player, Msg.Player.SET_POSITION, {
-		position = PLAYER_STAGE_ENTRY_POSITION,
-	})
-	logger:debug("player_positioned", {
-		stage_id = message.stage_id,
-		position = PLAYER_STAGE_ENTRY_POSITION,
-	})
 	set_transition_state(self, TransitionStates.WipingOut)
 	logger:debug("wipe_hide_requested", {
 		stage_id = message.stage_id,
@@ -177,6 +193,20 @@ local function on_stage_loaded(self, message)
 	msg.post(Urls.UIController, Msg.UI.HIDE_WIPE, {
 		duration = message.duration or 0.5,
 	})
+end
+
+local MIN_COG_AMOUNT = 2
+local MAX_COG_AMOUNT = 4
+local function on_stage_completed(self, message)
+	local cogs_amount = math.random(MIN_COG_AMOUNT, MAX_COG_AMOUNT)
+	local cog_types = Table.pick_random(CogsData.List, cogs_amount)
+	for _, cog in ipairs(cog_types) do
+		spawn_cog(self, {
+			position = message.upgrader_position,
+			variant = cog.id,
+			value = cog.value,
+		})
+	end
 end
 
 local function on_wipe_shown(self, _message)
@@ -194,11 +224,19 @@ local function on_wipe_hidden(self, _message)
 	end
 
 	self.level:start_stage()
-	msg.post(Urls.StageManager, Msg.Stager.START_STAGE)
+	msg.post(Urls.LevelManager, Msg.Stager.START_STAGE)
 	msg.post(Urls.UIController, Msg.UI.ENABLE_MOVE)
 	self.loading_stage = false
 	self.pending_stage_load = nil
 	set_transition_state(self, TransitionStates.Idle)
+end
+
+local function on_cog_picked(self, message)
+	msg.post(Urls.UIController, Msg.UI.SHOW_TOAST, {
+		icon = CogsData.Types[message.variant].icon,
+		text = CogsData.Types[message.variant].text .. " (" .. message.value .. ")",
+		duration = 1 -- duration its optional
+	})
 end
 
 function on_message(self, message_id, message, sender)
@@ -212,15 +250,15 @@ function on_message(self, message_id, message, sender)
 		on_load_level_stage(self, message)
 	elseif message_id == Msg.Game.PROCESS_PLAYER_UPGRADE then
 		on_process_player_upgrade(self, message)
+	elseif message_id == Msg.Game.COG_PICKED then
+		on_cog_picked(self, message)
 	elseif message_id == Msg.Stager.STAGE_LOADED then
 		on_stage_loaded(self, message)
+	elseif message_id == Msg.Stager.STAGE_COMPLETED then
+		on_stage_completed(self, message)
 	elseif message_id == Msg.UI.WIPE_SHOWN then
 		on_wipe_shown(self, message)
 	elseif message_id == Msg.UI.WIPE_HIDDEN then
 		on_wipe_hidden(self, message)
-	elseif message_id == Msg.Game.PERROCOIN_PICKED then
-		on_perrocoin_picked(self, message)
-	elseif message_id == Msg.Game.PERROCOIN_EXPIRED then
-		on_perrocoin_expired(self, message)
 	end
 end

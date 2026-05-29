@@ -1,0 +1,14 @@
+image: "/assets/sprites/player/weapon/bomb.png"
+tile_width: 47
+tile_height: 47
+animations {
+  id: "default"
+  start_tile: 1
+  end_tile: 1
+}
+animations {
+  id: "explosion"
+  start_tile: 2
+  end_tile: 6
+  fps: 12
+}

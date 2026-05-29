@@ -43,6 +43,13 @@ function M:is_done()
   return self.elapsed >= self.interval
 end
 
+---Get elapsed progress toward the interval, clamped from 0 to 1.
+---@return number progress
+function M:get_progress()
+  if self.interval <= 0 then return 1 end
+  return math.min(self.elapsed / self.interval, 1)
+end
+
 ---Advance the timer. Returns true once per interval tick.
 ---Call every update or fixed_update.
 ---@param dt number Delta time in seconds

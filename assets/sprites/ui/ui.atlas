@@ -19,4 +19,7 @@ images {
 images {
   image: "/assets/sprites/ui/upgrade_tag.png"
 }
+images {
+  image: "/assets/sprites/ui/toast_frame.png"
+}
 extrude_borders: 1

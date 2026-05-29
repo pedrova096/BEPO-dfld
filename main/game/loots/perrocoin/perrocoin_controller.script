@@ -4,7 +4,6 @@ local Entity = require("utils.entity")
 
 local Urls = {
 	Body = "root#body",
-	BodyTrigger = "root#body_trigger",
 	Visual = "visual",
 	Sprite = "visual#sprite",
 	ShadowSprite = "shadow#sprite",
@@ -21,7 +20,6 @@ end
 
 local function disabled_perrocoin(self)
 	Entity.disable_body(Urls.Body)
-	Entity.disable_body(Urls.BodyTrigger)
 	Entity.hide_sprite(Urls.Sprite)
 	Entity.hide_sprite(Urls.ShadowSprite)
 	self.target = nil
@@ -31,7 +29,6 @@ end
 
 local function enabled_perrocoin(self)
 	Entity.enable_body(Urls.Body)
-	Entity.enable_body(Urls.BodyTrigger)
 	Entity.show_sprite(Urls.Sprite)
 	Entity.show_sprite(Urls.ShadowSprite)
 

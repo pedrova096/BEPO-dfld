@@ -12,34 +12,58 @@ local CameraStates = {
 	Shake = hash("shake"),
 }
 
-local function setup_camera()
+local function cap_zoom_step(zoom)
+	return math.max(0.25, math.floor(zoom * 4) / 4)
+end
+
+local function get_window_zoom()
 	local display_width = sys.get_config_int("display.width")
 	local display_height = sys.get_config_int("display.height")
 
 	local windows_width, windows_height = window.get_size()
 
-	local zoom_y = math.max(1, math.floor((windows_height / display_height) * 2) / 2)
-	local zoom_x = math.max(1, math.floor((windows_width / display_width) * 2) / 2)
+	local zoom_y = math.max(1, windows_height / display_height)
+	local zoom_x = math.max(1, windows_width / display_width)
 
-	local zoom = math.min(zoom_y, zoom_x)
-
-	print("[camera] window:", windows_width, windows_height, "display:", display_width, display_height, "zoom:", zoom)
-	go.set(Urls.Camera, "orthographic_zoom", zoom)
+	return cap_zoom_step(math.min(zoom_y, zoom_x))
 end
 
+local function get_bounds_zoom(bounds)
+	local windows_width, windows_height = window.get_size()
+	local zoom = math.min(windows_width / bounds.width, windows_height / bounds.height)
+
+	return cap_zoom_step(zoom)
+end
+
+local function setup_camera(self)
+	local display_width = sys.get_config_int("display.width")
+	local display_height = sys.get_config_int("display.height")
+	local window_width, window_height = window.get_size()
+	local zoom = self.bounds and get_bounds_zoom(self.bounds) or get_window_zoom()
+
+	print(
+		"[camera] zoom:", zoom,
+		"display:", display_width, display_height,
+		"window:", window_width, window_height,
+		"bounds:", self.bounds and self.bounds.width or nil, self.bounds and self.bounds.height or nil
+	)
+	go.set(Urls.Camera, "orthographic_zoom", zoom)
+end
 
 function init(self)
 	msg.post(Urls.Camera, "acquire_camera_focus")
 	msg.post("@render:", "use_camera_projection")
 
-	setup_camera()
+	self.bounds = nil
+	setup_camera(self)
 	-- On mount, the screen size is not ready yet, so we wait for the render script to be ready
-	timer.delay(0.1, false, function() setup_camera() end)
+	timer.delay(0.1, false, function()
+		setup_camera(self)
+	end)
 
 	window.set_listener(function(self, event, data)
 		if event == window.WINDOW_EVENT_RESIZED then
-			-- TODO:
-			setup_camera()
+			setup_camera(self)
 		end
 	end)
 
@@ -77,7 +101,6 @@ end
 
 local function on_camera_follow(self, sender)
 	go.set_parent(".", sender)
-	-- go.set_position(vmath.vector3(-640, -410, 0))
 	self.state = CameraStates.Follow
 end
 
@@ -117,6 +140,14 @@ local function on_camera_shake_interrupt(self, sender, message)
 	self.shake_payload = nil
 end
 
+local function on_camera_set_bounds(self, message)
+	self.bounds = {
+		width = message.width,
+		height = message.height,
+	}
+	setup_camera(self)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Camera.FOLLOW then
 		on_camera_follow(self, sender)
@@ -126,9 +157,11 @@ function on_message(self, message_id, message, sender)
 		on_camera_shake(self, sender, message)
 	elseif message_id == Msg.Camera.STOP_SHAKE then
 		on_camera_shake_interrupt(self, sender, message)
+	elseif message_id == Msg.Camera.SET_BOUNDS then
+		on_camera_set_bounds(self, message)
 	end
 end
 
 function on_reload(self)
-	setup_camera()
+	setup_camera(self)
 end

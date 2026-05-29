@@ -23,21 +23,9 @@ embedded_instances {
   children: "tiles_lg"
   children: "tiles_sm"
   children: "top_tiles_sm"
-  data: "embedded_components {\n"
-  "  id: \"door_factory\"\n"
-  "  type: \"factory\"\n"
-  "  data: \"prototype: \\\"/main/game/stages/door/door.go\\\"\\n"
-  "\"\n"
-  "}\n"
-  "embedded_components {\n"
-  "  id: \"upgrader_factory\"\n"
-  "  type: \"factory\"\n"
-  "  data: \"prototype: \\\"/main/game/upgrader/upgrader.go\\\"\\n"
-  "\"\n"
-  "}\n"
-  ""
+  data: ""
   position {
-    x: -168.0
-    y: 288.0
+    x: -120.0
+    y: 216.0
   }
 }

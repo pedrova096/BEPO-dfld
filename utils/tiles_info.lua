@@ -17,7 +17,7 @@ M.TILE_SM_SIZE = 24
 --- @field Spawn integer
 --- @field Upgrader integer
 M.LandmarksEnum = {
-  Door = 5,
+  Player = 5,
   Spawn = 6,
   Upgrader = 7,
 }
@@ -28,6 +28,11 @@ M.LandmarksEnum = {
 --- @field bottom integer
 --- @field columns_count integer
 --- @field rows_count integer
+
+--- Pixel dimensions for a tilemap.
+--- @class TileSize
+--- @field width number
+--- @field height number
 
 --- Door location extracted from the landmarks layer.
 --- @class DoorPosition
@@ -40,6 +45,7 @@ M.LandmarksEnum = {
 --- @field spawn_positions vector3[]
 --- @field doors_positions DoorPosition[]
 --- @field upgrader_position vector3|nil
+--- @field player_position vector3|nil
 
 --- Options for `get_landmark_info`.
 --- @class LandmarkInfoOptions
@@ -103,6 +109,7 @@ end
 function M.get_landmark_info(options)
   local spawn_positions = {}
   local upgrader_position = nil
+  local player_position = nil
 
   local offset = options.offset
   local landmarks = options.landmarks_tiles
@@ -122,6 +129,14 @@ function M.get_landmark_info(options)
         table.insert(spawn_positions, center_position)
       elseif tile == M.LandmarksEnum.Upgrader then
         upgrader_position = center_position
+        if bounds.rows_count % 2 ~= 0 then
+          upgrader_position.x = upgrader_position.x + tile_center.x
+        end
+      elseif tile == M.LandmarksEnum.Player then
+        player_position = center_position
+        if bounds.rows_count % 2 ~= 0 then
+          player_position.x = player_position.x + tile_center.x
+        end
       end
     end
   end
@@ -129,6 +144,7 @@ function M.get_landmark_info(options)
   return {
     spawn_positions = spawn_positions,
     upgrader_position = upgrader_position,
+    player_position = player_position
   }
 end
 
@@ -143,6 +159,17 @@ function M.get_bounds(tile_name)
     bottom = bottom,
     columns_count = columns_count,
     rows_count = rows_count
+  }
+end
+
+--- Get the pixel size of a large-tile tilemap.
+--- @param tile_name hash|string|url Tilemap component id.
+--- @return TileSize
+function M.get_lg_size(tile_name)
+  local bounds = M.get_bounds(tile_name)
+  return {
+    width = bounds.columns_count * M.TILE_LG_SIZE,
+    height = bounds.rows_count * M.TILE_LG_SIZE,
   }
 end
 

@@ -45,9 +45,10 @@ end
 
 --- @return boolean
 function M:can_spawn()
-	return (self.budget - self.spent) >= 0
+	return (self.budget - self.spent) > 0
 end
 
+--- By design the wave can be overspend
 --- @param enemy_def EnemyDef
 --- @return boolean
 function M:validate_spawn(enemy_def)

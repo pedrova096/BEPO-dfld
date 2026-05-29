@@ -1,4 +1,4 @@
-local Rewards = require("lib.enums.rewards")
+local Rewards = require("lib.rewards.reward_types")
 
 local pool = {
 	{ id = "enemy_01", cost = 1, chance = 0.5 },

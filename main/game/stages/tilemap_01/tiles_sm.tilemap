@@ -3,66 +3,6 @@ layers {
   id: "layer"
   z: 0.0
   cell {
-    x: 9
-    y: -15
-    tile: 0
-  }
-  cell {
-    x: 10
-    y: -15
-    tile: 0
-  }
-  cell {
-    x: 11
-    y: -15
-    tile: 0
-  }
-  cell {
-    x: 2
-    y: -14
-    tile: 0
-  }
-  cell {
-    x: 9
-    y: -14
-    tile: 1
-  }
-  cell {
-    x: 10
-    y: -14
-    tile: 1
-  }
-  cell {
-    x: 11
-    y: -14
-    tile: 1
-  }
-  cell {
-    x: 2
-    y: -13
-    tile: 2
-  }
-  cell {
-    x: 2
-    y: -12
-    tile: 2
-  }
-  cell {
-    x: 2
-    y: -11
-    tile: 2
-  }
-  cell {
-    x: 2
-    y: -10
-    tile: 2
-  }
-  cell {
-    x: 2
-    y: -9
-    tile: 2
-  }
-  cell {
     x: 3
     y: -9
     tile: 0
@@ -78,103 +18,58 @@ layers {
     tile: 0
   }
   cell {
-    x: 2
-    y: -8
-    tile: 1
+    x: 6
+    y: -9
+    tile: 0
   }
   cell {
-    x: 3
+    x: 6
     y: -8
-    tile: 1
-  }
-  cell {
-    x: 4
-    y: -8
-    tile: 1
-  }
-  cell {
-    x: 5
-    y: -8
-    tile: 1
+    tile: 2
   }
 }
 layers {
   id: "landmarks"
   z: 0.0
   cell {
-    x: 2
-    y: -22
-    tile: 5
-  }
-  cell {
-    x: 7
-    y: -22
-    tile: 5
-  }
-  cell {
-    x: 12
-    y: -22
-    tile: 5
-  }
-  cell {
     x: 4
-    y: -19
-    tile: 5
-  }
-  cell {
-    x: 10
-    y: -19
-    tile: 5
-  }
-  cell {
-    x: 7
     y: -15
-    tile: 6
+    tile: 4
+  }
+  cell {
+    x: 1
+    y: -11
+    tile: 5
   }
   cell {
     x: 8
-    y: -12
+    y: -11
     tile: 5
   }
   cell {
-    x: 12
-    y: -9
+    x: 5
+    y: -7
+    tile: 5
+  }
+  cell {
+    x: 1
+    y: -5
+    tile: 5
+  }
+  cell {
+    x: 8
+    y: -5
     tile: 5
   }
   cell {
     x: 4
-    y: -6
-    tile: 5
-  }
-  cell {
-    x: 9
-    y: -6
-    tile: 5
-  }
-  cell {
-    x: 2
-    y: -3
-    tile: 5
-  }
-  cell {
-    x: 11
-    y: -3
-    tile: 5
+    y: -4
+    tile: 6
   }
   cell {
     x: 0
     y: -1
     tile: 3
-  }
-  cell {
-    x: 4
-    y: -1
-    tile: 4
-  }
-  cell {
-    x: 8
-    y: -1
-    tile: 4
   }
 }
 material: "/builtins/materials/tile_map.material"

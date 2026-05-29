@@ -1,0 +1,4 @@
+font: "/assets/fonts/Chakra-Bold-32/Chakra-Bold-32.fnt"
+material: "/builtins/fonts/font.material"
+size: 32
+characters: " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"

@@ -5,9 +5,14 @@ local Table = require("utils.table")
 
 local DEFAULT_INACCURACY_DEGREES = 4
 
-local DefaultBulletConfig = {
+local DEFAULT_BULLET_CONFIG = {
   speed = 400,
   force = 1,
+  ricochets = 0,
+  ricochet_ray_count = 16,
+  ricochet_ray_range = 140,
+  ricochet_ray_start_offset = 8,
+  ricochet_check_obstacles = false,
 }
 
 ---@class Weapon
@@ -41,7 +46,7 @@ function M:new(opts)
 
   instance.id = opts.id or "weapon"
   instance.config = Table.copy(opts.config)
-  instance.bullet_config = Table.copy(opts.bullet.config or DefaultBulletConfig)
+  instance.bullet_config = Table.copy(opts.bullet.config or DEFAULT_BULLET_CONFIG)
   instance.target = opts.target
 
   instance.state = {
@@ -132,6 +137,11 @@ function M:fire(payload)
   payload.force = self.bullet_config.force
   payload.speed = self.bullet_config.speed
   local firing_payload = self:_apply_accuracy(payload)
+  firing_payload.ricochets = self.bullet_config.ricochets or 0
+  firing_payload.ricochet_ray_count = self.bullet_config.ricochet_ray_count
+  firing_payload.ricochet_ray_range = self.bullet_config.ricochet_ray_range
+  firing_payload.ricochet_ray_start_offset = self.bullet_config.ricochet_ray_start_offset
+  firing_payload.ricochet_check_obstacles = self.bullet_config.ricochet_check_obstacles
 
   bullet:activate(firing_payload)
   msg.post(".", Msg.Weapon.FIRED)
@@ -194,18 +204,21 @@ function M:is_reloading()
 end
 
 ---Set the properties of the weapon.
----@param properties table
+---@param properties WeaponProperties
 function M:set_properties(properties)
   self.config.reload_time = properties.reload_time or self.config.reload_time
-  self.config.ammo_capacity = properties.ammo_capacity
-  self.state.ammo = properties.ammo_capacity
+  if properties.ammo_capacity then
+    self.config.ammo_capacity = properties.ammo_capacity
+    self.state.ammo = properties.ammo_capacity
+  end
   if properties.pool_size then
     self.bullet_pool:set_pool_size(properties.pool_size)
   end
 
   if properties.bullet_config then
-    self.bullet_config.force = properties.bullet_config.force or self.bullet_config.force
-    self.bullet_config.speed = properties.bullet_config.speed or self.bullet_config.speed
+    for key, value in pairs(properties.bullet_config) do
+      self.bullet_config[key] = value
+    end
   end
 end
 

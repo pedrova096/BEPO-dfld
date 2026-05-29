@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Specific Status Reward Flow</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #17151f;
+      --panel: #211f2b;
+      --panel-soft: #2b2935;
+      --text: #f7f2e8;
+      --muted: #c7bdd2;
+      --accent: #f2a65e;
+      --line: #40384a;
+      --code: #121019;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 72px;
+    }
+
+    header {
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 40px;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-top: 40px;
+      font-size: 24px;
+    }
+
+    h3 {
+      margin-top: 24px;
+      font-size: 18px;
+    }
+
+    p {
+      color: var(--muted);
+      margin: 14px 0;
+      max-width: 860px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 16px;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    th {
+      color: var(--text);
+      background: var(--panel-soft);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code {
+      color: var(--accent);
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 0.95em;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 16px 0 0;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--code);
+    }
+
+    pre code {
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 28px;
+    }
+
+    .diagram {
+      margin-top: 16px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow-x: auto;
+    }
+
+    .summary {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .summary pre {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Specific Status Reward Flow</h1>
+      <p>
+        Flow from starting a run, to preparing specific-status reward doors,
+        to entering the next stage with a locked reward variant.
+      </p>
+    </header>
+
+    <section>
+      <h2>Reading The Diagrams</h2>
+
+      <h3>Runtime Pieces</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Kind</th>
+            <th>Meaning</th>
+            <th>Examples</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Controller / Manager</td>
+            <td>A Defold script attached to a game object. It can receive <code>msg.post</code> messages through <code>on_message</code>.</td>
+            <td><code>game_controller.script</code>, <code>level_manager.script</code>, <code>door_controller.script</code></td>
+          </tr>
+          <tr>
+            <td>Module</td>
+            <td>A plain Lua module loaded with <code>require</code>. It is called directly like a normal object/function.</td>
+            <td><code>modules.level.level</code>, <code>lib.rewards.specific_status_picker</code></td>
+          </tr>
+          <tr>
+            <td>Message</td>
+            <td>A Defold <code>msg.post(...)</code> between scripts/game objects. It is handled later by <code>on_message</code>.</td>
+            <td><code>Msg.Game.START_RUN</code>, <code>Msg.Stager.LOAD_STAGE</code></td>
+          </tr>
+          <tr>
+            <td>Invocation</td>
+            <td>A direct Lua function call in the same frame. No Defold message is posted.</td>
+            <td><code>self.level:start_run(...)</code>, <code>on_load_level_stage(...)</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Arrow Labels</h3>
+      <pre><code>[message]  Defold msg.post(...)
+[call]     direct Lua function/module call
+[internal] local function call or local state mutation
+[factory]  Defold factory.create(...)</code></pre>
+    </section>
+
+    <section>
+      <h2>1. Run Start And First Stage Load</h2>
+      <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+  participant UI as UI Controller
+  participant Game as Game Controller
+  participant Level as Level Module
+  participant Stage as Level Manager
+  participant Door as Door Controller
+
+  UI->>Game: [message] Msg.Game.START_RUN { level_id }
+
+  Game->>Game: [internal] reset run-specific reward state
+  Game->>Level: [call] start_run(level)
+  Level-->>Game: stage_payload for stage_1
+
+  Game->>Game: [internal] on_load_level_stage(stage_payload)
+  Game->>Game: [internal] prepare reward variants on stage_payload
+
+  Game->>Stage: [message] Msg.Stager.LOAD_STAGE { stage = stage_payload }
+
+  Stage->>Stage: [internal] create tilemap
+  Stage->>Stage: [internal] spawn_connections(stage.connections)
+  Stage->>Door: [factory] create door with next_stage, reward, reward_variant
+
+  Stage-->>Game: [message] Msg.Stager.STAGE_LOADED
+  Game->>Level: [call] load_stage(stage_payload)
+  Game->>Level: [call] start_stage()
+  Game->>Stage: [message] Msg.Stager.START_STAGE
+        </pre>
+      </div>
+
+      <p>
+        Reward variants are prepared before <code>level_manager</code> receives the stage payload.
+        By the time doors are spawned, each specific-status door already has a concrete
+        <code>reward_variant</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Door Reward Variant Preparation</h2>
+      <p>This is internal reward preparation inside the game flow. It is not a Defold message by itself.</p>
+
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+  A[Game has stage_payload] --> B{stage_payload has connections?}
+
+  B -- No --> Z[No door rewards to prepare]
+  B -- Yes --> C[Loop stage_payload.connections]
+
+  C --> D{connection.reward == SpecificStatus?}
+
+  D -- No --> E[Leave connection unchanged]
+  D -- Yes --> F{connection.reward_variant exists?}
+
+  F -- Yes --> G[Keep existing variant]
+  F -- No --> H[Roll weighted status variant]
+
+  H --> I[Set connection.reward_variant]
+  G --> J[Door can display exact reward]
+  I --> J
+  E --> K[Normal door reward]
+        </pre>
+      </div>
+
+      <p>After preparation, a specific-status door connection looks like this:</p>
+      <pre><code>{
+  id = hash("stage_2"),
+  reward = Rewards.SpecificStatus,
+  reward_variant = Status.Life,
+}</code></pre>
+
+      <p>Then <code>level_manager</code> creates the door with:</p>
+      <pre><code>{
+  next_stage = connection.id,
+  reward = connection.reward,
+  reward_variant = connection.reward_variant,
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>3. Enter Door And Load Next Stage</h2>
+      <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+  participant Player
+  participant Door as Door Controller
+  participant Game as Game Controller
+  participant Level as Level Module
+  participant Stage as Level Manager
+
+  Player->>Door: [physics] enters wall_trigger
+
+  Door->>Game: [message] Msg.Stager.CONNECTION_ENTERED
+  Note right of Door: payload: next_stage, reward, reward_variant
+
+  Game->>Level: [call] choose_connection(next_stage)
+  Level-->>Game: next stage_payload
+
+  Game->>Game: [internal] record selected reward variant
+  Game->>Game: [internal] stage_payload.reward_variant = selected reward_variant
+
+  Game->>Game: [internal] on_load_level_stage(stage_payload, transition=true)
+  Game->>Stage: [message] Msg.Stager.LOAD_STAGE { stage = stage_payload }
+
+  Stage->>Stage: [internal] current_stage_reward = stage.data.reward
+  Stage->>Stage: [internal] current_stage_reward_variant = stage.reward_variant
+
+  Stage-->>Game: [message] Msg.Stager.STAGE_LOADED
+        </pre>
+      </div>
+
+      <p>The selected door variant is locked into the next stage:</p>
+      <pre><code>stage_payload.reward_variant = message.reward_variant</code></pre>
+
+      <p>If the player enters a Life door, the next stage carries:</p>
+      <pre><code>stage_payload.reward_variant = Status.Life</code></pre>
+
+      <p>When that stage is completed, the upgrader spawns with:</p>
+      <pre><code>{
+  reward = Rewards.SpecificStatus,
+  reward_variant = Status.Life,
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>Short Version</h2>
+      <div class="summary">
+        <pre><code>START_RUN
+  -> [message] UI tells game_controller to start
+  -> [call] game_controller asks Level module for the first stage
+  -> [internal] game_controller prepares reward variants
+  -> [message] game_controller tells level_manager to load the stage
+  -> [factory] level_manager creates doors
+
+ENTER DOOR
+  -> [message] door_controller sends selected next_stage/reward/reward_variant
+  -> [call] game_controller asks Level module to resolve the next stage
+  -> [internal] game_controller locks the selected reward_variant into that stage payload
+
+NEXT STAGE
+  -> [message] game_controller tells level_manager to load the next stage
+  -> [internal] level_manager stores the locked reward_variant
+  -> on completion, the upgrader uses that exact variant</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "dark",
+      securityLevel: "loose",
+      themeVariables: {
+        background: "#17151f",
+        primaryColor: "#2b2935",
+        primaryTextColor: "#f7f2e8",
+        primaryBorderColor: "#f2a65e",
+        lineColor: "#c7bdd2",
+        secondaryColor: "#211f2b",
+        tertiaryColor: "#121019"
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+return {
+  Bomb = hash("bomb"),
+}
