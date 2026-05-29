@@ -6,6 +6,7 @@ local Player = {
   SET_TARGET_ENEMIES = hash("set_target_enemies"),
   SET_POSITION = hash("set_position"),
   APPLY_UPGRADE = hash("apply_upgrade"),
+  ADD_SPECIAL_ACTION_CHARGE = hash("add_special_action_charge"),
   START_SPECIAL_ACTION = hash("start_special_action"),
   RUN_SPECIAL_ACTION = hash("run_special_action"),
   RELEASE_SPECIAL_ACTION = hash("release_special_action"),
@@ -108,19 +109,23 @@ local Sound = {
   UNMUTE = hash("sound_unmute"),
 }
 
-local UI = {
-  -- events
-  LIFE_CHANGED = hash("life_changed"), -- Split into added or removed
-  WIPE_SHOWN = hash("wipe_shown"),
-  WIPE_HIDDEN = hash("wipe_hidden"),
+local ControlsUI = {
   -- commands
   ENABLE_MOVE = hash("enable_move"),
   DISABLE_MOVE = hash("disable_move"),
   ENABLE_BUTTON_ACTION = hash("enable_button"),
   DISABLE_BUTTON_ACTION = hash("disable_button"),
+  BLOCK_CONTROLS = hash("block_controls"),
+}
+
+local HudUI = {
+  -- events
+  WIPE_SHOWN = hash("wipe_shown"),
+  WIPE_HIDDEN = hash("wipe_hidden"),
+  -- commands
+  SET_LIFE_NODES = hash("set_life_nodes"),
   SHOW_WIPE = hash("show_wipe"),
   HIDE_WIPE = hash("hide_wipe"),
-  SET_LIFE_NODES = hash("set_life_nodes"),
   SHOW_SHOP_MODAL = hash("show_shop_modal"),
   SHOW_TOAST = hash("show_toast"),
   HIDE_TOAST = hash("hide_toast"),
@@ -138,14 +143,15 @@ return {
   Attacker = Attacker,
   Bullet = Bullet,
   Camera = Camera,
+  ControlsUI = ControlsUI,
   Enemy = Enemy,
   Game = Game,
+  HudUI = HudUI,
   Main = Main,
   Player = Player,
   Sound = Sound,
   SpecialAction = SpecialAction,
   Stager = Stager,
-  UI = UI,
   Weapon = Weapon,
   -- global events
   COLLISION_OCCURRED = hash("collision_response"),

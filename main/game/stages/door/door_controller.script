@@ -25,14 +25,14 @@ end
 local function on_trigger_response(self, message)
 	if message.own_group == hash("ui_trigger") then
 		if message.enter then
-			msg.post(Urls.UIController, Msg.UI.SHOW_TOAST, {
+			msg.post(Urls.UIController, Msg.HudUI.SHOW_TOAST, {
 				id = go.get_id(),
 				icon = RewardInfo.get_icon(self.reward, self.reward_variant),
 				text = RewardInfo.get_name(self.reward, self.reward_variant),
 				duration = 1 -- duration its optional
 			})
 		else
-			msg.post(Urls.UIController, Msg.UI.HIDE_TOAST, { toast_id = go.get_id() })
+			msg.post(Urls.UIController, Msg.HudUI.HIDE_TOAST, { toast_id = go.get_id() })
 		end
 	end
 

@@ -72,15 +72,16 @@ end
 
 local function on_open_upgrader(self, message)
 	self.state = StatesEnum.Paused
-	msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
-	msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
-	msg.post(Urls.UIController, Msg.UI.SHOW_SHOP_MODAL, message)
+	msg.post(Urls.UIController, Msg.ControlsUI.DISABLE_MOVE)
+	msg.post(Urls.Player, Msg.Player.STOP_MOVE)
+	msg.post(Urls.UIController, Msg.ControlsUI.BLOCK_CONTROLS)
+	msg.post(Urls.UIController, Msg.HudUI.SHOW_SHOP_MODAL, message)
 end
 
 local function on_process_player_upgrade(self, message)
 	self.state = StatesEnum.Active
 
-	msg.post(Urls.UIController, Msg.UI.ENABLE_MOVE)
+	msg.post(Urls.UIController, Msg.ControlsUI.ENABLE_MOVE)
 	msg.post(Urls.LevelManager, Msg.Stager.ENABLE_CONNECTIONS)
 
 	local reward = self.level:get_current_reward()
@@ -88,7 +89,7 @@ local function on_process_player_upgrade(self, message)
 	if reward == RewardTypes.StatusSelector or reward == RewardTypes.EnhancementUpgrade then
 		msg.post(Urls.Player, Msg.Player.APPLY_UPGRADE, message.selected)
 	elseif reward == RewardTypes.SpecialAction then
-		msg.post(Urls.UIController, Msg.UI.ENABLE_BUTTON_ACTION, {
+		msg.post(Urls.UIController, Msg.ControlsUI.ENABLE_BUTTON_ACTION, {
 			movable = true
 		})
 		msg.post(Urls.Player, Msg.Player.SET_SPECIAL_ACTION, message.selected)
@@ -118,9 +119,9 @@ local function on_load_level_stage(self, message)
 			stage_id = message.stage.id,
 			duration = message.duration or 0.5,
 		})
-		msg.post(Urls.UIController, Msg.UI.DISABLE_MOVE)
-		msg.post(Urls.Player, Msg.Player.MOVE_RELEASED)
-		msg.post(Urls.UIController, Msg.UI.SHOW_WIPE, {
+		msg.post(Urls.UIController, Msg.ControlsUI.DISABLE_MOVE)
+		msg.post(Urls.Player, Msg.Player.STOP_MOVE)
+		msg.post(Urls.UIController, Msg.HudUI.SHOW_WIPE, {
 			duration = message.duration or 0.5,
 		})
 		return
@@ -190,7 +191,7 @@ local function on_stage_loaded(self, message)
 		stage_id = message.stage_id,
 		duration = message.duration or 0.5,
 	})
-	msg.post(Urls.UIController, Msg.UI.HIDE_WIPE, {
+	msg.post(Urls.UIController, Msg.HudUI.HIDE_WIPE, {
 		duration = message.duration or 0.5,
 	})
 end
@@ -225,14 +226,14 @@ local function on_wipe_hidden(self, _message)
 
 	self.level:start_stage()
 	msg.post(Urls.LevelManager, Msg.Stager.START_STAGE)
-	msg.post(Urls.UIController, Msg.UI.ENABLE_MOVE)
+	msg.post(Urls.UIController, Msg.ControlsUI.ENABLE_MOVE)
 	self.loading_stage = false
 	self.pending_stage_load = nil
 	set_transition_state(self, TransitionStates.Idle)
 end
 
 local function on_cog_picked(self, message)
-	msg.post(Urls.UIController, Msg.UI.SHOW_TOAST, {
+	msg.post(Urls.UIController, Msg.HudUI.SHOW_TOAST, {
 		icon = CogsData.Types[message.variant].icon,
 		text = CogsData.Types[message.variant].text .. " (" .. message.value .. ")",
 		duration = 1 -- duration its optional
@@ -256,9 +257,9 @@ function on_message(self, message_id, message, sender)
 		on_stage_loaded(self, message)
 	elseif message_id == Msg.Stager.STAGE_COMPLETED then
 		on_stage_completed(self, message)
-	elseif message_id == Msg.UI.WIPE_SHOWN then
+	elseif message_id == Msg.HudUI.WIPE_SHOWN then
 		on_wipe_shown(self, message)
-	elseif message_id == Msg.UI.WIPE_HIDDEN then
+	elseif message_id == Msg.HudUI.WIPE_HIDDEN then
 		on_wipe_hidden(self, message)
 	end
 end

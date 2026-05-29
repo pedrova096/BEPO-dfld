@@ -1,0 +1,292 @@
+local ManualTimer = require("utils.manual_timer")
+local UtilsGUI = require("utils.utils_gui")
+local Msg = require("lib.msg")
+local ToastGUI = require("lib.toast_gui")
+
+local ActionIds = {
+	TouchMulti = hash("touch_multi"),
+	Touch = hash("touch"),
+}
+
+local Urls = {
+	GameController = "/controller",
+	LifeNode = "life_node",
+	Wipe = "wipe",
+	ShopModal = "shop_modal",
+	UpgradeContainer = "upgrade_container",
+	Toast = "toast/frame",
+	ToastText = "toast/text",
+	ToastIcon = "toast/icon",
+}
+
+local UpgradeButtons = {
+	{ id = "upgrade_a" },
+	{ id = "upgrade_b" },
+	{ id = "upgrade_c" },
+}
+
+local function get_template_node(instance_id, node_id)
+	return gui.get_node(instance_id .. "/" .. node_id)
+end
+
+local function get_reward_stat_text(reward_option)
+	local stat = reward_option and reward_option.stat_1
+	if not stat then
+		return ""
+	end
+
+	return string.format("%s +%s", stat.name, tostring(stat.value))
+end
+
+local function set_upgrade_button_content(node, reward_option)
+	local title = reward_option and reward_option.title or ""
+	local description = reward_option and reward_option.description or ""
+	local stat_text = get_reward_stat_text(reward_option)
+
+	gui.set_text(get_template_node(node, "title"), title)
+	gui.set_text(get_template_node(node, "description"), description)
+	gui.set_text(get_template_node(node, "text"), stat_text)
+	gui.set_enabled(get_template_node(node, "tag_1"), stat_text ~= "")
+end
+
+local SHOP_FADE_DURATION = 0.2
+local function hide_shop_modal(self)
+	local shop_modal_node = gui.get_node(Urls.ShopModal)
+	local upgrade_container_node = gui.get_node(Urls.UpgradeContainer)
+
+	gui.cancel_animations(shop_modal_node, "color.w")
+	gui.animate(shop_modal_node, "color.w", 0, gui.EASING_OUTEXPO, SHOP_FADE_DURATION, 0, function()
+		gui.set_enabled(shop_modal_node, false)
+		gui.set_visible(upgrade_container_node, false)
+	end)
+
+	for _, upgrade_button in ipairs(UpgradeButtons) do
+		local upgrade_button_node = get_template_node(upgrade_button.id, "button")
+		gui.cancel_animations(upgrade_button_node, "color.w")
+		gui.animate(upgrade_button_node, "color.w", 0, gui.EASING_OUTEXPO, SHOP_FADE_DURATION, 0, function()
+			gui.is_enabled(upgrade_button_node, false)
+		end)
+	end
+
+	self.reward_options = {}
+end
+
+local BOOST_DROP = 24
+local ANIMATION_TIME = 0.25
+local DELAY_BETWEEN_BUTTONS_TIME = 0.15
+local function set_reward_options(self)
+	for i, upgrade_button in ipairs(UpgradeButtons) do
+		local reward_option = self.reward_options[i]
+		local upgrade_button_node = get_template_node(upgrade_button.id, "button")
+		gui.set_enabled(upgrade_button_node, reward_option ~= nil)
+		if reward_option then
+			set_upgrade_button_content(upgrade_button.id, reward_option)
+
+			local position = gui.get_position(upgrade_button_node)
+			gui.set(upgrade_button_node, "position.y", position.y + BOOST_DROP)
+			gui.set(upgrade_button_node, "color.w", 0)
+
+			gui.animate(upgrade_button_node, "color.w", 1, gui.EASING_OUTEXPO, ANIMATION_TIME,
+				(i - 1) * DELAY_BETWEEN_BUTTONS_TIME)
+			gui.animate(upgrade_button_node, "position.y", position.y, gui.EASING_OUTEXPO, ANIMATION_TIME,
+				(i - 1) * DELAY_BETWEEN_BUTTONS_TIME)
+		end
+	end
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+
+	self.reward_options = {}
+	self.wipe_transition = nil
+	self.toast = ToastGUI:new({
+		frame_node_id = Urls.Toast,
+		text_node_id = Urls.ToastText,
+		icon_node_id = Urls.ToastIcon,
+	})
+	self.life_nodes = {}
+end
+
+local function wipe_view_pipe(self, dt)
+	if not self.wipe_transition then return end
+
+	local transition = self.wipe_transition
+	local wipe_node = gui.get_node(Urls.Wipe)
+	transition.timer:update(dt)
+
+	local duration = transition.timer.interval
+	local progress = duration > 0 and math.min(transition.timer.elapsed / duration, 1) or 1
+	local wipe_progress = transition.from + (transition.to - transition.from) * progress
+
+	gui.set(wipe_node, "progress.x", wipe_progress)
+
+	if transition.timer:is_done() then
+		if transition.hide_on_complete then
+			gui.set_visible(wipe_node, false)
+		end
+
+		if transition.complete_message_id then
+			msg.post(Urls.GameController, transition.complete_message_id)
+		end
+
+		self.wipe_transition = nil
+	end
+end
+
+function update(self, dt)
+	wipe_view_pipe(self, dt)
+end
+
+local LIFE_NODE_SPACING = 32
+local function on_set_life_count(self, message)
+	local original_life_node = gui.get_node(Urls.LifeNode)
+	local original_life_node_position = gui.get_position(original_life_node)
+	local life_count = message.lives
+
+	for i = 1, life_count do
+		local life_node_id = "life_node_" .. i
+		local life_node = gui.clone(original_life_node)
+		local life_node_position = original_life_node_position + vmath.vector3((i - 1) * LIFE_NODE_SPACING, 0, 0)
+		gui.set_position(life_node, life_node_position)
+		gui.set_visible(life_node, true)
+		gui.set_id(life_node, life_node_id)
+
+		table.insert(self.life_nodes, { id = life_node_id, active = true })
+	end
+end
+
+local function shake_life_node(self, life_node)
+	local life_node_position = gui.get_position(life_node)
+	gui.animate(life_node, "position.x", life_node_position.x + 2, gui.EASING_INBOUNCE, 0.125, 0, function()
+		gui.animate(life_node, "position.x", life_node_position.x, gui.EASING_OUTBOUNCE, 0.125, 0)
+	end)
+end
+
+local function on_player_life_changed(self, message)
+	local current_lives = message.current_lives + 1
+
+	for index, life in ipairs(self.life_nodes) do
+		local life_node = gui.get_node(life.id)
+
+		if index < current_lives then
+			life.active = true
+			gui.play_flipbook(life_node, "life")
+		else
+			if life.active then
+				shake_life_node(self, life_node)
+			end
+			life.active = false
+			gui.play_flipbook(life_node, "life_empty")
+		end
+	end
+end
+
+local function start_wipe_transition(self, options)
+	local wipe_node = gui.get_node(Urls.Wipe)
+	local timer = ManualTimer:new({
+		interval = options.duration or 0.5,
+	})
+
+	gui.set_visible(wipe_node, true)
+	gui.set(wipe_node, "progress.x", options.from)
+	timer:start()
+
+	self.wipe_transition = {
+		timer = timer,
+		from = options.from,
+		to = options.to,
+		hide_on_complete = options.hide_on_complete or false,
+		complete_message_id = options.complete_message_id,
+	}
+end
+
+local function on_show_wipe(self, message)
+	start_wipe_transition(self, {
+		from = 0.1,
+		to = 1.0,
+		duration = message.duration or 0.5,
+		complete_message_id = Msg.HudUI.WIPE_SHOWN,
+	})
+end
+
+local function on_hide_wipe(self, message)
+	start_wipe_transition(self, {
+		from = 0.9,
+		to = 0.0,
+		duration = message.duration or 0.5,
+		hide_on_complete = true,
+		complete_message_id = Msg.HudUI.WIPE_HIDDEN,
+	})
+end
+
+local SHOP_MODAL_ALPHA = 0.75
+local function on_show_shop_modal(self, message)
+	local shop_modal_node = gui.get_node(Urls.ShopModal)
+	local upgrade_container_node = gui.get_node(Urls.UpgradeContainer)
+
+	self.reward_options = message.options or {}
+	gui.set_enabled(shop_modal_node, true)
+	gui.set_visible(upgrade_container_node, #self.reward_options > 0)
+	gui.set(shop_modal_node, "color.w", 0)
+	gui.animate(shop_modal_node, "color.w", SHOP_MODAL_ALPHA, gui.EASING_OUTEXPO, SHOP_FADE_DURATION)
+
+	set_reward_options(self)
+end
+
+local function on_show_toast(self, message)
+	self.toast:show(message)
+end
+
+local function on_hide_toast(self, message)
+	self.toast:hide(message.toast_id)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.HudUI.SET_LIFE_NODES then
+		on_set_life_count(self, message)
+	elseif message_id == Msg.HudUI.LIFE_CHANGED then
+		on_player_life_changed(self, message)
+	elseif message_id == Msg.HudUI.SHOW_WIPE then
+		on_show_wipe(self, message)
+	elseif message_id == Msg.HudUI.HIDE_WIPE then
+		on_hide_wipe(self, message)
+	elseif message_id == Msg.HudUI.SHOW_SHOP_MODAL then
+		on_show_shop_modal(self, message)
+	elseif message_id == Msg.HudUI.SHOW_TOAST then
+		on_show_toast(self, message)
+	elseif message_id == Msg.HudUI.HIDE_TOAST then
+		on_hide_toast(self, message)
+	end
+end
+
+local function input_shop_modal(self, action)
+	local shop_modal_node = gui.get_node(Urls.ShopModal)
+	if not gui.is_enabled(shop_modal_node) then
+		return false
+	end
+
+	for index, upgrade_button in ipairs(UpgradeButtons) do
+		local reward_option = self.reward_options[index]
+		if reward_option then
+			local button_node = get_template_node(upgrade_button.id, "button")
+			local touched = UtilsGUI.get_touched_by_node(button_node, action)
+			if touched and touched.pressed then
+				msg.post(Urls.GameController, Msg.Game.PROCESS_PLAYER_UPGRADE, {
+					selected = reward_option,
+				})
+				hide_shop_modal(self)
+				return true
+			end
+		end
+	end
+
+	return true
+end
+
+function on_input(self, action_id, action)
+	if action_id == ActionIds.TouchMulti or action_id == ActionIds.Touch then
+		return input_shop_modal(self, action)
+	end
+
+	return false
+end
