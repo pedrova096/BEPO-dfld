@@ -141,7 +141,7 @@ local LIFE_NODE_SPACING = 32
 local function on_set_life_count(self, message)
 	local original_life_node = gui.get_node(Urls.LifeNode)
 	local original_life_node_position = gui.get_position(original_life_node)
-	local life_count = message.lives
+	local life_count = message.total_lives
 
 	for i = 1, life_count do
 		local life_node_id = "life_node_" .. i
@@ -244,7 +244,7 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.HudUI.SET_LIFE_NODES then
 		on_set_life_count(self, message)
-	elseif message_id == Msg.HudUI.LIFE_CHANGED then
+	elseif message_id == Msg.HudUI.CHANGE_LIFES then
 		on_player_life_changed(self, message)
 	elseif message_id == Msg.HudUI.SHOW_WIPE then
 		on_show_wipe(self, message)

@@ -44,7 +44,7 @@ function init(self)
 	self.special_action = SpecialAction:new()
 	self.target_enemies = {}
 
-	msg.post(Urls.SessionManager, Msg.Game.PLAYER_SET_LIFE_COUNT, {
+	msg.post(Urls.SessionManager, Msg.Player.LIFE_INITIALIZED, {
 		lives = self.lives,
 	})
 	msg.post(Urls.Weapon, Msg.Weapon.SET_PROPERTIES, {
@@ -130,7 +130,7 @@ local function on_apply_damage(self, message)
 		shake_duration = 0.2,
 		shake_magnitude = 2,
 	})
-	msg.post(Urls.SessionManager, Msg.Game.PLAYER_LIFE_CHANGED, {
+	msg.post(Urls.SessionManager, Msg.Player.LIFE_CHANGED, {
 		current_lives = self.stater.stats.lives,
 		total_lives = self.lives,
 	})
