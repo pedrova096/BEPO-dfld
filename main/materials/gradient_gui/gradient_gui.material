@@ -10,9 +10,9 @@ fragment_constants {
   name: "color_top"
   type: CONSTANT_TYPE_USER
   value {
-    x: 0.6156863
-    y: 0.6156863
-    z: 0.6784314
+    x: 0.32941176
+    y: 0.56862745
+    z: 0.74117647
     w: 1.0
   }
 }
@@ -26,9 +26,9 @@ fragment_constants {
   name: "color_bottom"
   type: CONSTANT_TYPE_USER
   value {
-    x: 0.76
-    y: 0.76
-    z: 0.82
+    x: 0.29 
+    y: 0.35 
+    z: 0.67 
     w: 1.0
   }
 }

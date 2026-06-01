@@ -1,7 +1,11 @@
 script: "/main/start_screen/ui/start_screen_ui_controller.gui_script"
 fonts {
-  name: "ui_bold"
-  font: "/assets/fonts/ui_bold.font"
+  name: "bold-48"
+  font: "/assets/fonts/Chakra-Bold-48/bold-48.font"
+}
+fonts {
+  name: "regular-48"
+  font: "/assets/fonts/Chakra-Regular-48/regular-48.font"
 }
 textures {
   name: "ui_base_button"
@@ -11,15 +15,19 @@ textures {
   name: "ui_base_button_ghost"
   texture: "/assets/sprites/ui/buttons/ui_base_button_ghost.tilesource"
 }
+textures {
+  name: "ui"
+  texture: "/assets/sprites/ui/start_screen/ui.atlas"
+}
 nodes {
   size {
     x: 360.0
     y: 640.0
   }
   color {
-    x: 0.0
-    y: 0.0
-    z: 0.0
+    x: 0.19607843
+    y: 0.24313726
+    z: 0.30980393
   }
   type: TYPE_BOX
   id: "background"
@@ -28,32 +36,15 @@ nodes {
   pivot: PIVOT_SW
   adjust_mode: ADJUST_MODE_STRETCH
   size_mode: SIZE_MODE_AUTO
-  material: "gradient_gui"
 }
 nodes {
   position {
     x: 180.0
-    y: 392.0
+    y: 186.0
   }
   size {
-    x: 220.0
-    y: 72.0
-  }
-  type: TYPE_TEXT
-  text: "BEPO"
-  font: "ui_bold"
-  id: "title"
-  xanchor: XANCHOR_LEFT
-  yanchor: YANCHOR_BOTTOM
-}
-nodes {
-  position {
     x: 180.0
-    y: 274.0
-  }
-  size {
-    x: 160.0
-    y: 32.0
+    y: 78.0
   }
   type: TYPE_BOX
   texture: "ui_base_button/default"
@@ -68,8 +59,20 @@ nodes {
   }
 }
 nodes {
+  size {
+    x: 100.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "start_content"
+  parent: "start_button"
+  inherit_alpha: true
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
   position {
-    y: 1.5
+    y: 10.5
   }
   scale {
     x: 0.5
@@ -79,16 +82,221 @@ nodes {
     x: 200.0
     y: 24.0
   }
+  color {
+    x: 0.19607843
+    y: 0.24313726
+    z: 0.30980393
+  }
   type: TYPE_TEXT
   text: "Jugar"
-  font: "ui_bold"
+  font: "bold-48"
   id: "start_label"
-  parent: "start_button"
+  parent: "start_content"
+}
+nodes {
+  position {
+    x: 2.0
+    y: -15.5
+  }
+  scale {
+    x: 0.25
+    y: 0.25
+  }
+  size {
+    x: 200.0
+    y: 24.0
+  }
+  color {
+    x: 0.19607843
+    y: 0.24313726
+    z: 0.30980393
+  }
+  type: TYPE_TEXT
+  text: "x5"
+  font: "bold-48"
+  id: "energy_count"
+  parent: "start_content"
+}
+nodes {
+  position {
+    x: -12.0
+    y: -16.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  color {
+    x: 0.21176471
+    y: 0.25490198
+    z: 0.31764707
+  }
+  type: TYPE_BOX
+  texture: "ui/icon_zap"
+  id: "icon_energy"
+  parent: "start_content"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 180.0
+    y: 40.0
+  }
+  size {
+    x: 320.0
+    y: 70.0
+  }
+  type: TYPE_BOX
+  texture: "ui/bottom_frame"
+  id: "bottom_nav"
   inherit_alpha: true
+  slice9 {
+    x: 4.0
+    y: 4.0
+    z: 4.0
+    w: 4.0
+  }
+}
+nodes {
+  position {
+    y: -1.0
+  }
+  size {
+    x: 120.0
+    y: 78.0
+  }
+  type: TYPE_BOX
+  texture: "ui/selected_bottom"
+  id: "selected_bg"
+  parent: "bottom_nav"
+  inherit_alpha: true
+  slice9 {
+    x: 6.0
+    y: 5.0
+    z: 6.0
+    w: 7.0
+  }
+}
+nodes {
+  position {
+    x: -105.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_nav_item"
+  parent: "bottom_nav"
+  template: "/main/start_screen/ui/bottom_nav_item.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_nav_item/item"
+  parent: "custom_nav_item"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "ui/icon_bot"
+  id: "custom_nav_item/icon"
+  parent: "custom_nav_item/item"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Custom"
+  id: "custom_nav_item/text"
+  parent: "custom_nav_item/item"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "play_nav_item"
+  parent: "bottom_nav"
+  template: "/main/start_screen/ui/bottom_nav_item.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "play_nav_item/item"
+  parent: "play_nav_item"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "ui/icon_gamepad"
+  id: "play_nav_item/icon"
+  parent: "play_nav_item/item"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Juego"
+  id: "play_nav_item/text"
+  parent: "play_nav_item/item"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 110.0
+  }
+  type: TYPE_TEMPLATE
+  id: "achievements_nav_item"
+  parent: "bottom_nav"
+  template: "/main/start_screen/ui/bottom_nav_item.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "achievements_nav_item/item"
+  parent: "achievements_nav_item"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "ui/icon_trophy"
+  id: "achievements_nav_item/icon"
+  parent: "achievements_nav_item/item"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Logros"
+  id: "achievements_nav_item/text"
+  parent: "achievements_nav_item/item"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 180.0
+    y: 496.0
+  }
+  scale {
+    x: 0.4
+    y: 0.4
+  }
+  size {
+    x: 220.0
+    y: 72.0
+  }
+  type: TYPE_TEXT
+  text: "Nivel 1"
+  font: "bold-48"
+  id: "level_title"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+}
+nodes {
+  position {
+    x: 322.0
+    y: 610.0
+  }
+  type: TYPE_BOX
+  texture: "ui/icon_settings"
+  id: "settings"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT
-materials {
-  name: "gradient_gui"
-  material: "/main/materials/gradient_gui/gradient_gui.material"
-}

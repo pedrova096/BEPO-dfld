@@ -1,0 +1,58 @@
+fonts {
+  name: "bold-48"
+  font: "/assets/fonts/Chakra-Bold-48/bold-48.font"
+}
+textures {
+  name: "ui"
+  texture: "/assets/sprites/ui/start_screen/ui.atlas"
+}
+nodes {
+  size {
+    x: 82.0
+    y: 74.0
+  }
+  type: TYPE_BOX
+  id: "item"
+  inherit_alpha: true
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: 10.0
+  }
+  color {
+    x: 0.9607843
+    y: 0.972549
+    z: 0.8156863
+  }
+  type: TYPE_BOX
+  id: "icon"
+  parent: "item"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: -17.0
+  }
+  scale {
+    x: 0.25
+    y: 0.25
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.9607843
+    y: 0.972549
+    z: 0.8156863
+  }
+  type: TYPE_TEXT
+  text: "<text>"
+  font: "bold-48"
+  id: "text"
+  parent: "item"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

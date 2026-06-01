@@ -1,0 +1,24 @@
+images {
+  image: "/assets/sprites/ui/start_screen/bottom_frame.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/selected_bottom.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/start_button.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/icon_bot.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/icon_gamepad.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/icon_settings.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/icon_trophy.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/icon_zap.png"
+}

@@ -9,34 +9,34 @@ function init(self)
 	msg.post(".", "acquire_input_focus")
 end
 
-local function pressed_button(button, label)
+local function pressed_button(button, content)
 	gui.play_flipbook(button, "pressed", nil)
-	gui.animate(label, "position.y", -2, gui.EASING_LINEAR, 0.1, 0)
+	gui.animate(content, "position.y", -2, gui.EASING_LINEAR, 0.1, 0)
 end
 
-local function unpressed_button(button, label)
+local function unpressed_button(button, content)
 	gui.play_flipbook(button, "unpressed")
-	gui.animate(label, "position.y", 1.5, gui.EASING_LINEAR, 0.1, 0)
+	gui.animate(content, "position.y", 0, gui.EASING_LINEAR, 0.1, 0)
 end
 
 local function input_start(self, action)
 	local button = gui.get_node("start_button")
-	local label = gui.get_node("start_label")
+	local content = gui.get_node("start_content")
 
 	if action.pressed and gui.pick_node(button, action.x, action.y) then
-		pressed_button(button, label)
+		pressed_button(button, content)
 		self.start_pressed = true
 		return true
 	end
 
 	if self.start_pressed and not action.released and not gui.pick_node(button, action.x, action.y) then
-		unpressed_button(button, label)
+		unpressed_button(button, content)
 		self.start_pressed = false
 		return false
 	end
 
 	if action.released and self.start_pressed then
-		unpressed_button(button, label)
+		unpressed_button(button, content)
 		self.start_pressed = false
 		msg.post(Urls.MainController, Msg.Main.START_NEW_GAME, { level_id = hash("level_1") })
 		return true

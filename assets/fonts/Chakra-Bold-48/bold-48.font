@@ -1,4 +1,4 @@
-font: "/assets/fonts/Chakra-Regular-32/Chakra-Regular-32.fnt"
+font: "/assets/fonts/Chakra-Bold-48/Chakra-Bold-48.fnt"
 material: "/builtins/fonts/font.material"
 size: 32
 characters: " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
