@@ -1,0 +1,75 @@
+fonts {
+  name: "bold-32"
+  font: "/assets/fonts/Chakra-Bold-32/bold-32.font"
+}
+textures {
+  name: "ui"
+  texture: "/assets/sprites/ui/ui.atlas"
+}
+nodes {
+  position {
+    x: 9.0
+    y: 1.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  color {
+    z: 0.92156863
+  }
+  type: TYPE_BOX
+  id: "icon"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 23.0
+    y: 1.0
+  }
+  scale {
+    x: 0.4
+    y: 0.4
+  }
+  size {
+    x: 320.0
+    y: 52.0
+  }
+  color {
+    z: 0.92156863
+  }
+  type: TYPE_TEXT
+  text: "Name"
+  font: "bold-32"
+  id: "name"
+  pivot: PIVOT_W
+  inherit_alpha: true
+  outline_alpha: 0.0
+}
+nodes {
+  position {
+    x: 240.0
+    y: 1.0
+  }
+  scale {
+    x: 0.4
+    y: 0.4
+  }
+  size {
+    x: 320.0
+    y: 52.0
+  }
+  color {
+    z: 0.92156863
+  }
+  type: TYPE_TEXT
+  text: "Value"
+  font: "bold-32"
+  id: "value"
+  pivot: PIVOT_E
+  inherit_alpha: true
+  outline_alpha: 0.0
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

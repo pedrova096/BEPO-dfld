@@ -40,7 +40,7 @@ nodes {
 nodes {
   position {
     x: 180.0
-    y: 186.0
+    y: 158.0
   }
   size {
     x: 180.0
@@ -140,30 +140,27 @@ nodes {
 nodes {
   position {
     x: 180.0
-    y: 40.0
+    y: 42.0
   }
   size {
-    x: 320.0
-    y: 70.0
+    x: 340.0
+    y: 64.0
   }
   type: TYPE_BOX
   texture: "ui/bottom_frame"
   id: "bottom_nav"
   inherit_alpha: true
   slice9 {
-    x: 4.0
-    y: 4.0
-    z: 4.0
-    w: 4.0
+    x: 2.0
+    y: 2.0
+    z: 2.0
+    w: 2.0
   }
 }
 nodes {
-  position {
-    y: -1.0
-  }
   size {
-    x: 120.0
-    y: 78.0
+    x: 94.0
+    y: 64.0
   }
   type: TYPE_BOX
   texture: "ui/selected_bottom"
@@ -171,10 +168,33 @@ nodes {
   parent: "bottom_nav"
   inherit_alpha: true
   slice9 {
-    x: 6.0
+    x: 5.0
     y: 5.0
-    z: 6.0
-    w: 7.0
+    z: 5.0
+    w: 4.0
+  }
+}
+nodes {
+  position {
+    y: -31.5
+  }
+  size {
+    x: 32.0
+    y: 1.0
+  }
+  color {
+    x: 0.8117647
+    z: 0.4392157
+  }
+  type: TYPE_BOX
+  id: "highlight"
+  parent: "selected_bg"
+  inherit_alpha: true
+  slice9 {
+    x: 2.0
+    y: 3.0
+    z: 2.0
+    w: 2.0
   }
 }
 nodes {
@@ -182,33 +202,40 @@ nodes {
     x: -105.0
   }
   type: TYPE_TEMPLATE
-  id: "custom_nav_item"
+  id: "shop_nav_item"
   parent: "bottom_nav"
   template: "/main/start_screen/ui/bottom_nav_item.gui"
 }
 nodes {
   type: TYPE_BOX
-  id: "custom_nav_item/item"
-  parent: "custom_nav_item"
+  id: "shop_nav_item/item"
+  parent: "shop_nav_item"
   template_node_child: true
 }
 nodes {
   type: TYPE_BOX
   texture: "ui/icon_bot"
-  id: "custom_nav_item/icon"
-  parent: "custom_nav_item/item"
+  id: "shop_nav_item/icon"
+  parent: "shop_nav_item/item"
   overridden_fields: 9
   template_node_child: true
 }
 nodes {
   type: TYPE_TEXT
-  text: "Custom"
-  id: "custom_nav_item/text"
-  parent: "custom_nav_item/item"
+  text: "Taller"
+  id: "shop_nav_item/text"
+  parent: "shop_nav_item/item"
   overridden_fields: 8
   template_node_child: true
 }
 nodes {
+  position {
+    y: 4.0
+  }
+  scale {
+    x: 1.125
+    y: 1.125
+  }
   type: TYPE_TEMPLATE
   id: "play_nav_item"
   parent: "bottom_nav"
@@ -222,7 +249,7 @@ nodes {
 }
 nodes {
   type: TYPE_BOX
-  texture: "ui/icon_gamepad"
+  texture: "ui/icon_gamepad_fill"
   id: "play_nav_item/icon"
   parent: "play_nav_item/item"
   overridden_fields: 9
@@ -269,8 +296,83 @@ nodes {
 }
 nodes {
   position {
+    x: 322.0
+    y: 609.0
+  }
+  size {
+    x: 34.0
+    y: 34.0
+  }
+  type: TYPE_BOX
+  texture: "ui_base_button_ghost/default"
+  id: "settings_button"
+  inherit_alpha: true
+  slice9 {
+    x: 6.0
+    y: 8.0
+    z: 6.0
+    w: 10.0
+  }
+}
+nodes {
+  position {
+    y: 3.0
+  }
+  color {
+    x: 0.9411765
+    y: 0.972549
+    z: 0.8156863
+  }
+  type: TYPE_BOX
+  texture: "ui/icon_settings"
+  id: "settings_icon"
+  parent: "settings_button"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
     x: 180.0
-    y: 496.0
+    y: 400.0
+  }
+  size {
+    x: 280.0
+    y: 320.0
+  }
+  type: TYPE_BOX
+  texture: "ui/level_frame"
+  id: "level"
+  inherit_alpha: true
+  slice9 {
+    x: 5.0
+    y: 6.0
+    z: 5.0
+    w: 5.0
+  }
+}
+nodes {
+  position {
+    y: -156.0
+  }
+  size {
+    x: 278.0
+    y: 80.0
+  }
+  color {
+    x: 0.23921569
+    y: 0.43137255
+    z: 0.4392157
+  }
+  type: TYPE_BOX
+  id: "bottom_container"
+  pivot: PIVOT_S
+  parent: "level"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: 122.0
   }
   scale {
     x: 0.4
@@ -286,17 +388,7 @@ nodes {
   id: "level_title"
   xanchor: XANCHOR_LEFT
   yanchor: YANCHOR_BOTTOM
-}
-nodes {
-  position {
-    x: 322.0
-    y: 610.0
-  }
-  type: TYPE_BOX
-  texture: "ui/icon_settings"
-  id: "settings"
-  inherit_alpha: true
-  size_mode: SIZE_MODE_AUTO
+  parent: "level"
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT

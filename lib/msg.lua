@@ -131,6 +131,8 @@ local HudUI = {
   SHOW_WIPE = hash("show_wipe"),
   HIDE_WIPE = hash("hide_wipe"),
   SHOW_SHOP_MODAL = hash("show_shop_modal"),
+  SHOW_COMPLETED_LEVEL_MODAL = hash("show_completed_level_modal"),
+  HIDE_COMPLETED_LEVEL_MODAL = hash("hide_completed_level_modal"),
   SHOW_TOAST = hash("show_toast"),
   HIDE_TOAST = hash("hide_toast"),
 }

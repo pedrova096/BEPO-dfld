@@ -1,0 +1,20 @@
+image: "/assets/sprites/ui/buttons/base_button_secondary.png"
+tile_width: 18
+tile_height: 20
+animations {
+  id: "default"
+  start_tile: 1
+  end_tile: 1
+  fps: 10
+}
+animations {
+  id: "pressed"
+  start_tile: 1
+  end_tile: 3
+}
+animations {
+  id: "unpressed"
+  start_tile: 1
+  end_tile: 3
+  playback: PLAYBACK_ONCE_BACKWARD
+}

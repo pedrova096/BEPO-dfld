@@ -22,4 +22,19 @@ images {
 images {
   image: "/assets/sprites/ui/toast_frame.png"
 }
+images {
+  image: "/assets/sprites/ui/completed_modal.png"
+}
+images {
+  image: "/assets/sprites/ui/icon_arrow_right.png"
+}
+images {
+  image: "/assets/sprites/ui/icon_rotate_cw.png"
+}
+images {
+  image: "/assets/sprites/ui/icon_start.png"
+}
+images {
+  image: "/assets/sprites/ui/icon_timer.png"
+}
 extrude_borders: 1

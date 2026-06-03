@@ -22,3 +22,15 @@ images {
 images {
   image: "/assets/sprites/ui/start_screen/icon_zap.png"
 }
+images {
+  image: "/assets/sprites/ui/start_screen/icon_bot_fill.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/icon_gamepad_fill.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/icon_trophy_fill.png"
+}
+images {
+  image: "/assets/sprites/ui/start_screen/level_frame.png"
+}

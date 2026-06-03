@@ -194,6 +194,128 @@ nodes {
 }
 nodes {
   position {
+    z: 2.0
+  }
+  type: TYPE_TEMPLATE
+  id: "completed_level_modal"
+  template: "/main/game/ui/complete_level_modal/completed_level_modal.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/modal"
+  parent: "completed_level_modal"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/backdrop"
+  parent: "completed_level_modal/modal"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/container"
+  parent: "completed_level_modal/modal"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "completed_level_modal/title"
+  parent: "completed_level_modal/container"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/continue_button"
+  parent: "completed_level_modal/container"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "completed_level_modal/continue_button_text"
+  parent: "completed_level_modal/continue_button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/continue_button_icon"
+  parent: "completed_level_modal/continue_button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/retry_button"
+  parent: "completed_level_modal/container"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "completed_level_modal/retry_button_text"
+  parent: "completed_level_modal/retry_button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/retry_button_icon"
+  parent: "completed_level_modal/retry_button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/info"
+  parent: "completed_level_modal/container"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "completed_level_modal/time_item"
+  parent: "completed_level_modal/info"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/time_item/icon"
+  parent: "completed_level_modal/time_item"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "completed_level_modal/time_item/name"
+  parent: "completed_level_modal/time_item"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "completed_level_modal/time_item/value"
+  parent: "completed_level_modal/time_item"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "completed_level_modal/best_item"
+  parent: "completed_level_modal/info"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "completed_level_modal/best_item/icon"
+  parent: "completed_level_modal/best_item"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "completed_level_modal/best_item/name"
+  parent: "completed_level_modal/best_item"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "completed_level_modal/best_item/value"
+  parent: "completed_level_modal/best_item"
+  template_node_child: true
+}
+nodes {
+  position {
     y: 640.0
   }
   size {

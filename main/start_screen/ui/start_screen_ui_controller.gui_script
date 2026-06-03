@@ -1,4 +1,5 @@
 local Msg = require("lib.msg")
+local BottomNavGUI = require("lib.bottom_nav_gui")
 
 local Urls = {
 	MainController = "main:/main_controller"
@@ -6,6 +7,30 @@ local Urls = {
 
 function init(self)
 	self.start_pressed = false
+	self.bottom_nav = BottomNavGUI:new({
+		selected_bg_node_id = "selected_bg",
+		selected_id = "play_nav_item",
+		items = {
+			{
+				id = "shop_nav_item",
+				label = "Taller",
+				icon = "icon_bot",
+				selected_icon = "icon_bot_fill",
+			},
+			{
+				id = "play_nav_item",
+				label = "Juego",
+				icon = "icon_gamepad",
+				selected_icon = "icon_gamepad_fill",
+			},
+			{
+				id = "achievements_nav_item",
+				label = "Logros",
+				icon = "icon_trophy",
+				selected_icon = "icon_trophy_fill",
+			},
+		},
+	})
 	msg.post(".", "acquire_input_focus")
 end
 
@@ -47,6 +72,10 @@ end
 
 function on_input(self, action_id, action)
 	if action_id == hash("touch") then
+		if self.bottom_nav:on_input(action) then
+			return true
+		end
+
 		return input_start(self, action)
 	end
 

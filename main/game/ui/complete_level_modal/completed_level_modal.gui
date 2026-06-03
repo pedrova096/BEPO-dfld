@@ -1,0 +1,319 @@
+fonts {
+  name: "bold-32"
+  font: "/assets/fonts/Chakra-Bold-32/bold-32.font"
+}
+textures {
+  name: "ui"
+  texture: "/assets/sprites/ui/ui.atlas"
+}
+textures {
+  name: "ui_base_button"
+  texture: "/assets/sprites/ui/buttons/ui_base_button.tilesource"
+}
+textures {
+  name: "ui_base_button_secondary"
+  texture: "/assets/sprites/ui/buttons/ui_base_button_secondary.tilesource"
+}
+nodes {
+  size {
+    x: 360.0
+    y: 640.0
+  }
+  type: TYPE_BOX
+  id: "modal"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_SW
+  adjust_mode: ADJUST_MODE_STRETCH
+  layer: "modal"
+  size_mode: SIZE_MODE_AUTO
+  enabled: false
+}
+nodes {
+  size {
+    x: 360.0
+    y: 640.0
+  }
+  color {
+    x: 0.19607843
+    y: 0.24313726
+    z: 0.30980393
+  }
+  type: TYPE_BOX
+  id: "backdrop"
+  xanchor: XANCHOR_LEFT
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_SW
+  adjust_mode: ADJUST_MODE_STRETCH
+  parent: "modal"
+  inherit_alpha: true
+  alpha: 0.78
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 180.0
+    y: 335.0
+  }
+  size {
+    x: 300.0
+    y: 300.0
+  }
+  type: TYPE_BOX
+  texture: "ui/completed_modal"
+  id: "container"
+  parent: "modal"
+  inherit_alpha: true
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+}
+nodes {
+  position {
+    y: 119.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 520.0
+    y: 64.0
+  }
+  color {
+    z: 0.92156863
+  }
+  type: TYPE_TEXT
+  text: "Nivel completado"
+  font: "bold-32"
+  id: "title"
+  parent: "container"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 69.0
+    y: -112.0
+  }
+  size {
+    x: 120.04
+    y: 44.0
+  }
+  type: TYPE_BOX
+  texture: "ui_base_button/default"
+  id: "continue_button"
+  parent: "container"
+  inherit_alpha: true
+  slice9 {
+    x: 6.0
+    y: 8.0
+    z: 6.0
+    w: 10.0
+  }
+}
+nodes {
+  position {
+    x: 10.0
+    y: 1.0
+  }
+  scale {
+    x: 0.4
+    y: 0.4
+  }
+  size {
+    x: 320.0
+    y: 52.0
+  }
+  color {
+    x: 0.27450982
+    y: 0.30980393
+    z: 0.36078432
+  }
+  type: TYPE_TEXT
+  text: "Continuar"
+  font: "bold-32"
+  id: "continue_button_text"
+  parent: "continue_button"
+  inherit_alpha: true
+  outline_alpha: 0.0
+}
+nodes {
+  position {
+    x: -41.0
+    y: 1.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  color {
+    x: 0.27450982
+    y: 0.30980393
+    z: 0.36078432
+  }
+  type: TYPE_BOX
+  texture: "ui/icon_arrow_right"
+  id: "continue_button_icon"
+  parent: "continue_button"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -70.0
+    y: -112.0
+  }
+  size {
+    x: 120.0
+    y: 44.0
+  }
+  type: TYPE_BOX
+  texture: "ui_base_button_secondary/default"
+  id: "retry_button"
+  parent: "container"
+  inherit_alpha: true
+  slice9 {
+    x: 6.0
+    y: 8.0
+    z: 6.0
+    w: 10.0
+  }
+}
+nodes {
+  position {
+    x: 8.0
+    y: 1.0
+  }
+  scale {
+    x: 0.4
+    y: 0.4
+  }
+  size {
+    x: 320.0
+    y: 52.0
+  }
+  color {
+    z: 0.92156863
+  }
+  type: TYPE_TEXT
+  text: "Reintentar"
+  font: "bold-32"
+  id: "retry_button_text"
+  parent: "retry_button"
+  inherit_alpha: true
+  outline_alpha: 0.0
+}
+nodes {
+  position {
+    x: -41.0
+    y: 1.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  color {
+    x: 0.99607843
+    y: 0.99607843
+    z: 0.92156863
+  }
+  type: TYPE_BOX
+  texture: "ui/icon_rotate_cw"
+  id: "retry_button_icon"
+  parent: "retry_button"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: -40.0
+  }
+  size {
+    x: 260.0
+    y: 70.0
+  }
+  color {
+    x: 0.16470589
+    y: 0.18039216
+    z: 0.24313726
+  }
+  type: TYPE_BOX
+  id: "info"
+  parent: "container"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -120.0
+    y: 15.0
+  }
+  type: TYPE_TEMPLATE
+  id: "time_item"
+  parent: "info"
+  inherit_alpha: true
+  template: "/main/game/ui/complete_level_modal/completion_item.gui"
+}
+nodes {
+  type: TYPE_BOX
+  texture: "ui/icon_timer"
+  id: "time_item/icon"
+  parent: "time_item"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Tiempo"
+  id: "time_item/name"
+  parent: "time_item"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "time_item/value"
+  parent: "time_item"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -120.0
+    y: -17.0
+  }
+  type: TYPE_TEMPLATE
+  id: "best_item"
+  parent: "info"
+  inherit_alpha: true
+  template: "/main/game/ui/complete_level_modal/completion_item.gui"
+}
+nodes {
+  type: TYPE_BOX
+  texture: "ui/icon_start"
+  id: "best_item/icon"
+  parent: "best_item"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Mejor Tiempo"
+  id: "best_item/name"
+  parent: "best_item"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "best_item/value"
+  parent: "best_item"
+  template_node_child: true
+}
+layers {
+  name: "modal"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

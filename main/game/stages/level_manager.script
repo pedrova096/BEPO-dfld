@@ -11,6 +11,8 @@ local Urls = {
 	FactoryEnemy01 = "/level_manager#cfactory_enemy_01",
 	FactoryEnemy02 = "/level_manager#cfactory_enemy_02",
 	GameController = "/controller",
+	UIController = "/ui",
+	SessionManager = "/session_manager",
 	Camera = "/camera",
 	Tilemap01Factory = "/level_manager#tilemap_01_factory",
 	Tilemap02Factory = "/level_manager#tilemap_02_factory",
@@ -80,7 +82,17 @@ local function spawn_connections(self, connections)
 	end
 end
 
+local function is_current_stage_last(self)
+	local stage = self.runtime:get_current_stage()
+	return not stage or not stage.connections or #stage.connections == 0
+end
+
 local function on_stage_complete(self)
+	if is_current_stage_last(self) then
+		msg.post(Urls.UIController, Msg.UI.SHOW_COMPLETED_LEVEL_MODAL, {})
+		return
+	end
+
 	if not self.stage_info.upgrader_position then return end
 
 	self.upgrader_id = factory.create(Urls.UpgraderFactory, self.stage_info.upgrader_position, nil, {

@@ -8,17 +8,14 @@ local VMath = require("utils.vmath")
 
 ---@class SteerState
 ---@field rays SteerRay[]
----@field target_on_sight boolean
 ---@field smoothed_steer_direction vector3
----@field steer_bias number
----@field safe_distance_direction number
----@field safe_change_direction_frame_count integer
+---@field mode string
+---@field wall_follow_side number
 
 ---@class SteerConfig
 ---@field ray_range number
 ---@field start_offset number
 ---@field smoothing_speed number
----@field safe_distance number
 ---@field obstacle_groups hash[]
 ---@field velocity number
 
@@ -30,11 +27,10 @@ M.__index = M
 
 local DEFAULT_OBSTACLE_GROUPS = { hash("wall"), hash("obstacle") }
 local DEFAULT_CONFIG = {
-  ray_count = 12,
+  ray_count = 18,
   start_offset = 10,
   ray_range = 20,
   smoothing_speed = 6,
-  safe_distance = 0,
   obstacle_groups = DEFAULT_OBSTACLE_GROUPS,
 }
 
@@ -61,17 +57,23 @@ local function apply_default_config(options)
     start_offset = config.start_offset or DEFAULT_CONFIG.start_offset,
     ray_range = config.ray_range or DEFAULT_CONFIG.ray_range,
     smoothing_speed = config.smoothing_speed or DEFAULT_CONFIG.smoothing_speed,
-    safe_distance = config.safe_distance or DEFAULT_CONFIG.safe_distance,
     obstacle_groups = config.obstacle_groups or DEFAULT_CONFIG.obstacle_groups,
     velocity = config.velocity or DEFAULT_CONFIG.velocity,
   }
 end
 
+local ModesEnum = {
+  Seek = "seek",
+  WallFollow = "wall_follow",
+  -- TODO:
+  Flee = "flee",
+  Strafe = "Strafe",
+}
+
 ---@class SteerPayload
 ---@field position vector3
 ---@field target_position vector3
 ---@field debug boolean?
----@field enable_safe_distance boolean?
 
 ---@class SteerOptions : SteerConfig
 ---@field ray_count number
@@ -84,12 +86,9 @@ function M:new(options)
   instance.config = apply_default_config(options)
   instance.state = {
     rays = build_rays(options.ray_count or DEFAULT_CONFIG.ray_count),
-    target_on_sight = false,
+    mode = ModesEnum.Seek,
+    wall_follow_side = 1,
     smoothed_steer_direction = vmath.vector3(0, -1, 0),
-    steer_bias = 1, -- math.random() * 2 - 1,
-    -- TODO: Review this
-    safe_distance_direction = 1,
-    safe_change_direction_frame_count = 0,
   }
   return instance
 end
@@ -151,41 +150,16 @@ function M:_compute_avg_directions()
     obstacle_direction = obstacle_direction + ray.direction * ray.weight.obstacle
   end
 
-  target_direction = vmath.normalize(target_direction / #self.state.rays)
+  target_direction = VMath.normalize_or_zero(target_direction / #self.state.rays)
   obstacle_direction = vmath.length(obstacle_direction) > 0.5 and
       vmath.normalize(obstacle_direction / #self.state.rays) or
       vmath.vector3()
   return target_direction, obstacle_direction
 end
 
-local MIN_VECTOR_DISTANCE_THRESHOLD = 0.5
-function M:_get_target_on_sight(avg_target_direction, avg_obstacle_direction)
-  local dot = vmath.dot(avg_target_direction, avg_obstacle_direction)
-  return dot < MIN_VECTOR_DISTANCE_THRESHOLD
-end
-
-local BIAS_ANGLE = 45
-function M:_apply_target_bias(avg_target_direction)
-  return VMath.rotate_direction(avg_target_direction, math.rad(BIAS_ANGLE) * self.state.steer_bias)
-end
-
--- TODO: Refactor
-function M:_apply_safe_distance(direction, obstacle_direction, position, target_position)
-  local distance = vmath.length(position - target_position)
-
-  local state = self.state
-  if distance < self.config.safe_distance then
-    if vmath.length(obstacle_direction) > 0.95 and state.safe_change_direction_frame_count == 0 then
-      state.safe_distance_direction = -state.safe_distance_direction
-      state.safe_change_direction_frame_count = 20
-    end
-
-    state.safe_change_direction_frame_count = math.max(0, state.safe_change_direction_frame_count - 1)
-
-    direction = VMath.rotate_direction(direction, math.rad(90) * state.safe_distance_direction)
-  end
-
-  return direction
+function M:_resolve_steer_mode(position, target_position)
+  local has_line_of_sight = physics.raycast(position, target_position, self.config.obstacle_groups) == nil
+  return has_line_of_sight and ModesEnum.Seek or ModesEnum.WallFollow
 end
 
 function M:_compute_steer_direction(dt, new_direction)
@@ -200,6 +174,41 @@ function M:_compute_steer_direction(dt, new_direction)
   return vmath.normalize(self.state.smoothed_steer_direction)
 end
 
+function M:_update_wall_follow(dt, options)
+  local position = options.position
+  local obstacle_direction = options.obstacle_direction
+  local debug = options.debug
+
+  local direction = VMath.rotate_direction(obstacle_direction, math.rad(90 * self.state.wall_follow_side))
+  local steer_direction = self:_compute_steer_direction(dt, direction)
+
+  if debug then
+    local point = position + steer_direction * self.config.start_offset * 2
+    DebugDraw.draw_circle(point, 4, vmath.vector4(0, 1, 1, 1))
+  end
+
+  return steer_direction
+end
+
+function M:_update_seek(dt, options)
+  local target_direction = options.target_direction
+  local obstacle_direction = options.obstacle_direction
+  local position = options.position
+  local debug = options.debug
+
+  local direction = VMath.normalize_or_zero(target_direction - obstacle_direction)
+
+
+  local steer_direction = self:_compute_steer_direction(dt, direction)
+
+  if debug then
+    local steer_point = position + direction * self.config.start_offset * 2
+    DebugDraw.draw_circle(steer_point, 4, vmath.vector4(0, 1, 0, 1))
+  end
+
+  return steer_direction
+end
+
 ---Update the steer instance.
 ---@param dt number
 ---@param payload SteerPayload
@@ -207,48 +216,48 @@ function M:update(dt, payload)
   local position = payload.position
   local target_position = payload.target_position
   local debug = payload.debug or false
-  local enable_safe_distance = payload.enable_safe_distance or false
 
   self:_compute_rays(position, target_position, debug)
 
   local avg_target_direction, avg_obstacle_direction = self:_compute_avg_directions()
-  self.state.target_on_sight = self:_get_target_on_sight(avg_target_direction, avg_obstacle_direction)
 
-  if debug and self.state.target_on_sight then
-    local target_average_point = position + avg_target_direction * self.config.start_offset * 2
-    DebugDraw.draw_circle(target_average_point, 4, vmath.vector4(0, 0, 1, 1))
-  end
-
-  if not self.state.target_on_sight then
-    avg_target_direction = self:_apply_target_bias(avg_target_direction)
-
-    if debug then
-      local target_bias_point = position + avg_target_direction * self.config.start_offset * 2
-      DebugDraw.draw_circle(target_bias_point, 4, vmath.vector4(0, 1, 1, 1))
-    end
-  end
-
-  local direction = vmath.normalize(avg_target_direction - avg_obstacle_direction)
-
-  if enable_safe_distance and self.config.safe_distance > 0 then
-    direction = self:_apply_safe_distance(direction, avg_obstacle_direction, position, target_position)
-  end
-
-  local steer_direction = self:_compute_steer_direction(dt, direction)
+  local current_mode = self.state.mode
+  self.state.mode = self:_resolve_steer_mode(position, target_position)
 
   if debug then
-    local steer_point = position + steer_direction * self.config.start_offset * 2
+    local steer_point = position + avg_target_direction * self.config.start_offset * 2
     DebugDraw.draw_circle(steer_point, 4, vmath.vector4(0, 1, 0, 1))
 
-    local obstacle_average_point = position - avg_obstacle_direction * self.config.start_offset * 2
-    DebugDraw.draw_circle(obstacle_average_point, 4, vmath.vector4(1, 0, 0, 1))
+    local obstacle_point = position + avg_obstacle_direction * self.config.start_offset * 2
+    DebugDraw.draw_circle(obstacle_point, 4, vmath.vector4(1, 0, 0, 1))
   end
 
-  return steer_direction
+  if self.state.mode == ModesEnum.WallFollow then
+    if current_mode ~= self.state.mode then
+      local left = VMath.rotate_direction(avg_obstacle_direction, math.rad(90))
+      local right = VMath.rotate_direction(avg_obstacle_direction, math.rad(-90))
+      self.state.wall_follow_side =
+          vmath.dot(left, avg_target_direction) >= vmath.dot(right, avg_target_direction)
+          and 1 or -1
+    end
+
+    return self:_update_wall_follow(dt, {
+      position = position,
+      obstacle_direction = avg_obstacle_direction,
+      debug = debug,
+    })
+  end
+
+  return self:_update_seek(dt, {
+    position = position,
+    target_direction = avg_target_direction,
+    obstacle_direction = avg_obstacle_direction,
+    debug = debug
+  })
 end
 
 function M:get_is_target_on_sight()
-  return self.state.target_on_sight
+  return self.state.mode == ModesEnum.Seek
 end
 
 return M
