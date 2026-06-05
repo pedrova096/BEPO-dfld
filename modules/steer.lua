@@ -11,6 +11,7 @@ local VMath = require("utils.vmath")
 ---@field smoothed_steer_direction vector3
 ---@field mode string
 ---@field wall_follow_side number
+---@field has_line_of_sight boolean
 
 ---@class SteerConfig
 ---@field ray_range number
@@ -88,6 +89,7 @@ function M:new(options)
     rays = build_rays(options.ray_count or DEFAULT_CONFIG.ray_count),
     mode = ModesEnum.Seek,
     wall_follow_side = 1,
+    has_line_of_sight = false,
     smoothed_steer_direction = vmath.vector3(0, -1, 0),
   }
   return instance
@@ -157,9 +159,37 @@ function M:_compute_avg_directions()
   return target_direction, obstacle_direction
 end
 
-function M:_resolve_steer_mode(position, target_position)
-  local has_line_of_sight = physics.raycast(position, target_position, self.config.obstacle_groups) == nil
-  return has_line_of_sight and ModesEnum.Seek or ModesEnum.WallFollow
+function M:_compute_avg_obstacle_weight()
+  local weight_sum = 0
+  local hit_count = 0
+
+  for _, ray in ipairs(self.state.rays) do
+    if ray.weight.obstacle > 0 then
+      weight_sum = weight_sum + ray.weight.obstacle
+      hit_count = hit_count + 1
+    end
+  end
+
+  if hit_count == 0 then
+    return 0
+  end
+
+  return weight_sum / hit_count
+end
+
+local MIN_OBSTACLE_WEIGHT_THRESHOLD = 0.15
+local MIN_DIRECTION_OVERLAP_THRESHOLD = 0.5
+function M:_resolve_steer_mode(target_direction, obstacle_direction)
+  local avg_obstacle_weight = self:_compute_avg_obstacle_weight()
+  local direction_dot = vmath.dot(target_direction, obstacle_direction)
+  local has_line_of_sight = self.state.has_line_of_sight
+  if has_line_of_sight or
+      avg_obstacle_weight <= MIN_OBSTACLE_WEIGHT_THRESHOLD or
+      direction_dot <= MIN_DIRECTION_OVERLAP_THRESHOLD then
+    return ModesEnum.Seek
+  end
+
+  return ModesEnum.WallFollow
 end
 
 function M:_compute_steer_direction(dt, new_direction)
@@ -222,8 +252,8 @@ function M:update(dt, payload)
   local avg_target_direction, avg_obstacle_direction = self:_compute_avg_directions()
 
   local current_mode = self.state.mode
-  self.state.mode = self:_resolve_steer_mode(position, target_position)
-
+  self.state.has_line_of_sight = physics.raycast(position, target_position, self.config.obstacle_groups) == nil
+  self.state.mode = self:_resolve_steer_mode(avg_target_direction, avg_obstacle_direction)
   if debug then
     local steer_point = position + avg_target_direction * self.config.start_offset * 2
     DebugDraw.draw_circle(steer_point, 4, vmath.vector4(0, 1, 0, 1))
@@ -257,7 +287,7 @@ function M:update(dt, payload)
 end
 
 function M:get_is_target_on_sight()
-  return self.state.mode == ModesEnum.Seek
+  return self.state.has_line_of_sight
 end
 
 return M

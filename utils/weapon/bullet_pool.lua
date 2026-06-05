@@ -1,4 +1,4 @@
-local Pooler = require("utils.pooler")
+local Pooler = require("utils.pooler.pooler")
 local Bullet = require("utils.weapon.bullet")
 
 local DEFAULT_POOL_SIZE = 10
@@ -22,17 +22,22 @@ function M:new(opts)
   local instance = setmetatable({}, M)
 
   instance.pool_size = opts.pool_size or DEFAULT_POOL_SIZE
+  local next_index = 0
   instance.pool = Pooler.new({
-    pool_size = instance.pool_size,
-    spawner = function(index)
+    size = instance.pool_size,
+    create = function()
+      next_index = next_index + 1
       return Bullet:new({
-        index = index,
+        index = next_index,
         target = opts.target,
         factory_url = opts.factory_url,
         properties = opts.bullet_props,
       })
-    end
-  }):spawn()
+    end,
+    reset = function(bullet)
+      bullet:finish()
+    end,
+  })
 
   return instance
 end
@@ -41,7 +46,7 @@ end
 ---@return Bullet|nil
 function M:acquire()
   ---@type Bullet|nil
-  local bullet = self.pool:pull()
+  local bullet = self.pool:acquire()
   if not bullet then return nil end
 
   bullet:reset()
@@ -52,33 +57,31 @@ end
 ---@param bullet Bullet
 function M:release(bullet)
   if not bullet then return end
-  bullet:finish()
-  self.pool:push_item(bullet)
+  self.pool:release(bullet)
 end
 
 ---Reset all in‑use bullets and make them available again.
 function M:reset()
-  for _, bullet in ipairs(self.pool.in_use) do
-    bullet:finish()
-  end
-  self.pool:reset()
+  self.pool:release_all()
 end
 
 function M:available()
-  return self.pool:available_size()
+  return self.pool:count_free()
 end
 
 function M:active()
-  return self.pool:active_size()
+  return self.pool:count_active()
 end
 
 function M:set_pool_size(pool_size)
   self.pool_size = pool_size
-  self.pool:set_size(pool_size)
+  while self.pool.state.size < pool_size do
+    self.pool:extend()
+  end
 end
 
 function M:get_bullet_by_id(id)
-  for _, bullet in ipairs(self.pool.in_use) do
+  for _, bullet in ipairs(self.pool.state.active) do
     if bullet.id == id then
       return bullet
     end

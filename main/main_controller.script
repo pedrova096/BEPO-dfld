@@ -41,6 +41,7 @@ end
 
 local PROXY_FRAGMENT_MAP = {
 	[hash("start_screen")] = Urls.StartScreenProxy,
+	[hash("game")] = Urls.GameProxy,
 	[hash("game_over")] = Urls.GameOverProxy,
 }
 local function on_new_game(self, message, sender_socket)

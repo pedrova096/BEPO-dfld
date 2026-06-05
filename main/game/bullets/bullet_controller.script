@@ -11,7 +11,9 @@ go.property("owner_id", hash("none"))
 go.property("theme", 1) -- 1: normal, 2: enemy
 
 local Urls = {
-	Sprite = "#sprite",
+	Visual = "visual",
+	Sprite = "visual#sprite",
+	ShadowSprite = "shadow#sprite",
 	Zone = "#zone",
 	Body = "#body",
 }
@@ -56,6 +58,7 @@ local function disabled_bullet()
 	Entity.disable_body(Urls.Zone)
 	Entity.disable_body(Urls.Body)
 	Entity.hide_sprite(Urls.Sprite)
+	Entity.hide_sprite(Urls.ShadowSprite)
 end
 
 local function enabled_bullet()
@@ -63,9 +66,12 @@ local function enabled_bullet()
 	Entity.enable_body(Urls.Zone)
 	Entity.enable_body(Urls.Body)
 	Entity.show_sprite(Urls.Sprite)
+	Entity.show_sprite(Urls.ShadowSprite)
 end
 
 local function finish_bullet(self)
+	Entity.hide_sprite(Urls.ShadowSprite)
+
 	stop_color_swap_timer(self)
 	set_normal_theme_colors(self)
 	go.set_scale(vmath.vector3(1))
@@ -81,7 +87,7 @@ local function set_bullet_direction(self, direction)
 	self.config.direction = VMath.normalize_or_zero(direction)
 	local velocity = self.config.direction * self.config.speed
 	local heading_angle = Math.heading_angle(velocity) + math.pi / 2
-	go.set_rotation(vmath.quat_rotation_z(heading_angle))
+	go.set_rotation(vmath.quat_rotation_z(heading_angle), Urls.Visual)
 	go.set(Urls.Body, "linear_velocity", velocity)
 end
 
@@ -129,7 +135,7 @@ local function on_bullet_fired(self, message)
 	local position = VMath.z_extends(self.config.position, 3)
 	local heading_angle = Math.heading_angle(velocity) + math.pi / 2
 	go.set_position(position)
-	go.set_rotation(vmath.quat_rotation_z(heading_angle))
+	go.set_rotation(vmath.quat_rotation_z(heading_angle), Urls.Visual)
 	go.set(Urls.Body, "linear_velocity", velocity)
 
 	if self.config.is_critic then

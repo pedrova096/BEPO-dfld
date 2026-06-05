@@ -3,14 +3,17 @@ instances {
   id: "weapon"
   prototype: "/main/game/player/weapon/weapon.go"
   position {
-    x: 12.0
+    x: 15.0
     y: 1.0
-    z: 2.0
+    z: 0.5
   }
 }
 instances {
   id: "special_action"
   prototype: "/main/game/player/special_action/special_action.go"
+  position {
+    z: 1.0
+  }
 }
 scale_along_z: 0
 embedded_instances {
@@ -149,6 +152,9 @@ embedded_instances {
   "  component: \"/main/game/vfx/smoke.particlefx\"\n"
   "}\n"
   ""
+  position {
+    z: 1.0
+  }
 }
 embedded_instances {
   id: "go"
@@ -159,4 +165,7 @@ embedded_instances {
   "\"\n"
   "}\n"
   ""
+  position {
+    z: 1.0
+  }
 }

@@ -4,8 +4,8 @@ components {
 }
 embedded_components {
   id: "bullet_sm_factory"
-  type: "factory"
-  data: "prototype: \"/main/game/bullets/bullets_sm.go\"\n"
+  type: "collectionfactory"
+  data: "prototype: \"/main/game/bullets/bullets_sm.collection\"\n"
   ""
 }
 embedded_components {

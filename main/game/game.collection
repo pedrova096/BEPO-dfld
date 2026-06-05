@@ -49,12 +49,6 @@ embedded_instances {
 embedded_instances {
   id: "factories"
   data: "embedded_components {\n"
-  "  id: \"perrocoin_cfactory\"\n"
-  "  type: \"collectionfactory\"\n"
-  "  data: \"prototype: \\\"/main/game/loots/perrocoin/perrocoin_composer.collection\\\"\\n"
-  "\"\n"
-  "}\n"
-  "embedded_components {\n"
   "  id: \"cog_cfactory\"\n"
   "  type: \"collectionfactory\"\n"
   "  data: \"prototype: \\\"/main/game/loots/cogs/cog_composer.collection\\\"\\n"

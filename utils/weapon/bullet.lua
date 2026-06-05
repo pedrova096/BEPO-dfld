@@ -20,12 +20,15 @@ function M:new(opts)
   local instance = setmetatable({}, M)
 
   instance.id = opts.index
-  instance.object_id = factory.create(opts.factory_url, vmath.vector3(0, 0, 1), nil, {
-    id = instance.id,
-    target = opts.target,
-    theme = opts.properties and opts.properties.theme or 1,
-    owner_id = go.get_id() -- TODO: from opts
+  local ids = collectionfactory.create(opts.factory_url, vmath.vector3(0, 0, 1), nil, {
+    [hash("/root")] = {
+      id = instance.id,
+      target = opts.target,
+      theme = opts.properties and opts.properties.theme or 1,
+      owner_id = go.get_id() -- TODO: from opts
+    }
   })
+  instance.object_id = ids["/root"]
   instance:reset()
   return instance
 end

@@ -26,6 +26,8 @@ nodes {
   pivot: PIVOT_SW
   adjust_mode: ADJUST_MODE_STRETCH
   layer: "modal"
+  inherit_alpha: true
+  alpha: 0.0
   size_mode: SIZE_MODE_AUTO
   enabled: false
 }
@@ -46,7 +48,6 @@ nodes {
   pivot: PIVOT_SW
   adjust_mode: ADJUST_MODE_STRETCH
   parent: "modal"
-  inherit_alpha: true
   alpha: 0.78
   size_mode: SIZE_MODE_AUTO
 }
@@ -63,7 +64,6 @@ nodes {
   texture: "ui/completed_modal"
   id: "container"
   parent: "modal"
-  inherit_alpha: true
   slice9 {
     x: 6.0
     y: 6.0

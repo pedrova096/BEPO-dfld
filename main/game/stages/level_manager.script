@@ -89,7 +89,7 @@ end
 
 local function on_stage_complete(self)
 	if is_current_stage_last(self) then
-		msg.post(Urls.UIController, Msg.UI.SHOW_COMPLETED_LEVEL_MODAL, {})
+		msg.post(Urls.UIController, Msg.HudUI.SHOW_COMPLETED_LEVEL_MODAL)
 		return
 	end
 

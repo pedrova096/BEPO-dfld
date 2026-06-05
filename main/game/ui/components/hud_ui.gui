@@ -194,10 +194,84 @@ nodes {
 }
 nodes {
   position {
-    z: 2.0
+    y: 640.0
+  }
+  size {
+    x: 360.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "header"
+  yanchor: YANCHOR_BOTTOM
+  pivot: PIVOT_NW
+  inherit_alpha: true
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 30.0
+    y: -34.0
+  }
+  type: TYPE_BOX
+  texture: "ui/life"
+  id: "life_node"
+  parent: "header"
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 180.0
+    y: 600.0
+    z: 1.0
   }
   type: TYPE_TEMPLATE
+  id: "toast"
+  template: "/main/game/ui/toast.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "toast/frame"
+  parent: "toast"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "toast/text"
+  parent: "toast/frame"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "toast/icon"
+  parent: "toast/frame"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 180.0
+    y: 320.0
+  }
+  size {
+    x: 360.0
+    y: 640.0
+  }
+  color {
+    x: 0.2
+    y: 0.16
+    z: 0.28
+  }
+  type: TYPE_BOX
+  id: "wipe"
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+  material: "halftone_circles_wipe"
+}
+nodes {
+  type: TYPE_TEMPLATE
   id: "completed_level_modal"
+  inherit_alpha: true
   template: "/main/game/ui/complete_level_modal/completed_level_modal.gui"
 }
 nodes {
@@ -313,82 +387,6 @@ nodes {
   id: "completed_level_modal/best_item/value"
   parent: "completed_level_modal/best_item"
   template_node_child: true
-}
-nodes {
-  position {
-    y: 640.0
-  }
-  size {
-    x: 360.0
-    y: 100.0
-  }
-  type: TYPE_BOX
-  id: "header"
-  yanchor: YANCHOR_BOTTOM
-  pivot: PIVOT_NW
-  inherit_alpha: true
-  alpha: 0.0
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: 30.0
-    y: -34.0
-  }
-  type: TYPE_BOX
-  texture: "ui/life"
-  id: "life_node"
-  parent: "header"
-  size_mode: SIZE_MODE_AUTO
-  visible: false
-}
-nodes {
-  position {
-    x: 180.0
-    y: 600.0
-    z: 1.0
-  }
-  type: TYPE_TEMPLATE
-  id: "toast"
-  template: "/main/game/ui/toast.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "toast/frame"
-  parent: "toast"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  id: "toast/text"
-  parent: "toast/frame"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "toast/icon"
-  parent: "toast/frame"
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 180.0
-    y: 320.0
-  }
-  size {
-    x: 360.0
-    y: 640.0
-  }
-  color {
-    x: 0.2
-    y: 0.16
-    z: 0.28
-  }
-  type: TYPE_BOX
-  id: "wipe"
-  size_mode: SIZE_MODE_AUTO
-  visible: false
-  material: "halftone_circles_wipe"
 }
 layers {
   name: "modal"

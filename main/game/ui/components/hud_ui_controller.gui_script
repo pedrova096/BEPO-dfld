@@ -10,9 +10,18 @@ local ActionIds = {
 
 local Urls = {
 	GameController = "/controller",
+	MainController = "main:/main_controller",
+	ControlsUI = "/ui#controls_ui",
 	LifeNode = "life_node",
 	Wipe = "wipe",
 	ShopModal = "shop_modal",
+	CompletedLevelModal = "completed_level_modal/modal",
+	CompletedContinueButton = "completed_level_modal/continue_button",
+	CompletedContinueButtonText = "completed_level_modal/continue_button_text",
+	CompletedRetryButton = "completed_level_modal/retry_button",
+	CompletedRetryButtonText = "completed_level_modal/retry_button_text",
+	CompletedTimeValue = "completed_level_modal/time_item/value",
+	CompletedBestValue = "completed_level_modal/best_item/value",
 	UpgradeContainer = "upgrade_container",
 	Toast = "toast/frame",
 	ToastText = "toast/text",
@@ -98,6 +107,8 @@ function init(self)
 	msg.post(".", "acquire_input_focus")
 
 	self.reward_options = {}
+	self.completed_continue_pressed = false
+	self.completed_retry_pressed = false
 	self.wipe_transition = nil
 	self.toast = ToastGUI:new({
 		frame_node_id = Urls.Toast,
@@ -105,6 +116,7 @@ function init(self)
 		icon_node_id = Urls.ToastIcon,
 	})
 	self.life_nodes = {}
+	gui.set_enabled(gui.get_node(Urls.CompletedLevelModal), false)
 end
 
 local function wipe_view_pipe(self, dt)
@@ -241,6 +253,20 @@ local function on_hide_toast(self, message)
 	self.toast:hide(message.toast_id)
 end
 
+local function on_show_completed_level_modal(self, message)
+	message = message or {}
+	gui.set_text(gui.get_node(Urls.CompletedTimeValue), message.time or "--:--")
+	gui.set_text(gui.get_node(Urls.CompletedBestValue), message.best_time or "--:--")
+	gui.set_enabled(gui.get_node(Urls.CompletedLevelModal), true)
+	msg.post(Urls.ControlsUI, Msg.ControlsUI.BLOCK_CONTROLS)
+end
+
+local function on_hide_completed_level_modal(self, _message)
+	gui.set_enabled(gui.get_node(Urls.CompletedLevelModal), false)
+	self.completed_continue_pressed = false
+	self.completed_retry_pressed = false
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.HudUI.SET_LIFE_NODES then
 		on_set_life_count(self, message)
@@ -256,7 +282,91 @@ function on_message(self, message_id, message, sender)
 		on_show_toast(self, message)
 	elseif message_id == Msg.HudUI.HIDE_TOAST then
 		on_hide_toast(self, message)
+	elseif message_id == Msg.HudUI.SHOW_COMPLETED_LEVEL_MODAL then
+		on_show_completed_level_modal(self, message)
+	elseif message_id == Msg.HudUI.HIDE_COMPLETED_LEVEL_MODAL then
+		on_hide_completed_level_modal(self, message)
 	end
+end
+
+local function press_button(button, label)
+	gui.play_flipbook(button, "pressed", nil)
+	gui.animate(label, "position.y", -2, gui.EASING_LINEAR, 0.1, 0)
+end
+
+local function release_button(button, label)
+	gui.play_flipbook(button, "unpressed")
+	gui.animate(label, "position.y", 1, gui.EASING_LINEAR, 0.1, 0)
+end
+
+local function input_button(options, action)
+	local button = gui.get_node(options.button)
+	local label = gui.get_node(options.label)
+
+	if action.pressed and gui.pick_node(button, action.x, action.y) then
+		press_button(button, label)
+		options.set_pressed(true)
+		return true
+	end
+
+	if options.get_pressed() and not action.released and not gui.pick_node(button, action.x, action.y) then
+		release_button(button, label)
+		options.set_pressed(false)
+		return false
+	end
+
+	if action.released and options.get_pressed() then
+		release_button(button, label)
+		options.set_pressed(false)
+
+		if options.on_pressed then
+			options.on_pressed()
+		end
+		return true
+	end
+
+	return false
+end
+
+local function input_completed_level_modal(self, action)
+	local modal_node = gui.get_node(Urls.CompletedLevelModal)
+	if not gui.is_enabled(modal_node) then
+		return false
+	end
+
+	if input_button({
+				button = Urls.CompletedContinueButton,
+				label = Urls.CompletedContinueButtonText,
+				get_pressed = function()
+					return self.completed_continue_pressed
+				end,
+				set_pressed = function(value)
+					self.completed_continue_pressed = value
+				end,
+				on_pressed = function()
+					msg.post(Urls.MainController, Msg.Main.GAME_OVER)
+				end,
+			}, action) then
+		return true
+	end
+
+	if input_button({
+				button = Urls.CompletedRetryButton,
+				label = Urls.CompletedRetryButtonText,
+				get_pressed = function()
+					return self.completed_retry_pressed
+				end,
+				set_pressed = function(value)
+					self.completed_retry_pressed = value
+				end,
+				on_pressed = function()
+					msg.post(Urls.MainController, Msg.Main.START_NEW_GAME)
+				end,
+			}, action) then
+		return true
+	end
+
+	return true
 end
 
 local function input_shop_modal(self, action)
@@ -285,6 +395,10 @@ end
 
 function on_input(self, action_id, action)
 	if action_id == ActionIds.TouchMulti or action_id == ActionIds.Touch then
+		if input_completed_level_modal(self, action) then
+			return true
+		end
+
 		return input_shop_modal(self, action)
 	end
 

@@ -1,6 +1,7 @@
 image: "/assets/sprites/tiles/tiles_sm.png"
 tile_width: 24
 tile_height: 24
+tile_margin: 1
 collision: "/assets/sprites/tiles/tiles_sm.png"
 convex_hulls {
   index: 0
@@ -38,4 +39,4 @@ convex_hulls {
   collision_group: ""
 }
 collision_groups: "wall"
-extrude_borders: 2
+extrude_borders: 1

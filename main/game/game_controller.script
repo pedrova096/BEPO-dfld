@@ -3,13 +3,11 @@ local Table = require("utils.table")
 local Level = require("modules.level.level")
 local Logger = require("modules.logger")
 local LevelAdapter = require("lib.levels_adapter")
-local Pooler = require("utils.pooler")
 local RewardTypes = require("lib.rewards.reward_types")
 local CogsData = require("lib.rewards.status.cogs_data")
 
 local Urls = {
 	Factories = {
-		Perrocoin = "/factories#perrocoin_cfactory",
 		Cog = "/factories#cog_cfactory",
 	},
 	-- External
@@ -37,14 +35,6 @@ local PLAYER_STAGE_ENTRY_POSITION = vmath.vector3(0, 0, 1)
 local FLOW_TRACE_ENABLED = true
 local logger = Logger.new_debugger(FLOW_TRACE_ENABLED, "FLOW")
 
-local function _spawn_perrocoin(self, options)
-	local properties = options and options.value and { value = options.value } or nil
-	local position = options and options.position or vmath.vector3()
-
-	local new_collection = collectionfactory.create(Urls.Factories.Perrocoin, position, nil, properties)
-	return new_collection["/root"]
-end
-
 local function spawn_cog(self, options)
 	local properties = options and { value = options.value, variant = options.variant } or nil
 	local position = options and options.position or vmath.vector3()
@@ -58,11 +48,6 @@ end
 
 function init(self)
 	self.level = Level:new()
-
-	self.pool_perrocoin = Pooler.new({
-		pool_size = 5,
-		spawner = _spawn_perrocoin,
-	})
 
 	self.state = StatesEnum.Active
 	self.loading_stage = false
