@@ -13,7 +13,7 @@ local CameraStates = {
 }
 
 local function cap_zoom_step(zoom)
-	return math.max(0.25, math.floor(zoom * 4) / 4)
+	return math.max(1.0, math.floor(zoom + 0.25))
 end
 
 local function get_window_zoom()

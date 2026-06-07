@@ -37,4 +37,7 @@ images {
 images {
   image: "/assets/sprites/ui/icon_timer.png"
 }
+images {
+  image: "/assets/sprites/ui/icon_pause.png"
+}
 extrude_borders: 1

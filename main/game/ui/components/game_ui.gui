@@ -1,0 +1,47 @@
+script: "/main/game/ui/components/game_ui_controller.gui_script"
+textures {
+  name: "ui"
+  texture: "/assets/sprites/ui/ui.atlas"
+}
+textures {
+  name: "ui_base_button_secondary"
+  texture: "/assets/sprites/ui/buttons/ui_base_button_secondary.tilesource"
+}
+nodes {
+  position {
+    x: 322.0
+    y: 608.0
+  }
+  size {
+    x: 34.0
+    y: 34.0
+  }
+  type: TYPE_BOX
+  texture: "ui_base_button_secondary/default"
+  id: "pause_button"
+  inherit_alpha: true
+  slice9 {
+    x: 6.0
+    y: 8.0
+    z: 6.0
+    w: 10.0
+  }
+}
+nodes {
+  position {
+    y: 2.0
+  }
+  color {
+    x: 0.9411765
+    y: 0.972549
+    z: 0.8156863
+  }
+  type: TYPE_BOX
+  texture: "ui/icon_pause"
+  id: "pause_icon"
+  parent: "pause_button"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
