@@ -99,6 +99,7 @@ local Main = {
   -- events
   GAME_OVER = hash("game_over"),
   RUN_ENDED = hash("run_ended"),
+  SPLASH_SCREEN_DONE = hash("splash_screen_done"),
   -- commands
   START_NEW_GAME = hash("start_new_game")
 }

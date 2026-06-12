@@ -1,0 +1,48 @@
+script: "/main/splash_screen/ui/splash_screen_ui_controller.gui_script"
+textures {
+  name: "ui"
+  texture: "/assets/sprites/ui/splash_screen/ui.atlas"
+}
+nodes {
+  position {
+    x: 180.0
+    y: 310.0
+  }
+  scale {
+    x: 3.0
+    y: 3.0
+  }
+  size {
+    x: 1.0
+    y: 1.0
+  }
+  type: TYPE_BOX
+  id: "container"
+  inherit_alpha: true
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: 13.8
+  }
+  type: TYPE_BOX
+  texture: "ui/tubarcade"
+  id: "logo"
+  parent: "container"
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: -38.6
+  }
+  type: TYPE_BOX
+  texture: "ui/tubarcade_text"
+  id: "logo_text"
+  parent: "container"
+  alpha: 0.0
+  size_mode: SIZE_MODE_AUTO
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

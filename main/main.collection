@@ -18,6 +18,12 @@ embedded_instances {
 embedded_instances {
   id: "proxies"
   data: "embedded_components {\n"
+  "  id: \"splash_screen_proxy\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/main/splash_screen/splash_screen.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  "embedded_components {\n"
   "  id: \"start_screen_proxy\"\n"
   "  type: \"collectionproxy\"\n"
   "  data: \"collection: \\\"/main/start_screen/start_screen.collection\\\"\\n"

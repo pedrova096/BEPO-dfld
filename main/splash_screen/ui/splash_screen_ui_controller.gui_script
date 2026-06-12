@@ -1,0 +1,45 @@
+local Msg = require("lib.msg")
+
+local Urls = {
+	MainController = "main:/main_controller"
+}
+
+local FADE_IN_DURATION = 0.4
+local FADE_IN_OPACITY_DURATION = 0.25
+local FADE_OUT_DURATION = 0.2
+local HOLD_DURATION = 1
+local LOGO_TEXT_DELAY = 0.2
+
+local function prepare_intro(node, offset_y)
+	local position = gui.get_position(node)
+	gui.set_position(node, vmath.vector3(position.x, position.y + offset_y, position.z))
+	gui.set_alpha(node, 0)
+	return position
+end
+
+local function start_animation()
+	local logo = gui.get_node("logo")
+	local logo_text = gui.get_node("logo_text")
+
+	local logo_position = prepare_intro(logo, -2)
+	local logo_text_position = prepare_intro(logo_text, -4)
+
+	gui.animate(logo, "position.y", logo_position.y, gui.EASING_OUTEXPO, FADE_IN_DURATION)
+	gui.animate(logo, "color.w", 1, gui.EASING_OUTEXPO, FADE_IN_OPACITY_DURATION)
+
+	gui.animate(logo_text, "position.y", logo_text_position.y, gui.EASING_OUTEXPO, FADE_IN_DURATION, LOGO_TEXT_DELAY)
+	gui.animate(logo_text, "color.w", 1, gui.EASING_OUTEXPO, FADE_IN_OPACITY_DURATION, LOGO_TEXT_DELAY, function()
+	end)
+
+	timer.delay(HOLD_DURATION, false, function()
+		gui.animate(logo, "color.w", 0, gui.EASING_OUTEXPO, FADE_OUT_DURATION)
+		gui.animate(logo_text, "color.w", 0, gui.EASING_OUTEXPO, FADE_OUT_DURATION, 0, function()
+			msg.post(Urls.MainController, Msg.Main.SPLASH_SCREEN_DONE)
+		end)
+	end)
+end
+
+
+function init(self)
+	timer.delay(0.2, false, start_animation)
+end

@@ -5,6 +5,7 @@ local Types = {
     id = SpecialType.Bomb,
     title = "Bomba",
     value = 1,
+    killing_recharge = 3,
   }
 }
 

@@ -1,0 +1,7 @@
+images {
+  image: "/assets/sprites/ui/splash_screen/tubarcade.png"
+}
+images {
+  image: "/assets/sprites/ui/splash_screen/tubarcade_text.png"
+}
+extrude_borders: 2

@@ -2,13 +2,15 @@ local Msg = require("lib.msg")
 
 local GameState = {
 	None = 0,
-	StartScreen = 1,
-	Loading = 2,
-	InGame = 3,
-	GameOver = 4,
+	SplashScreen = 1,
+	StartScreen = 2,
+	Loading = 3,
+	InGame = 4,
+	GameOver = 5,
 }
 
 local Urls = {
+	SplashScreenProxy = "/proxies#splash_screen_proxy",
 	StartScreenProxy = "/proxies#start_screen_proxy",
 	GameProxy = "/proxies#game_proxy",
 	GameOverProxy = "/proxies#game_over_proxy",
@@ -19,7 +21,7 @@ local DEFAULT_LEVEL_ID = hash("level_1")
 
 function init(self)
 	self.state = GameState.None
-	msg.post(Urls.StartScreenProxy, "load")
+	msg.post(Urls.GameProxy, "load")
 end
 
 function final(self)
@@ -44,6 +46,14 @@ local PROXY_FRAGMENT_MAP = {
 	[hash("game")] = Urls.GameProxy,
 	[hash("game_over")] = Urls.GameOverProxy,
 }
+
+local function load_start_screen()
+	msg.post(Urls.SplashScreenProxy, "disable")
+	msg.post(Urls.SplashScreenProxy, "final")
+	msg.post(Urls.SplashScreenProxy, "unload")
+	msg.post(Urls.StartScreenProxy, "load")
+end
+
 local function on_new_game(self, message, sender_socket)
 	local proxy = PROXY_FRAGMENT_MAP[sender_socket]
 
@@ -62,12 +72,16 @@ function on_message(self, message_id, message, sender)
 		pprint("PROXY_LOADED", sender, message)
 		msg.post(sender, "enable")
 		msg.post(sender, "acquire_input_focus")
+		if sender == msg.url(Urls.SplashScreenProxy) then
+			self.state = GameState.SplashScreen
+		end
+
 		if sender == msg.url(Urls.StartScreenProxy) then
 			self.state = GameState.StartScreen
 		end
 
 		if sender == msg.url(Urls.GameProxy) then
-			msg.post(Urls.GameController, Msg.Game.START_RUN, { level_id = self.selected_level })
+			msg.post(Urls.GameController, Msg.Game.START_RUN, { level_id = self.selected_level or DEFAULT_LEVEL_ID })
 			-- msg.post(sender, "set_time_step", { factor = 0.25, mode = 0 })
 			self.state = GameState.InGame
 		end
@@ -77,6 +91,8 @@ function on_message(self, message_id, message, sender)
 		end
 	elseif message_id == Msg.Main.GAME_OVER then
 		on_game_over(self, message)
+	elseif message_id == Msg.Main.SPLASH_SCREEN_DONE then
+		load_start_screen()
 	elseif message_id == Msg.Main.START_NEW_GAME then
 		on_new_game(self, message, sender.socket)
 	end

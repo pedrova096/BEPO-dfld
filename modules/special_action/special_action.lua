@@ -1,12 +1,15 @@
 --- @class SpecialActionConfig
 --- @field id hash|string Special action id.
---- @field object_id hash|url|nil Runtime object id. Can be assigned later with `set_object_id`.
 --- @field max_uses number|nil Maximum stored uses.
 --- @field required_recharge number|nil Recharge required to restore one use.
+
+--- @class SpecialActionOptions : SpecialActionConfig
+--- @field object_id hash|nil Runtime object id. Can be assigned later with `set_object_id`.
 
 --- @class SpecialActionState
 --- @field uses number Current available uses.
 --- @field recharge number Current recharge progress.
+--- @field object_id hash|nil Runtime object id. Can be assigned later with `set_object_id`.
 --- @field status "idle"|"ready"|"recharging"|"empty" Current availability status.
 
 --- Runtime state for a player special action.
@@ -49,31 +52,31 @@ local function refresh_status(self)
 end
 
 --- Create a new special action runtime.
---- @param config SpecialActionConfig|nil Initial config and state.
+--- @param config SpecialActionOptions|nil Initial config and state.
 --- @return SpecialAction
 function M:new(config)
 	config = config or {}
 
 	return setmetatable({
 		id = config.id,
-		object_id = config.object_id,
 		max_uses = config.max_uses or DEFAULT_MAX_USES,
 		required_recharge = config.required_recharge or DEFAULT_REQUIRED_RECHARGE,
 		state = {
 			uses = 0,
 			recharge = 0,
 			status = SpecialActionStatus.Idle,
+			object_id = config.object_id,
 		},
 	}, self)
 end
 
 --- Assign the action values
---- @param config SpecialActionConfig
+--- @param config SpecialActionOptions
 function M:set_action(config)
 	self.id = config.id
 	self.max_uses = config.max_uses
 	self.required_recharge = config.required_recharge
-	self.object_id = config.object_id
+	self.state.object_id = config.object_id
 	refresh_status(self)
 end
 

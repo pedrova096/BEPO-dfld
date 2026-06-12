@@ -4,22 +4,22 @@ layers {
   z: 0.0
   cell {
     x: 3
-    y: -8
+    y: -10
     tile: 1
   }
   cell {
     x: 4
-    y: -8
+    y: -10
     tile: 1
   }
   cell {
     x: 5
-    y: -8
+    y: -10
     tile: 1
   }
   cell {
     x: 6
-    y: -7
+    y: -10
     tile: 1
   }
 }

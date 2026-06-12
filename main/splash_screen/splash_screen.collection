@@ -1,0 +1,10 @@
+name: "splash_screen"
+scale_along_z: 0
+embedded_instances {
+  id: "ui"
+  data: "components {\n"
+  "  id: \"splash_screen_ui\"\n"
+  "  component: \"/main/splash_screen/ui/splash_screen_ui.gui\"\n"
+  "}\n"
+  ""
+}
