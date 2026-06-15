@@ -71,7 +71,7 @@ function M:_fire_cooldown_pipe(dt)
   self.state.cooldown = math.max(0, self.state.cooldown - dt)
 end
 
----@param payload WeaponFirePayload|nil
+---@param payload WeaponFirePayload
 function M:_apply_accuracy(payload)
   local accuracy = self.config.accuracy or 1
   if accuracy >= 1 then
@@ -95,6 +95,7 @@ end
 ---@param payload WeaponFirePayload|nil
 ---@return WeaponFirePayload
 function M:_build_fire_payload(payload)
+  ---@type WeaponFirePayload
   local firing_payload = Table.copy(payload or {})
 
   firing_payload.force = self.bullet_config.force
@@ -155,6 +156,7 @@ function M:fire(payload)
   msg.post(".", Msg.Weapon.FIRED, {
     ammo = self.state.ammo,
     ammo_capacity = self.config.ammo_capacity,
+    direction = firing_payload.direction
   })
 
   if self.state.ammo <= 0 then

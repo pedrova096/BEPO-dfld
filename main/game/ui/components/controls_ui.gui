@@ -19,23 +19,23 @@ nodes {
 }
 nodes {
   position {
-    y: 200.0
+    y: 90.0
   }
   size {
     x: 216.0
-    y: 200.0
+    y: 180.0
   }
   type: TYPE_BOX
   id: "move_zone"
   yanchor: YANCHOR_BOTTOM
-  pivot: PIVOT_NW
+  pivot: PIVOT_W
   alpha: 0.0
   size_mode: SIZE_MODE_AUTO
 }
 nodes {
   position {
     x: 108.0
-    y: -120.0
+    y: -10.0
   }
   type: TYPE_BOX
   texture: "ui/move_pad"
@@ -46,12 +46,27 @@ nodes {
 nodes {
   position {
     x: 108.0
-    y: -120.0
+    y: -10.0
   }
   type: TYPE_BOX
   texture: "ui/move_controller"
   id: "move_controller"
   parent: "move_zone"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: 180.0
+  }
+  size {
+    x: 360.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "drag_zone"
+  pivot: PIVOT_SW
+  inherit_alpha: true
+  alpha: 0.22
   size_mode: SIZE_MODE_AUTO
 }
 material: "/builtins/materials/gui.material"

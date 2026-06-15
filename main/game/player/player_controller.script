@@ -191,6 +191,15 @@ local function on_cancel_special_action(self, message)
 	msg.post(self.special_action.id, Msg.SpecialAction.CANCELED)
 end
 
+local function on_fire_weapon(self, message)
+	if self.stater.movement_active then return end
+
+	self.stater:set_facing(message.direction.x)
+	sprite.play_flipbook(self.stater.urls.VisualSprite, "shot", function()
+		sprite.play_flipbook(self.stater.urls.VisualSprite, "idle")
+	end)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Player.MOVE then
 		on_move(self, message)
@@ -214,7 +223,8 @@ function on_message(self, message_id, message, sender)
 		on_release_special_action(self, message)
 	elseif message_id == Msg.Player.CANCEL_SPECIAL_ACTION then
 		on_cancel_special_action(self, message)
-		-- elseif message_id == Msg.Player.START_SPECIAL_ACTION then
+	elseif message_id == Msg.Weapon.FIRED then
+		on_fire_weapon(self, message)
 	end
 end
 

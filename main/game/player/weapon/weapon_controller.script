@@ -14,8 +14,10 @@ local Urls = {
 	BulletSmFactory = "#bullet_sm_factory",
 	Sprite = "#sprite",
 	MuzzleFlash = "#muzzle_flash",
+	-- External
 	SoundController = "/sound_controller",
 	SessionManager = "/session_manager",
+	PlayerController = "/player/root#controller",
 }
 
 go.property("ammo_capacity", 4)
@@ -162,6 +164,7 @@ local function on_fire_weapon(self, message)
 	sprite.play_flipbook(Urls.Sprite, "fire")
 	show_muzzle_flash()
 	msg.post(Urls.SoundController, Msg.Sound.PLAY_SFX_SOUND, { id = hash("shot") })
+	msg.post(Urls.PlayerController, Msg.Weapon.FIRED, message)
 	sync_bullet_count(self)
 end
 
