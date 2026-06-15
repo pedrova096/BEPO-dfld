@@ -10,6 +10,7 @@ scale_along_z: 0
 embedded_instances {
   id: "root"
   children: "attack"
+  children: "particle"
   children: "shadow"
   children: "visual"
   data: "components {\n"
@@ -69,7 +70,7 @@ embedded_instances {
   "material: \\\"/builtins/fonts/label-df.material\\\"\\n"
   "\"\n"
   "  position {\n"
-  "    y: 26.0\n"
+  "    y: 29.0\n"
   "  }\n"
   "  scale {\n"
   "    x: 0.25\n"
@@ -133,5 +134,26 @@ embedded_instances {
   ""
   position {
     y: 2.0
+  }
+}
+embedded_instances {
+  id: "particle"
+  data: "components {\n"
+  "  id: \"hit_1\"\n"
+  "  component: \"/main/game/vfx/hit_1.particlefx\"\n"
+  "  position {\n"
+  "    y: 24.0\n"
+  "  }\n"
+  "}\n"
+  "components {\n"
+  "  id: \"hit_2\"\n"
+  "  component: \"/main/game/vfx/hit_2.particlefx\"\n"
+  "  position {\n"
+  "    y: 24.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    z: 1.5
   }
 }

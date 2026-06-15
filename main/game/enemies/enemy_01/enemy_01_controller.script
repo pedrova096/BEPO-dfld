@@ -17,7 +17,7 @@ local Urls = {
 	AttackController = "attack#controller",
 }
 
-go.property("health", 9)
+go.property("health", 6)
 go.property("wave_id", 0)
 go.property("velocity", 40)
 

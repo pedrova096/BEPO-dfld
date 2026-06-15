@@ -37,6 +37,7 @@ function M:new(config)
   instance.facing = config.facing or 1
   instance.movement_active = false
   instance.behaviors = {}
+  instance.behavior_enabled = config.behavior_enabled ~= false
   instance:_set_state(config.initial_state or StatesEnum.Idle)
   return instance
 end
@@ -51,6 +52,10 @@ end
 
 function M:add_behaviors(behaviors)
   self.behaviors = behaviors
+end
+
+function M:set_flag_behavior(flag)
+  self.behavior_enabled = flag
 end
 
 function M:set_facing(direction_x)
@@ -130,6 +135,10 @@ function M:apply_behavior(behavior)
 end
 
 function M:behavior_pipe(dt)
+  if not self.behavior_enabled then
+    return
+  end
+
   if self.current_timer then
     return
   end

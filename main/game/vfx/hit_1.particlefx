@@ -1,27 +1,29 @@
 emitters {
-  mode: PLAY_MODE_LOOP
-  space: EMISSION_SPACE_WORLD
-  tile_source: "/assets/sprites/player/smoke.tilesource"
-  animation: "disappear"
+  mode: PLAY_MODE_ONCE
+  duration: 0.35
+  space: EMISSION_SPACE_EMITTER
+  tile_source: "/assets/sprites/global/hit_1.tilesource"
+  animation: "anim"
   material: "/builtins/materials/particlefx.material"
-  max_particle_count: 128
-  type: EMITTER_TYPE_2DCONE
+  particle_orientation: PARTICLE_ORIENTATION_ANGULAR_VELOCITY
+  max_particle_count: 1
+  type: EMITTER_TYPE_BOX
   properties {
     key: EMITTER_KEY_SPAWN_RATE
     points {
-      y: 8.0
+      y: 10.0
     }
   }
   properties {
     key: EMITTER_KEY_SIZE_X
     points {
-      y: 6.0
+      y: 1.0
     }
   }
   properties {
     key: EMITTER_KEY_SIZE_Y
     points {
-      y: 12.0
+      y: 1.0
     }
   }
   properties {
@@ -33,14 +35,13 @@ emitters {
   properties {
     key: EMITTER_KEY_PARTICLE_SPEED
     points {
-      y: 8.0
+      y: 33.0
     }
-    spread: 2.0
   }
   properties {
     key: EMITTER_KEY_PARTICLE_SIZE
     points {
-      y: 4.0
+      y: 11.0
     }
   }
   properties {
@@ -70,7 +71,13 @@ emitters {
   properties {
     key: EMITTER_KEY_PARTICLE_ROTATION
     points {
-      y: -70.0
+      y: 1.0
+    }
+  }
+  properties {
+    key: EMITTER_KEY_PARTICLE_ANGULAR_VELOCITY
+    points {
+      y: 400.0
     }
   }
   particle_properties {
@@ -103,15 +110,37 @@ emitters {
       y: 1.0
     }
     points {
+      x: 0.688092
+      y: 1.0
+    }
+    points {
       x: 1.0
       y: 0.0
-      t_x: 0.6
+    }
+  }
+  particle_properties {
+    key: PARTICLE_KEY_ROTATION
+    points {
+      y: 1.0
     }
   }
   particle_properties {
     key: PARTICLE_KEY_ANGULAR_VELOCITY
     points {
       y: 1.0
+    }
+  }
+  modifiers {
+    type: MODIFIER_TYPE_ACCELERATION
+    rotation {
+      z: -0.38268343
+      w: 0.9238795
+    }
+    properties {
+      key: MODIFIER_KEY_MAGNITUDE
+      points {
+        y: -72.0
+      }
     }
   }
 }

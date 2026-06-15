@@ -14,6 +14,9 @@ function M:enter(payload)
   })
   go.set(self.urls.Body, "linear_velocity", VMath.z_one(direction * hit_force))
   sprite.play_flipbook(self.urls.VisualSprite, "hurt")
+  -- if self.urls.ParticleHit1 then
+  --   particlefx.play(self.urls.ParticleHit1)
+  -- end
 end
 
 function M:update(dt)

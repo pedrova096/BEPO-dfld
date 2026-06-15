@@ -16,4 +16,10 @@ animations {
   start_tile: 3
   end_tile: 3
 }
+animations {
+  id: "disappear"
+  start_tile: 1
+  end_tile: 3
+  fps: 8
+}
 extrude_borders: 2

@@ -15,7 +15,7 @@ local Urls = {
 	WeaponController = "weapon#controller"
 }
 
-go.property("health", 12)
+go.property("health", 10)
 go.property("wave_id", 0)
 go.property("safe_distance", 100)
 go.property("velocity", 30)
@@ -47,6 +47,7 @@ function init(self)
 				local player_position = go.get_position(Urls.PlayerController)
 				local position = go.get_position()
 				local distance = vmath.length(player_position - position)
+
 				return self.steer:get_is_target_on_sight() and distance <= self.safe_distance and self.attacker:can_attack()
 			end,
 			get_payload = function()
@@ -93,11 +94,16 @@ end
 local function on_apply_damage(self, message)
 	if self.stater:is(StatesEnum.Hurt) then return end
 
-	-- if self.stater:is(StatesEnum.Attack) then
-	-- 	local current_health = self.stater.stats.health
-	-- 	self.stater.stats.health = current_health - message.damage
-	-- 	return
-	-- end
+	if self.stater:is(StatesEnum.Attack) then
+		local current_health = self.stater.stats.health
+		self.stater.stats.health = current_health - message.damage
+
+		if self.stater.stats.health < 0 then
+			self.stater:apply_transition(StatesEnum.Dead, {});
+		end
+
+		return
+	end
 
 	local direction, damage, force = message.direction, message.damage, message.force
 	self.stater:apply_transition(StatesEnum.Hurt, {
@@ -108,6 +114,7 @@ local function on_apply_damage(self, message)
 end
 
 local function on_activate_enemy(self, message)
+	self.stater:set_flag_behavior(true)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
 	msg.post(Urls.WeaponController, Msg.SHOW_ELEMENT)
 	self.wave_id = message.wave_id
@@ -120,6 +127,7 @@ local function on_dead(self, message)
 		wave_id = self.wave_id
 	})
 	msg.post(Urls.WeaponController, Msg.HIDE_ELEMENT)
+	self.stater:set_flag_behavior(false)
 end
 
 local function on_despawned(self, message)
