@@ -4,3 +4,9 @@ images {
 images {
   image: "/assets/sprites/upgrader/toolbox.png"
 }
+images {
+  image: "/assets/sprites/global/reload_indicator/bar.png"
+}
+images {
+  image: "/assets/sprites/global/reload_indicator/track.png"
+}

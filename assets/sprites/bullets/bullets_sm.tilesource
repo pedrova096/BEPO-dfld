@@ -1,14 +1,28 @@
 image: "/assets/sprites/bullets/bullets_sm.png"
 tile_width: 16
-tile_height: 16
+tile_height: 18
 animations {
   id: "default"
-  start_tile: 1
-  end_tile: 1
+  start_tile: 3
+  end_tile: 5
+  playback: PLAYBACK_LOOP_PINGPONG
+  fps: 15
 }
 animations {
   id: "disappear"
+  start_tile: 4
+  end_tile: 7
+  fps: 15
+}
+animations {
+  id: "impact"
+  start_tile: 8
+  end_tile: 10
+  fps: 10
+}
+animations {
+  id: "muzzle_flash"
   start_tile: 1
-  end_tile: 3
+  end_tile: 2
   fps: 10
 }

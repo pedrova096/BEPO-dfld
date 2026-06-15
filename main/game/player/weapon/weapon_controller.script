@@ -13,10 +13,11 @@ local TriggerStatusEnum = {
 local Urls = {
 	BulletSmFactory = "#bullet_sm_factory",
 	Sprite = "#sprite",
+	MuzzleFlash = "#muzzle_flash",
 	SoundController = "/sound_controller",
 }
 
-go.property("ammo_capacity", 6)
+go.property("ammo_capacity", 4)
 go.property("bullet_damage", 2)
 go.property("bullet_force", 3)
 go.property("bullet_speed", 400)
@@ -56,6 +57,12 @@ function init(self)
 	go.set(Urls.Sprite, "target_color_4", vmath.vector4(unpack(Colors["#ffe478"])))
 	go.set(Urls.Sprite, "target_color_5", vmath.vector4(unpack(Colors["#e36956"])))
 	self.trigger_payload = {}
+
+	Entity.hide_sprite(Urls.MuzzleFlash)
+	local color3 = vmath.vector4(unpack(Colors["#ffe478"])) * 0.5
+	go.set(Urls.MuzzleFlash, "target_color_1", vmath.vector4(unpack(Colors["#ffffeb"])))
+	go.set(Urls.MuzzleFlash, "target_color_2", vmath.vector4(unpack(Colors["#f2a65e"])))
+	go.set(Urls.MuzzleFlash, "target_color_3", color3)
 end
 
 local HALF_PI = math.pi / 2
@@ -115,6 +122,9 @@ local function on_set_properties(self, message)
 end
 
 local function on_reload_started(self, message)
+	go.cancel_animations(Urls.MuzzleFlash, "tint.w")
+	Entity.hide_sprite(Urls.MuzzleFlash)
+
 	sprite.play_flipbook(Urls.Sprite, "reload")
 	go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.15, 0)
 end
@@ -125,8 +135,16 @@ local function on_reload_completed(self, message)
 	sprite.play_flipbook(Urls.Sprite, "idle")
 end
 
+local function show_muzzle_flash()
+	go.cancel_animations(Urls.MuzzleFlash, "tint.w")
+	Entity.show_sprite(Urls.MuzzleFlash)
+	sprite.play_flipbook(Urls.MuzzleFlash, "muzzle_flash")
+	go.animate(Urls.MuzzleFlash, "tint.w", go.PLAYBACK_ONCE_FORWARD, 0, go.EASING_OUTQUAD, 0.1, 0.1)
+end
+
 local function on_fire_weapon(self, message)
 	sprite.play_flipbook(Urls.Sprite, "fire")
+	show_muzzle_flash()
 	msg.post(Urls.SoundController, Msg.Sound.PLAY_SFX_SOUND, { id = hash("shot") })
 end
 

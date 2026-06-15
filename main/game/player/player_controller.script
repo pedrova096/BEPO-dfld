@@ -31,7 +31,7 @@ local MAP_SPECIAL_ACTION_REQUIRED_RECHARGE = {
 
 go.property("velocity", 60)
 go.property("lives", 3)
-go.property("bullet_damage", 20)
+go.property("bullet_damage", 2)
 go.property("bullet_ricochets", 0)
 
 function init(self)
