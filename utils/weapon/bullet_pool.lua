@@ -4,7 +4,7 @@ local Bullet = require("utils.weapon.bullet")
 local DEFAULT_POOL_SIZE = 10
 
 ---@class BulletPool
----@field pool Pooler
+---@field pool Pool
 ---@field pool_size number
 local M = {}
 M.__index = M
@@ -53,6 +53,19 @@ function M:acquire()
   return bullet
 end
 
+---Acquire a bullet, growing the pool by one if needed.
+---@return Bullet
+function M:acquire_or_extend()
+  local bullet = self.pool:acquire()
+  if not bullet then
+    self.pool:extend()
+    bullet = self.pool:acquire()
+  end
+
+  bullet:reset()
+  return bullet
+end
+
 ---Release a bullet back to the pool.
 ---@param bullet Bullet
 function M:release(bullet)
@@ -88,6 +101,14 @@ function M:get_bullet_by_id(id)
   end
 
   return nil
+end
+
+---Delete all pooled bullet objects and clear pool bookkeeping.
+function M:final()
+  local bullets = self.pool:clean()
+  for _, bullet in ipairs(bullets) do
+    bullet:final()
+  end
 end
 
 return M

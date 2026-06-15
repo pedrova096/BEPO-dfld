@@ -22,6 +22,19 @@ local ActionStatus = {
 	Pressed = hash("pressed"),
 }
 
+local function get_empty_button_action()
+	local button_node = gui.get_node(Urls.Button)
+
+	return {
+		enabled = false,
+		touch_id = nil,
+		state = ActionStatus.Idle,
+		position = vmath.vector3(0),
+		original_position = gui.get_position(button_node),
+		time = 0,
+	}
+end
+
 function init(self)
 	msg.post(".", "acquire_input_focus")
 
@@ -38,14 +51,7 @@ function init(self)
 		state = ActionStatus.Idle,
 		position = vmath.vector3(0),
 	}
-	self.button_action = {
-		enabled = false,
-		touch_id = nil,
-		state = ActionStatus.Idle,
-		position = vmath.vector3(0),
-		original_position = gui.get_position(button_node),
-		time = 0,
-	}
+	self.button_action = get_empty_button_action()
 	self.controls_blocked = false
 	self.debug = {
 		enabled = true,
@@ -55,11 +61,24 @@ function init(self)
 	gui.set_enabled(button_node, false)
 end
 
-local function set_button_action_enabled(self, enabled)
+local BUTTON_ACTION_ENABLED_ALPHA = 1
+local BUTTON_ACTION_DISABLED_ALPHA = 0.4
+local function set_special_action_enabled(self, enabled)
 	local button_node = gui.get_node(Urls.Button)
 
 	self.button_action.enabled = enabled
-	gui.set_enabled(button_node, enabled)
+	gui.set_enabled(button_node, true)
+	gui.set(button_node, "color.w", enabled and BUTTON_ACTION_ENABLED_ALPHA or BUTTON_ACTION_DISABLED_ALPHA)
+end
+
+local function hide_button_action(self)
+	local button_node = gui.get_node(Urls.Button)
+	gui.set_position(button_node, self.button_action.original_position)
+
+
+	self.button_action = get_empty_button_action()
+
+	gui.set_enabled(button_node, false)
 end
 
 local function on_enable_move(self, message)
@@ -71,20 +90,27 @@ local function on_disable_move(self, message)
 	self.move_zone_action.enabled = false
 end
 
-local function on_enable_button_action(self, message)
-	set_button_action_enabled(self, true)
+local function on_enable_special_action(self, message)
+	message = message or {}
+	set_special_action_enabled(self, true)
 	self.button_action.movable = message.movable
 end
 
-local function on_disable_button_action(self, message)
-	set_button_action_enabled(self, false)
+local function on_disable_special_action(self, message)
+	set_special_action_enabled(self, false)
+end
+
+local function on_hide_special_action(self, message)
+	hide_button_action(self)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.ControlsUI.ENABLE_BUTTON_ACTION then
-		on_enable_button_action(self, message)
-	elseif message_id == Msg.ControlsUI.DISABLE_BUTTON_ACTION then
-		on_disable_button_action(self, message)
+	if message_id == Msg.ControlsUI.ENABLE_SPECIAL_ACTION then
+		on_enable_special_action(self, message)
+	elseif message_id == Msg.ControlsUI.DISABLE_SPECIAL_ACTION then
+		on_disable_special_action(self, message)
+	elseif message_id == Msg.ControlsUI.HIDE_SPECIAL_ACTION then
+		on_hide_special_action(self, message)
 	elseif message_id == Msg.ControlsUI.ENABLE_MOVE then
 		on_enable_move(self, message)
 	elseif message_id == Msg.ControlsUI.DISABLE_MOVE then
@@ -111,7 +137,7 @@ local function input_move_zone(self, touched)
 	local move_pad_node = gui.get_node(Urls.MovePad)
 	local move_zone_node = gui.get_node(Urls.MoveZone)
 	local move_controller_node = gui.get_node(Urls.MoveController)
-	
+
 	local container_position = gui.get_position(move_zone_node)
 
 	if self.move_zone_action.state == ActionStatus.Idle and touched.pressed then

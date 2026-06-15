@@ -54,7 +54,7 @@ function M:add_behaviors(behaviors)
   self.behaviors = behaviors
 end
 
-function M:set_flag_behavior(flag)
+function M:set_behavior_flag(flag)
   self.behavior_enabled = flag
 end
 

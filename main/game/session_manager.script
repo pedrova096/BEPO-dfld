@@ -1,18 +1,43 @@
 local Msg = require("lib.msg")
+local SpecialAction = require("modules.special_action.special_action")
+local SpecialActionInfo = require("lib.rewards.special.special_info").Types
 
 local Urls = {
 	UIController = "/ui",
 	MainController = "main:/main_controller",
 }
 
+local RechargeTypes = {
+	Kill = "kill",
+}
+
 function init(self)
 	self.run_ended = false
 	self.player_life_count = 0
+	self.special_action_tracker = SpecialAction:new()
+end
+
+local function sync_special_action_ui(self, progress_message_id)
+	local tracker = self.special_action_tracker
+
+	local value, length = tracker:get_recharge_progress()
+	msg.post(Urls.UIController, progress_message_id, {
+		current_recharge = value,
+		total_recharge = length,
+	})
+
+	if tracker:is_ready() then
+		msg.post(Urls.UIController, Msg.ControlsUI.ENABLE_SPECIAL_ACTION, {
+			movable = self.special_action_movable,
+		})
+	else
+		msg.post(Urls.UIController, Msg.ControlsUI.DISABLE_SPECIAL_ACTION)
+	end
 end
 
 local function on_player_life_initialized(self, message)
 	self.player_life_count = message.lives
-	msg.post(Urls.UIController, Msg.HudUI.SET_LIFE_PROGRESS, {
+	msg.post(Urls.UIController, Msg.HudUI.SET_MAX_LIFE_PROGRESS, {
 		total_lives = self.player_life_count,
 	})
 end
@@ -26,18 +51,53 @@ local function on_player_life_changed(self, message)
 	end
 end
 
-local function on_player_special_action_used(self, message)
-	if message.is_active then return end
+local function on_player_bullet_count_changed(self, message)
+	msg.post(Urls.UIController, Msg.HudUI.SET_BULLET_COUNT, message)
+end
 
-	msg.post(Urls.UIController, Msg.ControlsUI.DISABLE_BUTTON_ACTION)
+local function on_player_special_action_used(self, message)
+	self.special_action_tracker:consume()
+	sync_special_action_ui(self, Msg.HudUI.CHANGE_RECHARGE_PROGRESS)
+end
+
+local function on_set_special_action(self, message)
+	local special_action_info = SpecialActionInfo[message.id]
+	if not special_action_info then return end
+
+	self.special_action_tracker:set_action({
+		id = special_action_info.id,
+		max_uses = special_action_info.initial_uses or special_action_info.max_uses or 1,
+		required_recharge = special_action_info.recharge_value or 0,
+		recharge_type = special_action_info.recharge_type,
+	})
+	self.special_action_movable = special_action_info.movable == true
+
+	msg.post(Urls.UIController, Msg.HudUI.ENABLE_SPECIAL_ACTION, {
+		value = 0,
+		length = self.special_action_tracker.required_recharge,
+	})
+	sync_special_action_ui(self, Msg.HudUI.SET_MAX_RECHARGE_PROGRESS)
+end
+
+local function on_add_kill_count(self, message)
+	if self.special_action_tracker.recharge_type ~= RechargeTypes.Kill then return end
+
+	self.special_action_tracker:add_recharge(message.amount or 1)
+	sync_special_action_ui(self, Msg.HudUI.CHANGE_RECHARGE_PROGRESS)
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Player.LIFE_INITIALIZED then
 		on_player_life_initialized(self, message)
+	elseif message_id == Msg.Player.SET_SPECIAL_ACTION then
+		on_set_special_action(self, message)
 	elseif message_id == Msg.Player.LIFE_CHANGED then
 		on_player_life_changed(self, message)
+	elseif message_id == Msg.Player.BULLET_COUNT_CHANGED then
+		on_player_bullet_count_changed(self, message)
 	elseif message_id == Msg.Player.SPECIAL_ACTION_USED then
 		on_player_special_action_used(self, message)
+	elseif message_id == Msg.Player.ADD_KILL_COUNT then
+		on_add_kill_count(self, message)
 	end
 end

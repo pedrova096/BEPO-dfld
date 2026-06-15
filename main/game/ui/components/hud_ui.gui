@@ -210,7 +210,7 @@ nodes {
 }
 nodes {
   position {
-    x: 41.0
+    x: 47.0
     y: -43.0
   }
   size {
@@ -251,7 +251,7 @@ nodes {
 }
 nodes {
   position {
-    x: 41.0
+    x: 47.0
     y: -29.0
   }
   size {
@@ -300,6 +300,27 @@ nodes {
   id: "monitor_icon"
   parent: "header"
   size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 48.0
+    y: -60.0
+  }
+  scale {
+    x: 0.45
+    y: 0.45
+  }
+  size {
+    x: 200.0
+    y: 32.0
+  }
+  type: TYPE_TEXT
+  text: "x00\n"
+  ""
+  font: "ui_bold"
+  id: "bullet_count"
+  pivot: PIVOT_W
+  parent: "header"
 }
 nodes {
   position {

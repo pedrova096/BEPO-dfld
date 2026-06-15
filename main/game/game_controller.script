@@ -13,6 +13,7 @@ local Urls = {
 	-- External
 	UIController = "/ui",
 	Player = "/player/root",
+	SessionManager = "/session_manager",
 	LevelManager = "/level_manager",
 	SoundController = "/sound_controller",
 }
@@ -74,9 +75,7 @@ local function on_process_player_upgrade(self, message)
 	if reward == RewardTypes.StatusSelector or reward == RewardTypes.EnhancementUpgrade then
 		msg.post(Urls.Player, Msg.Player.APPLY_UPGRADE, message.selected)
 	elseif reward == RewardTypes.SpecialAction then
-		msg.post(Urls.UIController, Msg.ControlsUI.ENABLE_BUTTON_ACTION, {
-			movable = true
-		})
+		msg.post(Urls.SessionManager, Msg.Player.SET_SPECIAL_ACTION, message.selected)
 		msg.post(Urls.Player, Msg.Player.SET_SPECIAL_ACTION, message.selected)
 	end
 end

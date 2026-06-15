@@ -2,20 +2,16 @@
 --- @field id hash|string Special action id.
 --- @field max_uses number|nil Maximum stored uses.
 --- @field required_recharge number|nil Recharge required to restore one use.
+--- @field recharge_type string|nil Source type used to recharge the action.
 
 --- @class SpecialActionOptions : SpecialActionConfig
---- @field object_id hash|nil Runtime object id. Can be assigned later with `set_object_id`.
-
---- @class SpecialActionState
---- @field uses number Current available uses.
---- @field recharge number Current recharge progress.
---- @field object_id hash|nil Runtime object id. Can be assigned later with `set_object_id`.
---- @field status "idle"|"ready"|"recharging"|"empty" Current availability status.
+--- @field recharge number|nil Initial recharge progress.
 
 --- Runtime state for a player special action.
---- Keeps stable config on the instance and mutable values inside `state`.
 --- @class SpecialAction : SpecialActionConfig
---- @field state SpecialActionState Mutable runtime state.
+--- @field uses number Current available uses.
+--- @field recharge number Current recharge progress.
+--- @field status "idle"|"ready"|"recharging"|"empty" Current availability status.
 local M = {}
 M.__index = M
 
@@ -31,16 +27,16 @@ local SpecialActionStatus = {
 
 M.Status = SpecialActionStatus
 
-local function get_status(state, required_recharge)
-	if not state.object_id then
+local function get_status(self)
+	if not self.id then
 		return SpecialActionStatus.Idle
 	end
 
-	if state.uses > 0 then
+	if self.uses > 0 then
 		return SpecialActionStatus.Ready
 	end
 
-	if required_recharge > 0 and state.recharge > 0 then
+	if self.required_recharge > 0 and self.recharge > 0 then
 		return SpecialActionStatus.Recharging
 	end
 
@@ -48,7 +44,7 @@ local function get_status(state, required_recharge)
 end
 
 local function refresh_status(self)
-	self.state.status = get_status(self.state, self.required_recharge)
+	self.status = get_status(self)
 end
 
 --- Create a new special action runtime.
@@ -57,43 +53,52 @@ end
 function M:new(config)
 	config = config or {}
 
-	return setmetatable({
+	local max_uses = config.max_uses or DEFAULT_MAX_USES
+	local instance = setmetatable({
 		id = config.id,
-		max_uses = config.max_uses or DEFAULT_MAX_USES,
+		max_uses = max_uses,
 		required_recharge = config.required_recharge or DEFAULT_REQUIRED_RECHARGE,
-		state = {
-			uses = 0,
-			recharge = 0,
-			status = SpecialActionStatus.Idle,
-			object_id = config.object_id,
-		},
+		recharge_type = config.recharge_type,
+		uses = max_uses,
+		recharge = config.recharge or 0,
+		status = SpecialActionStatus.Idle,
 	}, self)
+
+	refresh_status(instance)
+	return instance
 end
 
 --- Assign the action values
 --- @param config SpecialActionOptions
 function M:set_action(config)
 	self.id = config.id
-	self.max_uses = config.max_uses
-	self.required_recharge = config.required_recharge
-	self.state.object_id = config.object_id
+	self.max_uses = config.max_uses or DEFAULT_MAX_USES
+	self.required_recharge = config.required_recharge or DEFAULT_REQUIRED_RECHARGE
+	self.recharge_type = config.recharge_type
+	self.uses = self.max_uses
+	self.recharge = config.recharge or 0
 	refresh_status(self)
 end
 
---- Return current recharge progress from 0 to 1.
---- @return number
-function M:get_recharge_ratio()
+--- Return current recharge progress value and maximum.
+--- @return number value
+--- @return number length
+function M:get_recharge_progress()
 	if self.required_recharge <= 0 then
-		return 1
+		return 1, 1
 	end
 
-	return self.state.recharge / self.required_recharge
+	if self.uses > 0 then
+		return self.required_recharge, self.required_recharge
+	end
+
+	return self.recharge, self.required_recharge
 end
 
 --- Return whether the action has a runtime object and at least one use.
 --- @return boolean
 function M:is_ready()
-	return self.state.status == SpecialActionStatus.Ready
+	return self.status == SpecialActionStatus.Ready
 end
 
 --- Add recharge progress and restore uses when enough charge is collected.
@@ -102,12 +107,12 @@ end
 function M:add_recharge(amount)
 	amount = amount or 1
 
-	if self.state.uses < self.max_uses then
-		self.state.recharge = math.min(self.state.recharge + amount, self.required_recharge)
+	if self.uses < self.max_uses then
+		self.recharge = math.min(self.recharge + amount, self.required_recharge)
 
-		if self.state.recharge >= self.required_recharge then
-			self.state.uses = self.max_uses
-			self.state.recharge = 0
+		if self.recharge >= self.required_recharge then
+			self.uses = self.max_uses
+			self.recharge = 0
 		end
 	end
 
@@ -122,7 +127,7 @@ function M:consume()
 		return false
 	end
 
-	self.state.uses = self.state.uses - 1
+	self.uses = self.uses - 1
 	refresh_status(self)
 	return true
 end

@@ -15,6 +15,7 @@ local Urls = {
 	Sprite = "#sprite",
 	MuzzleFlash = "#muzzle_flash",
 	SoundController = "/sound_controller",
+	SessionManager = "/session_manager",
 }
 
 go.property("ammo_capacity", 4)
@@ -23,6 +24,13 @@ go.property("bullet_force", 3)
 go.property("bullet_speed", 400)
 go.property("offset", vmath.vector3(0, 8.0, 0))
 go.property("trigger_status", hash("released"))
+
+local function sync_bullet_count(self)
+	msg.post(Urls.SessionManager, Msg.Player.BULLET_COUNT_CHANGED, {
+		ammo = self.weapon.state.ammo,
+		ammo_capacity = self.weapon.config.ammo_capacity,
+	})
+end
 
 function init(self)
 	self.weapon = Weapon:new({
@@ -46,6 +54,7 @@ function init(self)
 			force = self.bullet_force,
 		},
 	})
+	sync_bullet_count(self)
 
 	self.original_position = go.get_position()
 	self.original_offset = vmath.length(self.original_position) or 1
@@ -101,6 +110,11 @@ function fixed_update(self, dt)
 	trigger_weapon_pipe(self, dt)
 end
 
+function final(self)
+	self.weapon:final()
+	self.weapon = nil
+end
+
 local function on_trigger_weapon(self, message)
 	self.trigger_status = TriggerStatusEnum.Pressed
 	self.trigger_payload = message or {}
@@ -119,6 +133,7 @@ end
 
 local function on_set_properties(self, message)
 	self.weapon:set_properties(message)
+	sync_bullet_count(self)
 end
 
 local function on_reload_started(self, message)
@@ -133,6 +148,7 @@ local function on_reload_completed(self, message)
 	go.cancel_animations(".", "euler.z")
 	go.set(".", "euler.z", 0)
 	sprite.play_flipbook(Urls.Sprite, "idle")
+	sync_bullet_count(self)
 end
 
 local function show_muzzle_flash()
@@ -146,6 +162,7 @@ local function on_fire_weapon(self, message)
 	sprite.play_flipbook(Urls.Sprite, "fire")
 	show_muzzle_flash()
 	msg.post(Urls.SoundController, Msg.Sound.PLAY_SFX_SOUND, { id = hash("shot") })
+	sync_bullet_count(self)
 end
 
 function on_message(self, message_id, message, sender)

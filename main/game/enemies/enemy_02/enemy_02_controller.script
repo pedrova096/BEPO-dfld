@@ -114,7 +114,7 @@ local function on_apply_damage(self, message)
 end
 
 local function on_activate_enemy(self, message)
-	self.stater:set_flag_behavior(true)
+	self.stater:set_behavior_flag(true)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
 	msg.post(Urls.WeaponController, Msg.SHOW_ELEMENT)
 	self.wave_id = message.wave_id
@@ -127,7 +127,7 @@ local function on_dead(self, message)
 		wave_id = self.wave_id
 	})
 	msg.post(Urls.WeaponController, Msg.HIDE_ELEMENT)
-	self.stater:set_flag_behavior(false)
+	self.stater:set_behavior_flag(false)
 end
 
 local function on_despawned(self, message)

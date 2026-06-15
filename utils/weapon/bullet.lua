@@ -50,4 +50,12 @@ function M:finish()
   self.active = false
 end
 
+---Delete the runtime bullet object.
+function M:final()
+  self.active = false
+
+  go.delete(self.object_id)
+  self.object_id = nil
+end
+
 return M

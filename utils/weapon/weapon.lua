@@ -46,7 +46,7 @@ function M:new(opts)
 
   instance.id = opts.id or "weapon"
   instance.config = Table.copy(opts.config)
-  instance.bullet_config = Table.copy(opts.bullet.config or DEFAULT_BULLET_CONFIG)
+  instance.bullet_config = Table.merge_right(DEFAULT_BULLET_CONFIG, opts.bullet.config or {})
   instance.target = opts.target
 
   instance.state = {
@@ -72,10 +72,7 @@ function M:_fire_cooldown_pipe(dt)
 end
 
 ---@param payload WeaponFirePayload|nil
----@return table
 function M:_apply_accuracy(payload)
-  payload = payload or {}
-
   local accuracy = self.config.accuracy or 1
   if accuracy >= 1 then
     return payload
@@ -93,6 +90,22 @@ function M:_apply_accuracy(payload)
   local adjusted_payload = payload
   adjusted_payload.direction = VMath.rotate_direction(direction, offset_rad)
   return adjusted_payload
+end
+
+---@param payload WeaponFirePayload|nil
+---@return WeaponFirePayload
+function M:_build_fire_payload(payload)
+  local firing_payload = Table.copy(payload or {})
+
+  firing_payload.force = self.bullet_config.force
+  firing_payload.speed = self.bullet_config.speed
+  firing_payload.ricochets = self.bullet_config.ricochets or 0
+  firing_payload.ricochet_ray_count = self.bullet_config.ricochet_ray_count
+  firing_payload.ricochet_ray_range = self.bullet_config.ricochet_ray_range
+  firing_payload.ricochet_ray_start_offset = self.bullet_config.ricochet_ray_start_offset
+  firing_payload.ricochet_check_obstacles = self.bullet_config.ricochet_check_obstacles
+
+  return self:_apply_accuracy(firing_payload)
 end
 
 ---@param dt number
@@ -134,20 +147,16 @@ function M:fire(payload)
     return nil
   end
 
-  payload.force = self.bullet_config.force
-  payload.speed = self.bullet_config.speed
-  local firing_payload = self:_apply_accuracy(payload)
-  firing_payload.ricochets = self.bullet_config.ricochets or 0
-  firing_payload.ricochet_ray_count = self.bullet_config.ricochet_ray_count
-  firing_payload.ricochet_ray_range = self.bullet_config.ricochet_ray_range
-  firing_payload.ricochet_ray_start_offset = self.bullet_config.ricochet_ray_start_offset
-  firing_payload.ricochet_check_obstacles = self.bullet_config.ricochet_check_obstacles
-
+  local firing_payload = self:_build_fire_payload(payload)
   bullet:activate(firing_payload)
-  msg.post(".", Msg.Weapon.FIRED)
 
   self.state.cooldown = self.config.fire_interval
   self.state.ammo = math.max(0, self.state.ammo - 1)
+  msg.post(".", Msg.Weapon.FIRED, {
+    ammo = self.state.ammo,
+    ammo_capacity = self.config.ammo_capacity,
+  })
+
   if self.state.ammo <= 0 then
     self:start_reload(true)
   end
@@ -173,7 +182,10 @@ function M:_complete_reload()
   self.state.reload_timer = 0
   self.state.cooldown = 0
   self.state.ammo = self.config.ammo_capacity
-  msg.post(".", Msg.Weapon.RELOAD_COMPLETED)
+  msg.post(".", Msg.Weapon.RELOAD_COMPLETED, {
+    ammo = self.state.ammo,
+    ammo_capacity = self.config.ammo_capacity,
+  })
 end
 
 ---Handle bullet completion (hit, timeout, etc).
@@ -228,6 +240,18 @@ function M:on_bullet_finished(bullet_id)
   local bullet = self.bullet_pool:get_bullet_by_id(bullet_id)
   if not bullet then return end
   self.bullet_pool:release(bullet)
+end
+
+---Dispose pooled bullets and stop this weapon from doing further work.
+function M:final()
+  self.state.reloading = false
+  self.state.reload_timer = 0
+  self.state.cooldown = 0
+
+  if self.bullet_pool then
+    self.bullet_pool:final()
+    self.bullet_pool = nil
+  end
 end
 
 return M

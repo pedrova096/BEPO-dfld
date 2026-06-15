@@ -2,6 +2,7 @@ local Player = {
   -- events
   LIFE_CHANGED = hash("life_changed"),
   LIFE_INITIALIZED = hash("life_initialized"),
+  BULLET_COUNT_CHANGED = hash("bullet_count_changed"),
   SPECIAL_ACTION_USED = hash("special_action_used"),
 
   -- commands
@@ -11,7 +12,7 @@ local Player = {
   SET_TARGET_ENEMIES = hash("set_target_enemies"),
   SET_POSITION = hash("set_position"),
   APPLY_UPGRADE = hash("apply_upgrade"),
-  ADD_SPECIAL_ACTION_CHARGE = hash("add_special_action_charge"),
+  ADD_KILL_COUNT = hash("add_kill_count"),
   START_SPECIAL_ACTION = hash("start_special_action"),
   RUN_SPECIAL_ACTION = hash("run_special_action"),
   RELEASE_SPECIAL_ACTION = hash("release_special_action"),
@@ -117,8 +118,9 @@ local ControlsUI = {
   -- commands
   ENABLE_MOVE = hash("enable_move"),
   DISABLE_MOVE = hash("disable_move"),
-  ENABLE_BUTTON_ACTION = hash("enable_button"),
-  DISABLE_BUTTON_ACTION = hash("disable_button"),
+  ENABLE_SPECIAL_ACTION = hash("enable_special_action"),
+  DISABLE_SPECIAL_ACTION = hash("disable_special_action"),
+  HIDE_SPECIAL_ACTION = hash("hide_special_action"),
   BLOCK_CONTROLS = hash("block_controls"),
 }
 
@@ -127,7 +129,12 @@ local HudUI = {
   WIPE_SHOWN = hash("wipe_shown"),
   WIPE_HIDDEN = hash("wipe_hidden"),
   -- commands
-  SET_LIFE_PROGRESS = hash("set_life_progress"),
+  ENABLE_SPECIAL_ACTION = hash("hud_enable_special_action"),
+  DISABLE_SPECIAL_ACTION = hash("hud_disable_special_action"),
+  SET_MAX_RECHARGE_PROGRESS = hash("set_max_recharge_progress"),
+  CHANGE_RECHARGE_PROGRESS = hash("change_recharge_progress"),
+  SET_BULLET_COUNT = hash("set_bullet_count"),
+  SET_MAX_LIFE_PROGRESS = hash("set_max_life_progress"),
   CHANGE_LIFE_PROGRESS = hash("change_life_progress"),
   SHOW_WIPE = hash("show_wipe"),
   HIDE_WIPE = hash("hide_wipe"),

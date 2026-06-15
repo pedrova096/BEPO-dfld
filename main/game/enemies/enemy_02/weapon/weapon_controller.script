@@ -84,6 +84,11 @@ function fixed_update(self, dt)
   trigger_weapon_pipe(self, dt)
 end
 
+function final(self)
+  self.weapon:final()
+  self.weapon = nil
+end
+
 local function on_trigger_weapon(self, message)
   self.trigger_status = TriggerStatusEnum.Pressed
   self.trigger_payload = message or {}

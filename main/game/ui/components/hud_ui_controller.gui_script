@@ -31,6 +31,7 @@ local Urls = {
 	Toast = "toast/frame",
 	ToastText = "toast/text",
 	ToastIcon = "toast/icon",
+	BulletCount = "bullet_count",
 }
 
 local UpgradeButtons = {
@@ -143,6 +144,11 @@ function init(self)
 	gui.set_enabled(gui.get_node(Urls.CompletedLevelModal), false)
 end
 
+local function on_set_bullet_count(self, message)
+	local ammo = message.ammo or 0
+	gui.set_text(gui.get_node(Urls.BulletCount), string.format("x%02d", ammo))
+end
+
 local function wipe_view_pipe(self, dt)
 	if not self.wipe_transition then return end
 
@@ -175,7 +181,7 @@ function update(self, dt)
 	wipe_view_pipe(self, dt)
 end
 
-local function on_set_life_progress(self, message)
+local function on_set_max_life_progress(self, message)
 	local total_lives = message.total_lives or self.life_progress.length
 	self.life_progress:set_length(total_lives)
 	self.life_progress:set_value(message.current_lives or total_lives, { instant = true })
@@ -186,6 +192,36 @@ local function on_life_progress_changed(self, message)
 		self.life_progress:set_length(message.total_lives)
 	end
 	self.life_progress:set_value(message.current_lives)
+end
+
+local function on_enable_special_action(self, message)
+	message = message or {}
+	if message.length then
+		self.energy_progress:set_length(message.length)
+	end
+
+	self.energy_progress:set_value(message.value or 0, { instant = true })
+	self.energy_progress:show()
+end
+
+local function on_disable_special_action(self, _message)
+	self.energy_progress:set_value(0, { instant = true })
+	self.energy_progress:hide()
+end
+
+local function on_set_max_recharge_progress(self, message)
+	message = message or {}
+	local total_recharge = message.total_recharge or self.energy_progress.length
+	self.energy_progress:set_length(total_recharge)
+	self.energy_progress:set_value(message.current_recharge or total_recharge, { instant = true })
+end
+
+local function on_recharge_progress_changed(self, message)
+	message = message or {}
+	if message.total_recharge then
+		self.energy_progress:set_length(message.total_recharge)
+	end
+	self.energy_progress:set_value(message.current_recharge or 0)
 end
 
 local function start_wipe_transition(self, options)
@@ -263,10 +299,20 @@ local function on_hide_completed_level_modal(self, _message)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.HudUI.SET_LIFE_PROGRESS then
-		on_set_life_progress(self, message)
+	if message_id == Msg.HudUI.SET_MAX_LIFE_PROGRESS then
+		on_set_max_life_progress(self, message)
 	elseif message_id == Msg.HudUI.CHANGE_LIFE_PROGRESS then
 		on_life_progress_changed(self, message)
+	elseif message_id == Msg.HudUI.ENABLE_SPECIAL_ACTION then
+		on_enable_special_action(self, message)
+	elseif message_id == Msg.HudUI.DISABLE_SPECIAL_ACTION then
+		on_disable_special_action(self, message)
+	elseif message_id == Msg.HudUI.SET_MAX_RECHARGE_PROGRESS then
+		on_set_max_recharge_progress(self, message)
+	elseif message_id == Msg.HudUI.CHANGE_RECHARGE_PROGRESS then
+		on_recharge_progress_changed(self, message)
+	elseif message_id == Msg.HudUI.SET_BULLET_COUNT then
+		on_set_bullet_count(self, message)
 	elseif message_id == Msg.HudUI.SHOW_WIPE then
 		on_show_wipe(self, message)
 	elseif message_id == Msg.HudUI.HIDE_WIPE then
