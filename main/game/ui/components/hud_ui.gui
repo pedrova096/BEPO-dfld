@@ -210,18 +210,6 @@ nodes {
 }
 nodes {
   position {
-    x: 30.0
-    y: 13.0
-  }
-  type: TYPE_BOX
-  texture: "ui/life"
-  id: "life_node"
-  parent: "header"
-  size_mode: SIZE_MODE_AUTO
-  visible: false
-}
-nodes {
-  position {
     x: 41.0
     y: -43.0
   }

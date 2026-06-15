@@ -11,12 +11,6 @@ images {
   image: "/assets/sprites/ui/upgrade_frame.png"
 }
 images {
-  image: "/assets/sprites/ui/life.png"
-}
-images {
-  image: "/assets/sprites/ui/life_empty.png"
-}
-images {
   image: "/assets/sprites/ui/upgrade_tag.png"
 }
 images {

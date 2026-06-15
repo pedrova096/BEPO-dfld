@@ -12,13 +12,13 @@ end
 
 local function on_player_life_initialized(self, message)
 	self.player_life_count = message.lives
-	msg.post(Urls.UIController, Msg.HudUI.SET_LIFE_NODES, {
+	msg.post(Urls.UIController, Msg.HudUI.SET_LIFE_PROGRESS, {
 		total_lives = self.player_life_count,
 	})
 end
 
 local function on_player_life_changed(self, message)
-	msg.post(Urls.UIController, Msg.HudUI.CHANGE_LIFES, message)
+	msg.post(Urls.UIController, Msg.HudUI.CHANGE_LIFE_PROGRESS, message)
 
 	if message.current_lives <= 0 and not self.run_ended then
 		self.run_ended = true

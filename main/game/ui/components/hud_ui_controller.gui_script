@@ -14,7 +14,6 @@ local Urls = {
 	GameController = "/controller",
 	MainController = "main:/main_controller",
 	ControlsUI = "/ui#controls_ui",
-	LifeNode = "life_node",
 	LifeBar = "life_bar",
 	LifeProgress = "life_progress",
 	EnergyBar = "energy_bar",
@@ -122,8 +121,8 @@ function init(self)
 		icon_node_id = Urls.ToastIcon,
 	})
 
-	self.life_nodes = {}
 	self.life_progress = ProgressGUI:new({
+		bar_id = Urls.LifeBar,
 		progress_id = Urls.LifeProgress,
 		color_bar = Colors["#ffe478"],
 		color_bg = Colors["#ffffeb"],
@@ -176,48 +175,17 @@ function update(self, dt)
 	wipe_view_pipe(self, dt)
 end
 
-local LIFE_NODE_SPACING = 32
-local function on_set_life_count(self, message)
-	local original_life_node = gui.get_node(Urls.LifeNode)
-	local original_life_node_position = gui.get_position(original_life_node)
-	local life_count = message.total_lives
-
-	for i = 1, life_count do
-		local life_node_id = "life_node_" .. i
-		local life_node = gui.clone(original_life_node)
-		local life_node_position = original_life_node_position + vmath.vector3((i - 1) * LIFE_NODE_SPACING, 0, 0)
-		gui.set_position(life_node, life_node_position)
-		gui.set_visible(life_node, true)
-		gui.set_id(life_node, life_node_id)
-
-		table.insert(self.life_nodes, { id = life_node_id, active = true })
-	end
+local function on_set_life_progress(self, message)
+	local total_lives = message.total_lives or self.life_progress.length
+	self.life_progress:set_length(total_lives)
+	self.life_progress:set_value(message.current_lives or total_lives, { instant = true })
 end
 
-local function shake_life_node(self, life_node)
-	local life_node_position = gui.get_position(life_node)
-	gui.animate(life_node, "position.x", life_node_position.x + 2, gui.EASING_INBOUNCE, 0.125, 0, function()
-		gui.animate(life_node, "position.x", life_node_position.x, gui.EASING_OUTBOUNCE, 0.125, 0)
-	end)
-end
-
-local function on_player_life_changed(self, message)
-	local current_lives = message.current_lives + 1
-
-	for index, life in ipairs(self.life_nodes) do
-		local life_node = gui.get_node(life.id)
-
-		if index < current_lives then
-			life.active = true
-			gui.play_flipbook(life_node, "life")
-		else
-			if life.active then
-				shake_life_node(self, life_node)
-			end
-			life.active = false
-			gui.play_flipbook(life_node, "life_empty")
-		end
+local function on_life_progress_changed(self, message)
+	if message.total_lives then
+		self.life_progress:set_length(message.total_lives)
 	end
+	self.life_progress:set_value(message.current_lives)
 end
 
 local function start_wipe_transition(self, options)
@@ -295,10 +263,10 @@ local function on_hide_completed_level_modal(self, _message)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == Msg.HudUI.SET_LIFE_NODES then
-		on_set_life_count(self, message)
-	elseif message_id == Msg.HudUI.CHANGE_LIFES then
-		on_player_life_changed(self, message)
+	if message_id == Msg.HudUI.SET_LIFE_PROGRESS then
+		on_set_life_progress(self, message)
+	elseif message_id == Msg.HudUI.CHANGE_LIFE_PROGRESS then
+		on_life_progress_changed(self, message)
 	elseif message_id == Msg.HudUI.SHOW_WIPE then
 		on_show_wipe(self, message)
 	elseif message_id == Msg.HudUI.HIDE_WIPE then

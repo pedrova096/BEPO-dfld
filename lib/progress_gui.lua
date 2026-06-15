@@ -138,7 +138,9 @@ end
 
 ---@param length number|nil New maximum value and segment count.
 function M:set_length(length)
-	self.length = math.max(0, length ~= nil and length or self.length)
+	if length == nil or length == self.length then return end
+
+	self.length = length
 	self:_set_division()
 	self:set_value(self.value, { instant = true })
 end

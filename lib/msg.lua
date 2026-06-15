@@ -127,8 +127,8 @@ local HudUI = {
   WIPE_SHOWN = hash("wipe_shown"),
   WIPE_HIDDEN = hash("wipe_hidden"),
   -- commands
-  SET_LIFE_NODES = hash("set_life_nodes"),
-  CHANGE_LIFES = hash("change_lifes"),
+  SET_LIFE_PROGRESS = hash("set_life_progress"),
+  CHANGE_LIFE_PROGRESS = hash("change_life_progress"),
   SHOW_WIPE = hash("show_wipe"),
   HIDE_WIPE = hash("hide_wipe"),
   SHOW_SHOP_MODAL = hash("show_shop_modal"),
