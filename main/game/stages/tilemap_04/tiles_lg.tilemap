@@ -4,6 +4,56 @@ layers {
   z: 0.0
   cell {
     x: 0
+    y: -9
+    tile: 0
+  }
+  cell {
+    x: 1
+    y: -9
+    tile: 0
+  }
+  cell {
+    x: 2
+    y: -9
+    tile: 0
+  }
+  cell {
+    x: 3
+    y: -9
+    tile: 0
+  }
+  cell {
+    x: 4
+    y: -9
+    tile: 0
+  }
+  cell {
+    x: 0
+    y: -8
+    tile: 0
+  }
+  cell {
+    x: 1
+    y: -8
+    tile: 0
+  }
+  cell {
+    x: 2
+    y: -8
+    tile: 0
+  }
+  cell {
+    x: 3
+    y: -8
+    tile: 0
+  }
+  cell {
+    x: 4
+    y: -8
+    tile: 0
+  }
+  cell {
+    x: 0
     y: -7
     tile: 0
   }
@@ -183,28 +233,48 @@ layers {
   z: 0.0
   cell {
     x: 0
-    y: -7
+    y: -9
     tile: 3
   }
   cell {
     x: 1
-    y: -7
+    y: -9
     tile: 7
   }
   cell {
     x: 2
-    y: -7
+    y: -9
     tile: 7
   }
   cell {
     x: 3
-    y: -7
+    y: -9
     tile: 7
   }
   cell {
     x: 4
-    y: -7
+    y: -9
     tile: 4
+  }
+  cell {
+    x: 0
+    y: -8
+    tile: 1
+  }
+  cell {
+    x: 4
+    y: -8
+    tile: 2
+  }
+  cell {
+    x: 0
+    y: -7
+    tile: 1
+  }
+  cell {
+    x: 4
+    y: -7
+    tile: 2
   }
   cell {
     x: 0

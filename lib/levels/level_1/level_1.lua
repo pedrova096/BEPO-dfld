@@ -8,9 +8,17 @@ return {
   stages = {
     [hash("stage_1")] = {
       data = Stage1,
-      connections = { hash("stage_2"), hash("stage_2") }
+      connections = { hash("stage_2") }
     },
     [hash("stage_2")] = {
+      data = Stage2,
+      connections = { hash("stage_3") }
+    },
+    [hash("stage_3")] = {
+      data = Stage2,
+      connections = { hash("stage_4") }
+    },
+    [hash("stage_4")] = {
       data = Stage2,
       connections = nil
     }

@@ -54,20 +54,5 @@ nodes {
   parent: "move_zone"
   size_mode: SIZE_MODE_AUTO
 }
-nodes {
-  position {
-    y: 180.0
-  }
-  size {
-    x: 360.0
-    y: 100.0
-  }
-  type: TYPE_BOX
-  id: "drag_zone"
-  pivot: PIVOT_SW
-  inherit_alpha: true
-  alpha: 0.22
-  size_mode: SIZE_MODE_AUTO
-}
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT

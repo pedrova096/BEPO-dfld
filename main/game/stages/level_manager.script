@@ -16,6 +16,8 @@ local Urls = {
 	Camera = "/camera",
 	Tilemap01Factory = "/level_manager#tilemap_01_factory",
 	Tilemap02Factory = "/level_manager#tilemap_02_factory",
+	Tilemap03Factory = "/level_manager#tilemap_03_factory",
+	Tilemap04Factory = "/level_manager#tilemap_04_factory",
 	PlayerController = "/player/root#controller",
 	UpgraderFactory = "/level_manager#upgrader_factory",
 	ConnectionFactory = "/level_manager#door_factory"
@@ -29,6 +31,8 @@ local FACTORIES_MAP = {
 local TILEMAP_FACTORY_MAP = {
 	[hash("tilemap_01")] = Urls.Tilemap01Factory,
 	[hash("tilemap_02")] = Urls.Tilemap02Factory,
+	[hash("tilemap_03")] = Urls.Tilemap03Factory,
+	[hash("tilemap_04")] = Urls.Tilemap04Factory,
 }
 
 local DoorsEnum = {

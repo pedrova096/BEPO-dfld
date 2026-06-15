@@ -1,18 +1,18 @@
-name: "tilemap_02"
+name: "tilemap_03"
 instances {
   id: "tiles_lg"
-  prototype: "/main/game/stages/tilemap_02/tiles_lg.go"
+  prototype: "/main/game/stages/tilemap_03/tiles_lg.go"
 }
 instances {
   id: "tiles_sm"
-  prototype: "/main/game/stages/tilemap_02/tiles_sm.go"
+  prototype: "/main/game/stages/tilemap_03/tiles_sm.go"
   position {
     z: 1.0
   }
 }
 instances {
   id: "top_tiles_sm"
-  prototype: "/main/game/stages/tilemap_02/top_tiles_sm.go"
+  prototype: "/main/game/stages/tilemap_03/top_tiles_sm.go"
   position {
     z: 2.0
   }
@@ -26,6 +26,6 @@ embedded_instances {
   data: ""
   position {
     x: -120.0
-    y: 168.0
+    y: 216.0
   }
 }
