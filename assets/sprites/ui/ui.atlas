@@ -40,4 +40,13 @@ images {
 images {
   image: "/assets/sprites/ui/icon_pause.png"
 }
+images {
+  image: "/assets/sprites/ui/life_bar.png"
+}
+images {
+  image: "/assets/sprites/ui/energy_bar.png"
+}
+images {
+  image: "/assets/sprites/ui/monitor_icon.png"
+}
 extrude_borders: 1

@@ -2,6 +2,8 @@ local ManualTimer = require("utils.manual_timer")
 local UtilsGUI = require("utils.utils_gui")
 local Msg = require("lib.msg")
 local ToastGUI = require("lib.toast_gui")
+local Colors = require("lib.colors")
+local ProgressGUI = require("lib.progress_gui")
 
 local ActionIds = {
 	TouchMulti = hash("touch_multi"),
@@ -13,6 +15,10 @@ local Urls = {
 	MainController = "main:/main_controller",
 	ControlsUI = "/ui#controls_ui",
 	LifeNode = "life_node",
+	LifeBar = "life_bar",
+	LifeProgress = "life_progress",
+	EnergyBar = "energy_bar",
+	EnergyProgress = "energy_progress",
 	Wipe = "wipe",
 	ShopModal = "shop_modal",
 	CompletedLevelModal = "completed_level_modal/modal",
@@ -115,7 +121,26 @@ function init(self)
 		text_node_id = Urls.ToastText,
 		icon_node_id = Urls.ToastIcon,
 	})
+
 	self.life_nodes = {}
+	self.life_progress = ProgressGUI:new({
+		progress_id = Urls.LifeProgress,
+		color_bar = Colors["#ffe478"],
+		color_bg = Colors["#ffffeb"],
+		color_division = Colors["#b27666"],
+		length = 3,
+		show = true,
+	})
+	self.energy_progress = ProgressGUI:new({
+		bar_id = Urls.EnergyBar,
+		progress_id = Urls.EnergyProgress,
+		color_bar = Colors["#4da6ff"],
+		color_bg = Colors["#ebffeb"],
+		color_division = Colors["#473b78"],
+		length = 2,
+		show = false
+	})
+
 	gui.set_enabled(gui.get_node(Urls.CompletedLevelModal), false)
 end
 
@@ -146,6 +171,8 @@ local function wipe_view_pipe(self, dt)
 end
 
 function update(self, dt)
+	self.life_progress:update(dt)
+	self.energy_progress:update(dt)
 	wipe_view_pipe(self, dt)
 end
 

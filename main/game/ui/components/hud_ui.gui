@@ -211,7 +211,7 @@ nodes {
 nodes {
   position {
     x: 30.0
-    y: -34.0
+    y: 13.0
   }
   type: TYPE_BOX
   texture: "ui/life"
@@ -219,6 +219,99 @@ nodes {
   parent: "header"
   size_mode: SIZE_MODE_AUTO
   visible: false
+}
+nodes {
+  position {
+    x: 41.0
+    y: -43.0
+  }
+  size {
+    x: 52.0
+    y: 12.0
+  }
+  type: TYPE_BOX
+  texture: "ui/energy_bar"
+  id: "energy_bar"
+  pivot: PIVOT_W
+  parent: "header"
+  slice9 {
+    x: 3.0
+    y: 3.0
+    z: 5.0
+    w: 3.0
+  }
+}
+nodes {
+  position {
+    x: 3.0
+  }
+  size {
+    x: 44.0
+    y: 6.0
+  }
+  type: TYPE_BOX
+  id: "energy_progress"
+  pivot: PIVOT_W
+  parent: "energy_bar"
+  slice9 {
+    x: 3.0
+    y: 3.0
+    z: 5.0
+    w: 3.0
+  }
+  material: "progress_gui"
+}
+nodes {
+  position {
+    x: 41.0
+    y: -29.0
+  }
+  size {
+    x: 64.0
+    y: 14.0
+  }
+  type: TYPE_BOX
+  texture: "ui/life_bar"
+  id: "life_bar"
+  pivot: PIVOT_W
+  parent: "header"
+  slice9 {
+    x: 3.0
+    y: 3.0
+    z: 3.0
+    w: 3.0
+  }
+}
+nodes {
+  position {
+    x: 3.0
+  }
+  size {
+    x: 58.0
+    y: 8.0
+  }
+  type: TYPE_BOX
+  id: "life_progress"
+  pivot: PIVOT_W
+  parent: "life_bar"
+  slice9 {
+    x: 3.0
+    y: 3.0
+    z: 3.0
+    w: 3.0
+  }
+  material: "progress_gui"
+}
+nodes {
+  position {
+    x: 34.0
+    y: -35.0
+  }
+  type: TYPE_BOX
+  texture: "ui/monitor_icon"
+  id: "monitor_icon"
+  parent: "header"
+  size_mode: SIZE_MODE_AUTO
 }
 nodes {
   position {
@@ -396,4 +489,8 @@ adjust_reference: ADJUST_REFERENCE_PARENT
 materials {
   name: "halftone_circles_wipe"
   material: "/main/materials/halftone_circles_wipe/halftone_circles_wipe.material"
+}
+materials {
+  name: "progress_gui"
+  material: "/main/materials/progress_gui/progress_gui.material"
 }
