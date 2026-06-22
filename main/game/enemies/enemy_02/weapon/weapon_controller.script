@@ -14,11 +14,11 @@ local Urls = {
   Sprite = "#sprite",
 }
 
-go.property("ammo_capacity", 3)
+go.property("ammo_capacity", 1)
 go.property("bullet_damage", 1)
 go.property("bullet_force", 8)
 go.property("bullet_speed", 100)
-go.property("reload_time", 1.2)
+go.property("reload_time", 1.5)
 go.property("offset", vmath.vector3(0, 8.0, 0))
 go.property("trigger_status", hash("released"))
 
@@ -38,7 +38,7 @@ function init(self)
   })
   self.weapon:set_properties({
     ammo_capacity = self.ammo_capacity,
-    pool_size = self.ammo_capacity + 2,
+    pool_size = self.ammo_capacity,
     reload_time = self.reload_time,
     bullet_config = {
       speed = self.bullet_speed,
@@ -125,12 +125,12 @@ local function on_force_reload(self, message)
 end
 
 local function on_show_element(self, message)
-  Entity.show_sprite(Urls.Sprite)
+  -- Entity.show_sprite(Urls.Sprite)
 end
 
 local function on_hide_element(self, message)
   self.trigger_status = TriggerStatusEnum.Released
-  Entity.hide_sprite(Urls.Sprite)
+  -- Entity.hide_sprite(Urls.Sprite)
 end
 
 local function on_set_direction(self, message)

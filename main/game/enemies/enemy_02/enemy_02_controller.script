@@ -17,7 +17,7 @@ local Urls = {
 
 go.property("health", 10)
 go.property("wave_id", 0)
-go.property("safe_distance", 100)
+go.property("safe_distance", 150)
 go.property("velocity", 30)
 go.property("bullet_damage", 2)
 
@@ -50,7 +50,7 @@ function init(self)
 				local position = go.get_position()
 				local distance = vmath.length(player_position - position)
 
-				return self.steer:get_is_target_on_sight() and distance <= self.safe_distance and self.attacker:can_attack()
+				return self.steer:get_is_target_on_sight() and distance <= self.safe_distance and self.attacker:can_execute()
 			end,
 			get_payload = function()
 				return {
@@ -116,7 +116,13 @@ local function on_apply_damage(self, message)
 	})
 end
 
+local function reset_store(self)
+	self.store.health = self.health
+	self.store.velocity = self.velocity
+end
+
 local function on_activate_enemy(self, message)
+	reset_store(self)
 	self.stater:set_behavior_flag(true)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
 	msg.post(Urls.WeaponController, Msg.SHOW_ELEMENT)
