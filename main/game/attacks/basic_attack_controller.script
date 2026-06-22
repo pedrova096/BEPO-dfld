@@ -22,6 +22,7 @@ function init(self)
 	self.omit_in_zone = {}
 	self.original_position = go.get_position()
 	self.original_offset = vmath.length(self.original_position) or 1
+
 	disabled_attack()
 end
 
@@ -40,23 +41,23 @@ function update(self, dt)
 	area_pipe(self, dt)
 end
 
-local function on_attack_prepare(self, message)
+local function on_attack_start_windup(self, message)
 	self.is_active = true
 	Entity.show_sprite(Urls.AreaSprite)
 end
 
-local function on_attack_attack(self, message)
+local function on_attack_start_attack(self, message)
 	Entity.show_sprite(Urls.Sprite)
 	Entity.enable_body(Urls.Body)
 	sprite.play_flipbook(Urls.Sprite, "enemy_attack")
 end
 
-local function on_attack_recover(self, message)
+local function on_attack_start_recovery(self, message)
 	Entity.disable_body(Urls.Body)
 	Entity.hide_sprite(Urls.Sprite)
 end
 
-local function on_attack_cooldown(self)
+local function on_attack_start_cooldown(self)
 	self.is_active = false
 	self.omit_in_zone = {}
 	disabled_attack()
@@ -83,24 +84,18 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Attacker.START_WINDUP then
-		on_attack_prepare(self, message)
+		on_attack_start_windup(self, message)
 	elseif message_id == Msg.Attacker.START_ATTACK then
-		on_attack_attack(self, message)
+		on_attack_start_attack(self, message)
 	elseif message_id == Msg.Attacker.START_RECOVERY then
-		on_attack_recover(self, message)
+		on_attack_start_recovery(self, message)
 	elseif message_id == Msg.Attacker.START_COOLDOWN then
-		on_attack_cooldown(self, message)
+		on_attack_start_cooldown(self, message)
 	elseif message_id == Msg.Attacker.SET_DIRECTION then
 		on_set_direction(self, message)
 	elseif message_id == Msg.Attacker.RESET then
-		on_attack_cooldown(self, message)
+		on_attack_start_cooldown(self, message)
 	elseif message_id == Msg.TRIGGER_OCCURRED then
 		on_trigger_response(self, message)
 	end
-end
-
-function on_input(self, action_id, action)
-end
-
-function on_reload(self)
 end

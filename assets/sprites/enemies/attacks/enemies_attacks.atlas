@@ -4,6 +4,9 @@ images {
 images {
   image: "/assets/sprites/enemies/attacks/attack_area_dot.png"
 }
+images {
+  image: "/assets/sprites/enemies/attacks/attack_area_02.png"
+}
 animations {
   id: "enemy_attack"
   images {

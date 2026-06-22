@@ -65,9 +65,3 @@ embedded_components {
     w: 0.9238795
   }
 }
-embedded_components {
-  id: "dot_factory"
-  type: "factory"
-  data: "prototype: \"/main/game/enemies/enemy_01/enemy_attack/attack_dot.go\"\n"
-  ""
-}
