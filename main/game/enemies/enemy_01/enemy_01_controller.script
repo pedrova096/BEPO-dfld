@@ -22,11 +22,13 @@ go.property("wave_id", 0)
 go.property("velocity", 40)
 
 function init(self)
+	self.store = {
+		health = self.health,
+		velocity = self.velocity,
+		target = Urls.PlayerRoot,
+	}
 	self.stater = EnemyStater:new({
-		stats = {
-			health = self.health,
-			velocity = self.velocity,
-		}
+		store = self.store
 	})
 
 	self.steer = Steer:new({})
@@ -52,7 +54,7 @@ function init(self)
 			get_payload = function()
 				return {
 					attacker = self.attacker,
-					target = self.target,
+					target = self.store.target,
 				}
 			end,
 		}
@@ -83,6 +85,7 @@ local function on_apply_damage(self, message)
 	if self.stater:is(StatesEnum.Hurt) then return end
 
 	local direction, damage, force = message.direction, message.damage, message.force
+	self.store.health = math.max(0, self.store.health - damage)
 	self.stater:apply_transition(StatesEnum.Hurt, {
 		damage = damage,
 		direction = vmath.vector3(direction.x, direction.y, 0),

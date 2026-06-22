@@ -48,7 +48,6 @@ function M:new(config)
     DebugIdLabel = "root#debug_id",
   }
   local instance = Stater.new(self, config)
-  instance.target = config.target or nil
   return instance
 end
 

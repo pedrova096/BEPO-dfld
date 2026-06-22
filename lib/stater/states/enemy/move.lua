@@ -8,7 +8,7 @@ end
 
 function M:update(dt)
   local direction = self.direction
-  local velocity = direction * self.stats.velocity
+  local velocity = direction * self.store.velocity
 
   go.set(self.urls.Body, "linear_velocity", VMath.z_one(velocity))
 end

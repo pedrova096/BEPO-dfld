@@ -22,11 +22,13 @@ go.property("velocity", 30)
 go.property("bullet_damage", 2)
 
 function init(self)
+	self.store = {
+		health = self.health,
+		target = Urls.PlayerRoot,
+		velocity = self.velocity,
+	}
 	self.stater = EnemyStater:new({
-		stats = {
-			health = self.health,
-			velocity = self.velocity,
-		}
+		store = self.store
 	})
 
 	---@diagnostic disable-next-line: missing-fields
@@ -53,7 +55,7 @@ function init(self)
 			get_payload = function()
 				return {
 					attacker = self.attacker,
-					target = self.target,
+					target = self.store.target,
 				}
 			end,
 		}
@@ -95,10 +97,10 @@ local function on_apply_damage(self, message)
 	if self.stater:is(StatesEnum.Hurt) then return end
 
 	if self.stater:is(StatesEnum.Attack) then
-		local current_health = self.stater.stats.health
-		self.stater.stats.health = current_health - message.damage
+		local current_health = self.store.health
+		self.store.health = math.max(0, current_health - message.damage)
 
-		if self.stater.stats.health < 0 then
+		if self.store.health <= 0 then
 			self.stater:apply_transition(StatesEnum.Dead, {});
 		end
 
@@ -106,6 +108,7 @@ local function on_apply_damage(self, message)
 	end
 
 	local direction, damage, force = message.direction, message.damage, message.force
+	self.store.health = math.max(0, self.store.health - damage)
 	self.stater:apply_transition(StatesEnum.Hurt, {
 		damage = damage,
 		direction = vmath.vector3(direction.x, direction.y, 0),

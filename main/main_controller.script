@@ -69,7 +69,6 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.PROXY_LOADED then
-		pprint("PROXY_LOADED", sender, message)
 		msg.post(sender, "enable")
 		msg.post(sender, "acquire_input_focus")
 		if sender == msg.url(Urls.SplashScreenProxy) then

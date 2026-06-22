@@ -17,7 +17,7 @@ function M:update(dt)
   self.payload.limit_timer:update(dt)
 
   if self.payload.limit_timer:is_expired() then
-    local next_state = self.stats.health > 0 and self.StatesEnum.Move or self.StatesEnum.Dead
+    local next_state = self.store.health > 0 and self.StatesEnum.Move or self.StatesEnum.Dead
     self:apply_transition(next_state, {})
   end
 end

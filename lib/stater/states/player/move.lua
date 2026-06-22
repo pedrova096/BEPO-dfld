@@ -18,7 +18,7 @@ end
 
 function M:update(dt)
   local direction = self.direction
-  local velocity = direction * self.stats.velocity
+  local velocity = direction * self.store.velocity
 
   update_smoke_facing(self)
 

@@ -24,17 +24,25 @@ local MAP_SPECIAL_ACTIONS = {
 	[SpecialType.Bomb] = Urls.SpecialActions.Bomb
 }
 
+---@class PlayerStore
+---@field velocity number
+---@field lives number
+---@field input vector3
+
 go.property("velocity", 60)
 go.property("lives", 3)
 go.property("bullet_damage", 2)
 go.property("bullet_ricochets", 0)
 
 function init(self)
+	---@type PlayerStore
+	self.store = {
+		velocity = self.velocity,
+		lives = self.lives,
+		input = vmath.vector3(0),
+	}
 	self.stater = PlayerStater:new({
-		stats = {
-			velocity = self.velocity,
-			lives = self.lives,
-		}
+		store = self.store
 	})
 	self.special_action = nil
 	self.target_enemies = {}
@@ -83,6 +91,11 @@ local function target_enemies_pipe(self, dt)
 	})
 end
 
+local function has_input(store)
+	local input = store.input
+	return input.x ~= 0 or input.y ~= 0 or input.z ~= 0
+end
+
 function fixed_update(self, dt)
 	self.stater:update(dt)
 	target_enemies_pipe(self, dt)
@@ -90,13 +103,13 @@ end
 
 local function on_move(self, message)
 	local direction = message.direction
+	self.store.input = direction
 	self.stater:set_direction(direction)
 
-	if self.stater.movement_active then
+	if self.stater:is(StatesEnum.Move) then
 		return
 	end
 
-	self.stater.movement_active = true
 	self.stater:apply_transition(StatesEnum.Move, {
 		direction = direction,
 	})
@@ -104,11 +117,12 @@ local function on_move(self, message)
 end
 
 local function on_stop_move(self, message)
-	if self.stater.movement_active then
+	self.store.input = vmath.vector3(0)
+
+	if self.stater:is(StatesEnum.Move) then
 		self.stater:apply_transition(StatesEnum.Idle, {})
 	end
 
-	self.stater.movement_active = false
 	msg.post(Urls.SoundController, Msg.Sound.STOP_SFX_SOUND, { id = hash("steps") })
 end
 
@@ -118,15 +132,14 @@ local function on_apply_damage(self, message)
 		direction = message.direction,
 		force = message.force,
 	})
-	local stats = self.stater.stats
-	stats.lives = stats.lives - 1
+	self.store.lives = self.store.lives - 1
 
 	msg.post(Urls.Camera, Msg.Camera.SHAKE, {
 		shake_duration = 0.2,
 		shake_magnitude = 2,
 	})
 	msg.post(Urls.SessionManager, Msg.Player.LIFE_CHANGED, {
-		current_lives = self.stater.stats.lives,
+		current_lives = self.store.lives,
 		total_lives = self.lives,
 	})
 end
@@ -192,7 +205,7 @@ local function on_cancel_special_action(self, message)
 end
 
 local function on_fire_weapon(self, message)
-	if self.stater.movement_active then return end
+	if has_input(self.store) then return end
 
 	self.stater:set_facing(message.direction.x)
 	sprite.play_flipbook(self.stater.urls.VisualSprite, "shot", function()

@@ -5,10 +5,8 @@ local M = {}
 function M:enter(payload)
   local direction = payload.direction
   local hit_force = payload.force
-  local damage = payload.damage
   local duration = payload.duration or 0.35
 
-  self.stats.health = math.max(0, self.stats.health - damage)
   self.payload.limit_timer = LimitStateTimer:new({
     duration = duration,
   })
@@ -23,7 +21,7 @@ function M:update(dt)
   self.payload.limit_timer:update(dt)
 
   if self.payload.limit_timer:is_expired() then
-    local next_state = self.stats.health > 0 and self.StatesEnum.Move or self.StatesEnum.Dead
+    local next_state = self.store.health > 0 and self.StatesEnum.Move or self.StatesEnum.Dead
     self:apply_transition(next_state, {})
   end
 end

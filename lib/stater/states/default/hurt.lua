@@ -23,7 +23,9 @@ function M:update(dt)
   self.payload.limit_timer:update(dt)
 
   if self.payload.limit_timer:is_expired() then
-    local next_state = self.movement_active and self.StatesEnum.Move or self.StatesEnum.Idle
+    local input = self.store.input
+    local has_input = input and (input.x ~= 0 or input.y ~= 0 or input.z ~= 0)
+    local next_state = has_input and self.StatesEnum.Move or self.StatesEnum.Idle
     self:apply_transition(next_state, {})
   end
 end
