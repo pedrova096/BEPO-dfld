@@ -82,6 +82,21 @@ local function hide_button_action(self)
 	gui.set_enabled(button_node, false)
 end
 
+local function reset_move_action(self)
+	local move_pad_node = gui.get_node(Urls.MovePad)
+	local move_controller_node = gui.get_node(Urls.MoveController)
+
+	self.move_zone_action.state = ActionStatus.Idle
+	self.move_zone_action.touch_id = nil
+	self.move_zone_action.position = vmath.vector3(0)
+	self.debug.keyboard_direction = vmath.vector3(0)
+
+	gui.set_position(move_pad_node, self.original_move_pad_position)
+	gui.set_position(move_controller_node, self.original_move_controller_position)
+
+	msg.post(Urls.PlayerController, Msg.Player.STOP_MOVE)
+end
+
 local function on_enable_move(self, message)
 	self.controls_blocked = false
 	self.move_zone_action.enabled = true
@@ -89,6 +104,7 @@ end
 
 local function on_disable_move(self, message)
 	self.move_zone_action.enabled = false
+	reset_move_action(self)
 end
 
 local function on_enable_special_action(self, message)
@@ -105,6 +121,11 @@ local function on_hide_special_action(self, message)
 	hide_button_action(self)
 end
 
+local function on_block_controls(self, message)
+	reset_move_action(self)
+	self.controls_blocked = true
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.ControlsUI.ENABLE_SPECIAL_ACTION then
 		on_enable_special_action(self, message)
@@ -117,7 +138,7 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == Msg.ControlsUI.DISABLE_MOVE then
 		on_disable_move(self, message)
 	elseif message_id == Msg.ControlsUI.BLOCK_CONTROLS then
-		self.controls_blocked = true
+		on_block_controls(self, message)
 	end
 end
 
@@ -320,7 +341,7 @@ function on_input(self, action_id, action)
 	end
 
 	if self.debug.enabled then
-		if input_keyboards(self, action_id, action) then
+		if self.move_zone_action.enabled and input_keyboards(self, action_id, action) then
 			handled = true
 		end
 

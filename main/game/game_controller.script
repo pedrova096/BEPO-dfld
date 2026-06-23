@@ -227,7 +227,7 @@ local function on_cog_picked(self, message)
 end
 
 local SLOW_TIME = 3
-local SLOW_FACTOR = 0.5
+local SLOW_FACTOR = 0.25
 local function on_special_action_pressed(self, message)
 	GameTime.set_dt_factor(SLOW_FACTOR)
 	self.slow_timer = timer.delay(SLOW_TIME, false, function()
