@@ -1,6 +1,7 @@
 local VMath = require("utils.vmath")
 local Msg = require("lib.msg")
 local Entity = require("utils.entity")
+local GameTime = require("modules.game_time")
 
 local Urls = {
 	Body = "root#body",
@@ -54,6 +55,11 @@ go.property("life_time", 3)
 
 function init(self)
 	disabled_perrocoin(self)
+	GameTime.register_id()
+end
+
+function final(self)
+	GameTime.unregister_id()
 end
 
 local DISTANCE_THRESHOLD = 5
@@ -76,10 +82,11 @@ local function chase_target_pipe(self, dt)
 
 	local direction = vmath.normalize(target_position - position)
 
-	go.set(Urls.Body, "linear_velocity", direction * self.current_chase_speed)
+	GameTime.apply_linear_velocity(Urls.Body, direction * self.current_chase_speed)
 end
 
 function update(self, dt)
+	dt = GameTime.scale(dt)
 	chase_target_pipe(self, dt)
 end
 
@@ -124,6 +131,11 @@ local function on_auto_collect_point(self, message)
 	self.current_chase_speed = math.max(distance / time, self.chase_speed)
 end
 
+
+local function on_game_time_changed(self, message)
+	GameTime.on_change(message, Urls.Sprite, Urls.Body)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.HIDE_ELEMENT then
 		disabled_perrocoin(self)
@@ -131,6 +143,8 @@ function on_message(self, message_id, message, sender)
 		on_show_element(self, message)
 	elseif message_id == Msg.TRIGGER_OCCURRED then
 		on_trigger_response(self, message)
+	elseif message_id == Msg.Game.GAME_TIME_CHANGED then
+		on_game_time_changed(self, message)
 	elseif message_id == Msg.Game.AUTO_COLLECT_POINT then
 		on_auto_collect_point(self, message)
 	end

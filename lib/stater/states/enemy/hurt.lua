@@ -1,5 +1,6 @@
 local LimitStateTimer = require("lib.stater.limit_state_timer")
 local VMath = require("utils.vmath")
+local GameTime = require("modules.game_time")
 local M = {}
 
 function M:enter(payload)
@@ -10,7 +11,9 @@ function M:enter(payload)
   self.payload.limit_timer = LimitStateTimer:new({
     duration = duration,
   })
-  go.set(self.urls.Body, "linear_velocity", VMath.z_one(direction * hit_force))
+  local velocity = VMath.z_one(direction * hit_force)
+
+  GameTime.apply_linear_velocity(self.urls.Body, velocity)
   sprite.play_flipbook(self.urls.VisualSprite, "hurt")
   -- if self.urls.ParticleHit1 then
   --   particlefx.play(self.urls.ParticleHit1)

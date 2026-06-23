@@ -2,6 +2,7 @@ local Msg = require("lib.msg")
 local Table = require("utils.table")
 local Level = require("modules.level.level")
 local Logger = require("modules.logger")
+local GameTime = require("modules.game_time")
 local LevelAdapter = require("lib.levels_adapter")
 local RewardTypes = require("lib.rewards.reward_types")
 local CogsData = require("lib.rewards.status.cogs_data")
@@ -48,6 +49,7 @@ local function set_transition_state(self, state)
 end
 
 function init(self)
+	GameTime.reset()
 	self.level = Level:new()
 
 	self.state = StatesEnum.Active
@@ -224,6 +226,23 @@ local function on_cog_picked(self, message)
 	})
 end
 
+local SLOW_TIME = 3
+local SLOW_FACTOR = 0.5
+local function on_special_action_pressed(self, message)
+	GameTime.set_dt_factor(SLOW_FACTOR)
+	self.slow_timer = timer.delay(SLOW_TIME, false, function()
+		GameTime.set_dt_factor(1)
+		self.slow_timer = nil
+	end)
+end
+
+local function on_special_action_released(self, message)
+	if not self.slow_timer then return end
+	timer.cancel(self.slow_timer)
+	GameTime.set_dt_factor(1)
+	self.slow_timer = nil
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Game.OPEN_UPGRADER then
 		on_open_upgrader(self, message)
@@ -239,6 +258,10 @@ function on_message(self, message_id, message, sender)
 		on_cog_picked(self, message)
 	elseif message_id == Msg.Stager.STAGE_LOADED then
 		on_stage_loaded(self, message)
+	elseif message_id == Msg.ControlsUI.SPECIAL_ACTION_PRESSED then
+		on_special_action_pressed(self, message)
+	elseif message_id == Msg.ControlsUI.SPECIAL_ACTION_RELEASED then
+		on_special_action_released(self, message)
 	elseif message_id == Msg.Stager.STAGE_COMPLETED then
 		on_stage_completed(self, message)
 	elseif message_id == Msg.HudUI.WIPE_SHOWN then

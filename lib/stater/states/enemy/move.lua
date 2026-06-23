@@ -1,4 +1,5 @@
 local VMath = require("utils.vmath")
+local GameTime = require("modules.game_time")
 
 local M = {}
 
@@ -8,9 +9,10 @@ end
 
 function M:update(dt)
   local direction = self.direction
-  local velocity = direction * self.store.velocity
+  local velocity = VMath.z_one(direction * self.store.velocity)
 
-  go.set(self.urls.Body, "linear_velocity", VMath.z_one(velocity))
+
+  GameTime.apply_linear_velocity(self.urls.Body, velocity)
 end
 
 function M:exit()

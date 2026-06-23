@@ -1,6 +1,7 @@
 local LevelRuntime = require("modules.level.runtime")
 local LevelEvents = require("modules.level.events")
 local EnemyPool = require("utils.pooler.enemy_pool")
+local GameTime = require("modules.game_time")
 local RandomPositionGenerator = require("utils.position_generator.random_position_generator")
 local SetPositionGenerator = require("utils.position_generator.set_position_generator")
 local TilesInfo = require("utils.tiles_info")
@@ -188,6 +189,7 @@ local function target_enemies_pipe(self, dt)
 end
 
 function update(self, dt)
+	dt = GameTime.scale(dt)
 	self.runtime:update(dt)
 	drain_runtime_events(self)
 	target_enemies_pipe(self, dt)

@@ -1,6 +1,7 @@
 local VMath = require("utils.vmath")
 local Msg = require("lib.msg")
 local Entity = require("utils.entity")
+local GameTime = require("modules.game_time")
 local StatusTypeColors = require("lib.rewards.status.type_colors")
 
 local Urls = {
@@ -49,6 +50,12 @@ function init(self)
 		go.EASING_OUTEXPO,
 		1)
 	go.animate("visual", "position.y", go.PLAYBACK_ONCE_PINGPONG, 10, go.EASING_OUTEXPO, 0.5)
+
+	GameTime.register_id()
+end
+
+function final(self)
+	GameTime.unregister_id()
 end
 
 local DISTANCE_THRESHOLD = 5
@@ -71,10 +78,12 @@ local function chase_target_pipe(self, dt)
 
 	local direction = vmath.normalize(target_position - position)
 
-	go.set(Urls.Body, "linear_velocity", direction * self.chase_speed)
+	GameTime.apply_linear_velocity(Urls.Body, direction * self.chase_speed)
 end
 
 function update(self, dt)
+	dt = GameTime.scale(dt)
+	GameTime.apply_sprite_playback_rate(Urls.Sprite)
 	chase_target_pipe(self, dt)
 end
 
@@ -88,10 +97,16 @@ local function on_trigger_response(self, message)
 	self.target = msg.url(message.other_id)
 end
 
+local function on_game_time_changed(self, message)
+	GameTime.on_change(message, Urls.Sprite, Urls.Body)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.HIDE_ELEMENT then
 		disabled_cog(self)
 	elseif message_id == Msg.TRIGGER_OCCURRED then
 		on_trigger_response(self, message)
+	elseif message_id == Msg.Game.GAME_TIME_CHANGED then
+		on_game_time_changed(self, message)
 	end
 end

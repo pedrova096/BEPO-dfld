@@ -8,6 +8,7 @@ local ActionIds = {
 }
 
 local Urls = {
+	GameController = "/controller",
 	PlayerController = "/player/root#controller",
 	MoveZone = "move_zone",
 	MovePad = "move_pad",
@@ -197,6 +198,7 @@ local function input_button(self, touched)
 		self.button_action.time = 0
 
 		msg.post(Urls.PlayerController, Msg.Player.START_SPECIAL_ACTION)
+		msg.post(Urls.GameController, Msg.ControlsUI.SPECIAL_ACTION_PRESSED)
 		return true
 	end
 
@@ -217,11 +219,13 @@ local function input_button(self, touched)
 
 		gui.set_position(button_node, self.button_action.original_position)
 
+		local release_message = previous_state == ActionStatus.LongPressed and
+				Msg.Player.RELEASE_SPECIAL_ACTION or Msg.Player.CANCEL_SPECIAL_ACTION
 		msg.post(
 			Urls.PlayerController,
-			previous_state == ActionStatus.LongPressed
-			and Msg.Player.RELEASE_SPECIAL_ACTION or Msg.Player.CANCEL_SPECIAL_ACTION
+			release_message
 		)
+		msg.post(Urls.GameController, Msg.ControlsUI.SPECIAL_ACTION_RELEASED)
 		return true
 	end
 

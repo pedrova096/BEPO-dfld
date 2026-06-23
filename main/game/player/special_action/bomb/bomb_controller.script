@@ -87,6 +87,8 @@ local function on_launched(self, message)
 	self.status = StatusEnum.Launched
 	local origin_position = get_origin_position(self)
 	go.set_position(origin_position + self.direction * self.min_distance)
+
+	-- TODO: change use factor
 	go.animate(Urls.Visual, "position.y", go.PLAYBACK_ONCE_PINGPONG, 20, go.EASING_LINEAR, 0.4)
 	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, self.target_position, go.EASING_OUTQUAD, 0.8, 0, function()
 		sprite.play_flipbook(Urls.VisualSprite, "explosion", function()

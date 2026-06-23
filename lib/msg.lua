@@ -84,6 +84,7 @@ local Game = {
   LOAD_LEVEL_STAGE = hash("load_level_stage"),
   OPEN_UPGRADER = hash("open_upgrader"),
   PROCESS_PLAYER_UPGRADE = hash("process_player_upgrade"),
+  GAME_TIME_CHANGED = hash("game_time_changed"),
 }
 
 local Attacker = {
@@ -115,6 +116,9 @@ local Sound = {
 }
 
 local ControlsUI = {
+  -- events
+  SPECIAL_ACTION_PRESSED = hash("special_action_pressed"),
+  SPECIAL_ACTION_RELEASED = hash("special_action_released"),
   -- commands
   ENABLE_MOVE = hash("enable_move"),
   DISABLE_MOVE = hash("disable_move"),

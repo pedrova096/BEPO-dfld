@@ -3,6 +3,7 @@ local Rewards = require("lib.rewards.reward_types")
 local Table = require("utils.table")
 local Msg = require("lib.msg")
 local Entity = require("utils.entity")
+local GameTime = require("modules.game_time")
 
 local Urls = {
 	-- External
@@ -53,6 +54,7 @@ function final(self)
 end
 
 function update(self, dt)
+	dt = GameTime.scale(dt)
 	self.elapsed_time = self.elapsed_time + dt
 	go.set(Urls.StarFlareSprite, "rotation_params.x", self.elapsed_time)
 end

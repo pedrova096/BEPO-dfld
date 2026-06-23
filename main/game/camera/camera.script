@@ -1,5 +1,5 @@
-local Utils = require("utils.utils")
 local Msg = require("lib.msg")
+local GameTime = require("modules.game_time")
 local VMath = require("utils.vmath")
 
 local Urls = {
@@ -96,6 +96,7 @@ end
 ---@param self camera.script
 ---@param dt number
 function fixed_update(self, dt)
+	dt = GameTime.scale(dt)
 	shake_pipe(self, dt)
 end
 

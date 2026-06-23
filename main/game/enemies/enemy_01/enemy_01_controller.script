@@ -1,6 +1,7 @@
 local Msg = require("lib.msg")
 local EnemyStater = require("lib.stater.enemy_stater")
 local Entity = require("utils.entity")
+local GameTime = require("modules.game_time")
 local Steer = require("modules.steer")
 local DistanceAttackChecker = require("utils.attacker.checkers.distance_attack")
 local BasicAttack = require("utils.attacker.basic_attack")
@@ -61,9 +62,15 @@ function init(self)
 	})
 
 	Entity.hide_entity()
+	GameTime.register_id()
+end
+
+function final(self)
+	GameTime.unregister_id()
 end
 
 function fixed_update(self, dt)
+	dt = GameTime.scale(dt)
 	self.stater:update(dt)
 	if self.stater:is(StatesEnum.Despawn) then return end
 
@@ -122,11 +129,17 @@ local function on_despawned(self, message)
 	})
 end
 
+local function on_game_time_changed(self, message)
+	GameTime.on_change(message, self.stater.urls.VisualSprite, self.stater.urls.Body)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
 	elseif message_id == Msg.Enemy.ACTIVATE_ENEMY then
 		on_activate_enemy(self, message)
+	elseif message_id == Msg.Game.GAME_TIME_CHANGED then
+		on_game_time_changed(self, message)
 	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Dead then
 		on_dead(self, message)
 	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Despawn then

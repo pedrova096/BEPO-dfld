@@ -1,5 +1,6 @@
 local Msg = require("lib.msg")
 local Entity = require("utils.entity")
+local GameTime = require("modules.game_time")
 
 local Urls = {
 	AreaSprite = "#area_sprite",
@@ -38,6 +39,7 @@ local function area_pipe(self, dt)
 end
 
 function update(self, dt)
+	dt = GameTime.scale(dt)
 	area_pipe(self, dt)
 end
 

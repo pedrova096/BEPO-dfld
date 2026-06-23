@@ -3,6 +3,7 @@ local Msg = require("lib.msg")
 local Math = require("utils.math")
 local VMath = require("utils.vmath")
 local Entity = require("utils.entity")
+local GameTime = require("modules.game_time")
 local Ricochet = require("utils.weapon.ricochet")
 
 go.property("id", 0)
@@ -83,14 +84,6 @@ local function finish_bullet(self)
 	end)
 end
 
-local function set_bullet_direction(self, direction)
-	self.config.direction = VMath.normalize_or_zero(direction)
-	local velocity = self.config.direction * self.config.speed
-	local heading_angle = Math.heading_angle(velocity) + math.pi / 2
-	go.set_rotation(vmath.quat_rotation_z(heading_angle), Urls.Visual)
-	go.set(Urls.Body, "linear_velocity", velocity)
-end
-
 local function try_ricochet(self, hit_id)
 	local direction = self.ricochet:try_ricochet({
 		position = go.get_position(),
@@ -101,7 +94,14 @@ local function try_ricochet(self, hit_id)
 		return false
 	end
 
-	set_bullet_direction(self, direction)
+	self.config.direction = VMath.normalize_or_zero(direction)
+
+	local velocity = self.config.direction * self.config.speed
+	local heading_angle = Math.heading_angle(velocity) + math.pi / 2
+
+	go.set_rotation(vmath.quat_rotation_z(heading_angle), Urls.Visual)
+	GameTime.apply_linear_velocity(Urls.Body, velocity)
+
 	return true
 end
 
@@ -111,9 +111,15 @@ function init(self)
 	self.ricochet = Ricochet:new()
 
 	disabled_bullet()
+	GameTime.register_id()
+end
+
+function final(self)
+	GameTime.unregister_id()
 end
 
 function update(self, dt)
+	dt = GameTime.scale(dt)
 	self.ricochet:update(dt)
 end
 
@@ -136,7 +142,7 @@ local function on_bullet_fired(self, message)
 	local heading_angle = Math.heading_angle(velocity) + math.pi / 2
 	go.set_position(position)
 	go.set_rotation(vmath.quat_rotation_z(heading_angle), Urls.Visual)
-	go.set(Urls.Body, "linear_velocity", velocity)
+	GameTime.apply_linear_velocity(Urls.Body, velocity)
 
 	if self.config.is_critic then
 		go.set_scale(vmath.vector3(1.5, 1.5, 1))
@@ -163,10 +169,16 @@ local function on_trigger_response(self, message)
 	finish_bullet(self)
 end
 
+local function on_game_time_changed(self, message)
+	GameTime.on_change(message, Urls.Sprite, Urls.Body)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Bullet.FIRED then
 		on_bullet_fired(self, message)
 	elseif message_id == Msg.TRIGGER_OCCURRED then
 		on_trigger_response(self, message)
+	elseif message_id == Msg.Game.GAME_TIME_CHANGED then
+		on_game_time_changed(self, message)
 	end
 end

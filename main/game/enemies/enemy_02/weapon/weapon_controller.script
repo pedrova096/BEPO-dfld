@@ -1,5 +1,6 @@
 local Msg = require("lib.msg")
 local Entity = require("utils.entity")
+local GameTime = require("modules.game_time")
 local VMath = require("utils.vmath")
 local Weapon = require("utils.weapon.weapon")
 local WeaponConfigs = require("utils.weapon.configs")
@@ -80,6 +81,7 @@ local function trigger_weapon_pipe(self, dt)
 end
 
 function fixed_update(self, dt)
+  dt = GameTime.scale(dt)
   self.weapon:update(dt)
   trigger_weapon_pipe(self, dt)
 end
