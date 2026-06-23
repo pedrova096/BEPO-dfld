@@ -137,6 +137,7 @@ local function parse_stage_info(self)
 	tilemap.set_visible(tiles_sm_url, "landmarks", false)
 
 	local stage_size = TilesInfo.get_lg_size(tiles_lg_url)
+
 	return TilesInfo.get_landmark_info({
 		offset = go.get_position(self.current_tilemap.id),
 		landmarks_tiles = tilemap.get_tiles(tiles_sm_url, "landmarks"),
@@ -254,7 +255,10 @@ local function on_load_stage(self, message)
 		duration = message.duration,
 		player_position = stage_info.player_position
 	})
-	msg.post(Urls.Camera, Msg.Camera.SET_BOUNDS, stage_size)
+	msg.post(Urls.Camera, Msg.Camera.SET_BOUNDS, {
+		width = stage_size.width - TilesInfo.TILE_LG_SIZE, -- TODO: this is because the tiles "padding"
+		height = stage_size.height,
+	})
 end
 
 local function on_start_stage(self, _message)

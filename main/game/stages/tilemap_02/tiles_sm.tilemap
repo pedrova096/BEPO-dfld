@@ -28,7 +28,7 @@ layers {
   z: 0.0
   cell {
     x: 4
-    y: -13
+    y: -11
     tile: 4
   }
   cell {

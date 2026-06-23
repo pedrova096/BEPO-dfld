@@ -26,6 +26,6 @@ embedded_instances {
   data: ""
   position {
     x: -120.0
-    y: 168.0
+    y: 192.0
   }
 }

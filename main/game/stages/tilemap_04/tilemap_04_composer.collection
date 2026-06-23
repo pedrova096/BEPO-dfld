@@ -1,18 +1,18 @@
 name: "tilemap_04"
 instances {
   id: "tiles_lg"
-  prototype: "/main/game/stages/tilemap_03/tiles_lg.go"
+  prototype: "/main/game/stages/tilemap_04/tiles_lg.go"
 }
 instances {
   id: "tiles_sm"
-  prototype: "/main/game/stages/tilemap_03/tiles_sm.go"
+  prototype: "/main/game/stages/tilemap_04/tiles_lg.go"
   position {
     z: 1.0
   }
 }
 instances {
   id: "top_tiles_sm"
-  prototype: "/main/game/stages/tilemap_03/top_tiles_sm.go"
+  prototype: "/main/game/stages/tilemap_04/tiles_lg.go"
   position {
     z: 2.0
   }

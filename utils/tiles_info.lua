@@ -67,19 +67,19 @@ function M._get_doors_index(doors_amount, bounds)
   local half_width = math.ceil(bounds.columns_count / 2)
 
   if doors_amount == 2 then
-    return { half_width - 1, half_width + 1 }
+    return { half_width - 2, half_width }
   elseif doors_amount == 1 then
-    return { half_width }
+    return { half_width - 1 }
   else
     error(("Unsupported doors amount %s"):format(tostring(doors_amount)))
   end
 end
 
+local TOP_ROW = 0
 --- Collect all door positions from the landmarks tile layer.
 --- @param options DoorsPositionsOptions
 --- @return DoorPosition[]
 function M.get_doors_positions(options)
-  local TOP_ROW = 0
   local doors_positions = {}
   local offset = options.offset
   local doors_amount = options.doors_amount
@@ -89,7 +89,7 @@ function M.get_doors_positions(options)
   local half_tile = M.TILE_LG_SIZE / 2
 
   for _, door_index in ipairs(doors_indexes) do
-    local column_index = door_index - bounds.left + 1
+    local column_index = door_index - bounds.left
     local x = column_index * M.TILE_LG_SIZE - half_tile
     local position = vmath.vector3(x, 0, 1) + offset
 

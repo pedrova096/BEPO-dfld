@@ -50,17 +50,12 @@ convex_hulls {
 }
 convex_hulls {
   index: 40
-  count: 4
+  count: 6
   collision_group: ""
 }
 convex_hulls {
-  index: 44
-  count: 4
-  collision_group: ""
-}
-convex_hulls {
-  index: 48
-  count: 4
+  index: 46
+  count: 6
   collision_group: ""
 }
 convex_hulls {
@@ -85,6 +80,11 @@ convex_hulls {
 }
 convex_hulls {
   index: 68
+  count: 0
+  collision_group: ""
+}
+convex_hulls {
+  index: 68
   count: 4
   collision_group: ""
 }
@@ -105,42 +105,62 @@ convex_hulls {
 }
 convex_hulls {
   index: 84
+  count: 4
+  collision_group: ""
+}
+convex_hulls {
+  index: 88
+  count: 4
+  collision_group: ""
+}
+convex_hulls {
+  index: 92
+  count: 4
+  collision_group: ""
+}
+convex_hulls {
+  index: 96
   count: 0
   collision_group: ""
 }
 convex_hulls {
-  index: 84
+  index: 96
   count: 0
   collision_group: ""
 }
 convex_hulls {
-  index: 84
+  index: 96
   count: 0
   collision_group: ""
 }
 convex_hulls {
-  index: 84
+  index: 96
   count: 0
   collision_group: ""
 }
 convex_hulls {
-  index: 84
+  index: 96
   count: 0
   collision_group: ""
 }
 convex_hulls {
-  index: 84
+  index: 96
   count: 0
   collision_group: ""
 }
 convex_hulls {
-  index: 84
-  count: 0
+  index: 96
+  count: 4
   collision_group: ""
 }
 convex_hulls {
-  index: 84
-  count: 0
+  index: 100
+  count: 4
+  collision_group: ""
+}
+convex_hulls {
+  index: 104
+  count: 4
   collision_group: ""
 }
 collision_groups: "wall"
