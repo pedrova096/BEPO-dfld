@@ -17,9 +17,19 @@ instances {
     z: 2.0
   }
 }
+instances {
+  id: "saw"
+  prototype: "/main/game/stages/saw/saw.go"
+  position {
+    x: 98.0
+    y: -137.5
+    z: 2.0
+  }
+}
 scale_along_z: 0
 embedded_instances {
   id: "root"
+  children: "saw"
   children: "tiles_lg"
   children: "tiles_sm"
   children: "top_tiles_sm"

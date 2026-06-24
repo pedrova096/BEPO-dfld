@@ -1,0 +1,31 @@
+image: "/assets/sprites/tiles/saw.png"
+tile_width: 27
+tile_height: 27
+collision_groups: "default"
+animations {
+  id: "corner_1"
+  start_tile: 5
+  end_tile: 5
+}
+animations {
+  id: "corner_2"
+  start_tile: 6
+  end_tile: 6
+}
+animations {
+  id: "corner_3"
+  start_tile: 7
+  end_tile: 7
+}
+animations {
+  id: "corner_4"
+  start_tile: 8
+  end_tile: 8
+}
+animations {
+  id: "default"
+  start_tile: 3
+  end_tile: 4
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 20
+}

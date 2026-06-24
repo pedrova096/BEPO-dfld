@@ -1,0 +1,80 @@
+local GameTime = require("modules.game_time")
+
+local PATH = { { y = -50 }, { x = 45 }, { y = 50 } } -- , { x = -45 } }
+local ARRIVAL_EPSILON = 0.001
+
+go.property("movement_speed", 35)
+go.property("enabled", true)
+
+local function path_step_to_vector(step)
+	return vmath.vector3(step.x or 0, step.y or 0, 0)
+end
+
+local function build_waypoints(origin, path)
+	local waypoints = { { point = origin, distance = 0 } }
+	local current = origin
+
+	for _, step in ipairs(path) do
+		local step_vector = path_step_to_vector(step)
+		current = current + step_vector
+		table.insert(waypoints, {
+			point = current,
+			distance = vmath.length(step_vector)
+		})
+	end
+
+	waypoints[1].distance = vmath.length(origin - current)
+
+	return waypoints
+end
+
+local function advance_waypoint(self)
+	self.target_waypoint_index = self.target_waypoint_index % #self.waypoints + 1
+
+	local new_rotation = (go.get(".", "euler.z") + 90) % 360
+	pprint("new_rotation", new_rotation, self.target_waypoint_index)
+	go.set(".", "euler.z", new_rotation)
+end
+
+local function advance_path(self, dt)
+	if not self.enabled or self.movement_speed <= 0 then return end
+	if #self.waypoints < 2 then return end
+
+	local position = go.get_position()
+	local target_waypoint = self.waypoints[self.target_waypoint_index]
+	local target = target_waypoint.point
+	local delta = target - position
+	local distance = vmath.length(delta)
+
+	print("distance", target, distance, target_waypoint.distance, self.target_waypoint_index)
+	if distance <= ARRIVAL_EPSILON then
+		advance_waypoint(self)
+		return
+	end
+
+	local step_distance = self.movement_speed * dt
+	if step_distance >= distance then
+		go.set_position(target)
+		advance_waypoint(self)
+		return
+	end
+
+	go.set_position(position + vmath.normalize(delta) * step_distance)
+end
+
+function init(self)
+	self.origin_position = go.get_position()
+	self.waypoints = build_waypoints(self.origin_position, PATH)
+	self.target_waypoint_index = 2
+
+	GameTime.register_id()
+end
+
+function final(self)
+	GameTime.unregister_id()
+end
+
+function update(self, dt)
+	dt = GameTime.scale(dt)
+	advance_path(self, dt)
+end
