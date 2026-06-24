@@ -32,7 +32,6 @@ local function advance_waypoint(self)
 	self.target_waypoint_index = self.target_waypoint_index % #self.waypoints + 1
 
 	local new_rotation = (go.get(".", "euler.z") + 90) % 360
-	pprint("new_rotation", new_rotation, self.target_waypoint_index)
 	go.set(".", "euler.z", new_rotation)
 end
 
@@ -46,7 +45,6 @@ local function advance_path(self, dt)
 	local delta = target - position
 	local distance = vmath.length(delta)
 
-	print("distance", target, distance, target_waypoint.distance, self.target_waypoint_index)
 	if distance <= ARRIVAL_EPSILON then
 		advance_waypoint(self)
 		return

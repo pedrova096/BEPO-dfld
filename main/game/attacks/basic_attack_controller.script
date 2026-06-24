@@ -1,12 +1,17 @@
 local Msg = require("lib.msg")
 local Entity = require("utils.entity")
 local GameTime = require("modules.game_time")
+local ManualTimer = require("utils.manual_timer")
+local Easings = require("utils.easings")
 
 local Urls = {
 	AreaSprite = "#area_sprite",
 	Sprite = "#sprite",
 	Body = "#body",
 }
+
+local FULL_PROGRESS = vmath.vector4(1, 0, 0, 0)
+local EMPTY_PROGRESS = vmath.vector4(0, 0, 0, 0)
 
 local function disabled_attack()
 	Entity.disable_body(Urls.Body)
@@ -18,11 +23,29 @@ go.property("damage", 1)
 go.property("knock_back", 30)
 go.property("offset", vmath.vector3(0, 5.0, 0))
 
+local WINDUP_SATURATION_ADJUST = 0.5
+local WINDUP_LIGHTNESS_ADJUST = -0.8
+
+local function apply_windup_color_adjust(self)
+	go.set(Urls.AreaSprite, "color_adjust", vmath.vector4(
+		WINDUP_SATURATION_ADJUST,
+		WINDUP_LIGHTNESS_ADJUST,
+		0,
+		0
+	))
+end
+
 function init(self)
 	self.is_active = false
+	self.is_windup = false
 	self.omit_in_zone = {}
 	self.original_position = go.get_position()
 	self.original_offset = vmath.length(self.original_position) or 1
+	self.windup_timer = ManualTimer:new({ interval = 0 })
+
+	go.set(Urls.AreaSprite, "sprite_size", go.get(Urls.AreaSprite, "size"))
+	go.set(Urls.AreaSprite, "progress", EMPTY_PROGRESS)
+	apply_windup_color_adjust(self)
 
 	disabled_attack()
 end
@@ -38,17 +61,33 @@ local function area_pipe(self, dt)
 	go.set(".", "rotation", area_rotation)
 end
 
+local function windup_pipe(self, dt)
+	if not self.is_windup then return end
+
+	self.windup_timer:update(dt)
+	local progress = Easings.in_quad(self.windup_timer:get_progress())
+	go.set(Urls.AreaSprite, "progress", vmath.vector4(progress, 0, 0, 0))
+end
+
 function update(self, dt)
 	dt = GameTime.scale(dt)
 	area_pipe(self, dt)
+	windup_pipe(self, dt)
 end
 
 local function on_attack_start_windup(self, message)
 	self.is_active = true
+	self.is_windup = true
+	self.windup_timer:set_interval(message.time or 0)
+	self.windup_timer:start()
+	go.set(Urls.AreaSprite, "progress", EMPTY_PROGRESS)
 	Entity.show_sprite(Urls.AreaSprite)
 end
 
 local function on_attack_start_attack(self, message)
+	self.is_windup = false
+	self.windup_timer:stop()
+	go.set(Urls.AreaSprite, "progress", FULL_PROGRESS)
 	Entity.show_sprite(Urls.Sprite)
 	Entity.enable_body(Urls.Body)
 	sprite.play_flipbook(Urls.Sprite, "enemy_attack")
@@ -59,9 +98,12 @@ local function on_attack_start_recovery(self, message)
 	Entity.hide_sprite(Urls.Sprite)
 end
 
-local function on_attack_start_cooldown(self)
+local function on_attack_start_cooldown(self, _)
 	self.is_active = false
+	self.is_windup = false
+	self.windup_timer:stop()
 	self.omit_in_zone = {}
+	go.set(Urls.AreaSprite, "progress", EMPTY_PROGRESS)
 	disabled_attack()
 end
 

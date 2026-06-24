@@ -6,7 +6,7 @@ embedded_components {
   id: "area_sprite"
   type: "sprite"
   data: "default_animation: \"attack_area_01\"\n"
-  "material: \"/builtins/materials/sprite.material\"\n"
+  "material: \"/main/materials/sprite_inner_progress/sprite_inner_progress.material\"\n"
   "size {\n"
   "  x: 24.0\n"
   "  y: 24.0\n"
@@ -59,6 +59,7 @@ embedded_components {
   ""
   position {
     y: 1.0
+    z: 1.0
   }
   rotation {
     z: 0.38268343
