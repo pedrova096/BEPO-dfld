@@ -1,9 +1,11 @@
 local Msg = require("lib.msg")
 local Vmath = require("utils.vmath")
 local Entity = require("utils.entity")
+local Easings = require("utils.easings")
 
 local Urls = {
 	Body = "root#body",
+	AreaSprite = "area#sprite",
 	Visual = "visual",
 	VisualSprite = "visual#sprite",
 	ShadowSprite = "shadow#sprite"
@@ -17,23 +19,30 @@ local StatusEnum = {
 	Canceled = hash("canceled"),
 }
 
+local FULL_PROGRESS = vmath.vector4(1, 0, 0, 0)
+local EMPTY_PROGRESS = vmath.vector4(0, 0, 0, 0)
+
 local function enabled_special_action()
-	Entity.enable_body(Urls.Body)
 	Entity.show_sprite(Urls.VisualSprite)
 	Entity.show_sprite(Urls.ShadowSprite)
 end
 
 local function disabled_special_action()
 	Entity.disable_body(Urls.Body)
+	Entity.hide_sprite(Urls.AreaSprite)
 	Entity.hide_sprite(Urls.VisualSprite)
 	Entity.hide_sprite(Urls.ShadowSprite)
 end
 
 go.property("owner_id", hash("none"))
+go.property("target", hash("enemy"))
 go.property("max_distance", 60)
 go.property("min_distance", 15)
+go.property("damage", 3)
 
 function init(self)
+	go.set(Urls.AreaSprite, "sprite_size", go.get(Urls.AreaSprite, "size"))
+	go.set(Urls.AreaSprite, "progress", EMPTY_PROGRESS)
 	disabled_special_action()
 	self.status = StatusEnum.Idle
 	self.direction = vmath.vector3()
@@ -60,6 +69,9 @@ local function on_aiming_pipe(self, dt)
 	local current_position = go.get_position()
 	local smoothing = math.min(dt * AIM_SMOOTHING, 1)
 	go.set_position(vmath.lerp(smoothing, current_position, self.target_position))
+
+	-- local progress = Easings.in_quad(self.force)
+	-- go.set(Urls.AreaSprite, "progress", vmath.vector4(progress, 0, 0, 0))
 end
 
 function update(self, dt)
@@ -69,6 +81,7 @@ end
 local function on_prepare(self, message)
 	self.status = StatusEnum.Prepared
 	enabled_special_action()
+	go.set(Urls.AreaSprite, "progress", EMPTY_PROGRESS)
 
 	local origin_position = get_origin_position(self)
 	go.set_position(origin_position)
@@ -87,14 +100,18 @@ local function on_launched(self, message)
 	self.status = StatusEnum.Launched
 	local origin_position = get_origin_position(self)
 	go.set_position(origin_position + self.direction * self.min_distance)
-
-	-- TODO: change use factor
+	-- TODO: change use time factor
 	go.animate(Urls.Visual, "position.y", go.PLAYBACK_ONCE_PINGPONG, 20, go.EASING_LINEAR, 0.4)
 	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, self.target_position, go.EASING_OUTQUAD, 0.8, 0, function()
-		sprite.play_flipbook(Urls.VisualSprite, "explosion", function()
-			disabled_special_action()
-			self.status = StatusEnum.Idle
-		end)
+		Entity.show_sprite(Urls.AreaSprite)
+		go.animate(Urls.AreaSprite, "progress.x", go.PLAYBACK_ONCE_FORWARD, 1, go.EASING_INQUAD, 0.3, 0,
+			function()
+				Entity.enable_body(Urls.Body)
+				sprite.play_flipbook(Urls.VisualSprite, "explosion", function()
+					disabled_special_action()
+					self.status = StatusEnum.Idle
+				end)
+			end)
 	end)
 end
 
@@ -106,8 +123,31 @@ local function on_canceled(self, message)
 	disabled_special_action()
 end
 
+local function on_trigger_response(self, message)
+	if not message.enter then return end
+
+	if message.other_group == self.target then
+		local position = go.get_position()
+		local other_position = go.get_position(message.other_id)
+		local direction = vmath.normalize(other_position - position)
+
+		msg.post(message.other_id, Msg.APPLY_DAMAGE, {
+			damage = self.damage,
+			direction = direction,
+			force = 40,
+		})
+	end
+end
+
 function on_message(self, message_id, message, sender)
-	if self.status == StatusEnum.Launched then return end
+	if self.status == StatusEnum.Launched then
+		if message_id == Msg.TRIGGER_OCCURRED then
+			on_trigger_response(self, message)
+		end
+
+		return
+	end
+
 	if message_id == Msg.SpecialAction.PREPARE then
 		on_prepare(self, message)
 	elseif message_id == Msg.SpecialAction.AIM then

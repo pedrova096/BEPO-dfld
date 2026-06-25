@@ -27,8 +27,8 @@ fragment_constants {
   name: "color_adjust"
   type: CONSTANT_TYPE_USER
   value {
-    x: 0.0
-    y: 0.0
+    x: 0.5
+    y: -0.8
   }
 }
 samplers {
