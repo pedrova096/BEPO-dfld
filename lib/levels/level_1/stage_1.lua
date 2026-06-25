@@ -1,6 +1,3 @@
-local Rewards = require("lib.rewards.reward_types")
-
-
 --- @type BudgetWaveConfig
 local wave_1 = {
 	type = "budget",
@@ -36,6 +33,5 @@ local wave_2 = {
 return {
 	waves = { wave_1, wave_2 },
 	difficulty = 1,
-	reward = Rewards.SpecialAction,
 	tilemap_id = hash("tilemap_01")
 }

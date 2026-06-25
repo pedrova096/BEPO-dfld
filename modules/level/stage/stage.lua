@@ -12,7 +12,6 @@ local Logger = require("modules.logger")
 --- @class StageConfig
 --- @field waves WaveConfig[] Ordered wave configs played by this stage.
 --- @field difficulty number Stage difficulty rating.
---- @field reward hash Reward id available after completing this stage.
 --- @field tilemap_id hash Tilemap id used to build this stage.
 
 --- Stage orchestrator. Manages an ordered sequence of waves with overlap support.

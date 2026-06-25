@@ -19,9 +19,10 @@ function M.get_level(level_id)
 		if stage_data.connections then
 			connections = {}
 			for _, connection_stage_id in ipairs(stage_data.connections) do
+				local connection_stage = source_level.stages[connection_stage_id]
 				table.insert(connections, {
 					next_stage = connection_stage_id,
-					reward = source_level.stages[connection_stage_id].data.reward,
+					reward = connection_stage.reward,
 				})
 			end
 		end
@@ -29,7 +30,7 @@ function M.get_level(level_id)
 		level.stages[stage_id] = {
 			data = stage_data.data,
 			connections = connections,
-			reward = stage_data.data.reward,
+			reward = stage_data.reward,
 		}
 	end
 

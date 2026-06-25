@@ -219,6 +219,7 @@ local function on_load_stage(self, message)
 	local stage_data = message.stage.data
 	local next_connections = message.stage.connections
 	self.current_stage_id = message.stage.id
+	self.current_stage_reward = message.stage.reward
 
 	-- Create the tilemap
 	local tilemap_factory = TILEMAP_FACTORY_MAP[stage_data.tilemap_id]
@@ -244,7 +245,6 @@ local function on_load_stage(self, message)
 
 	self.enemies_pool:set_position_generator(SetPositionGenerator:new(stage_info.spawn_positions))
 
-	self.current_stage_reward = stage_data.reward
 	self.runtime:load_stage({
 		stage = message.stage,
 	})

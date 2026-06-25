@@ -27,7 +27,7 @@
 --- @class LevelStageMapAdapter
 --- @field data table Stage config table consumed by the level runtime.
 --- @field connections LevelConnectionAdapter[]|nil Ordered next-stage ids available from this stage.
---- @field reward any|nil Optional reward metadata exposed in connection payloads.
+--- @field reward hash|nil Reward id available from this stage.
 
 --- @class LevelAdapter
 --- @field id hash Stable level id.
@@ -259,7 +259,7 @@ function M:get_current_reward()
 	local current_stage = self.state.current_stage
 	if not current_stage then return nil end
 
-	return current_stage.reward or current_stage.data and current_stage.data.reward or nil
+	return current_stage.reward
 end
 
 --- @return boolean

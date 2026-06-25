@@ -1,5 +1,3 @@
-local Rewards = require("lib.rewards.reward_types")
-
 local pool = {
 	{ id = "enemy_01", cost = 1, chance = 0.5 },
 	{ id = "enemy_02", cost = 2, chance = 0.5 },
@@ -34,6 +32,5 @@ local wave_2 = {
 return {
 	waves = { wave_1, wave_2 },
 	difficulty = 1,
-	reward = Rewards.SpecificStatus,
 	tilemap_id = hash("tilemap_02")
 }
