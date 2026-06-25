@@ -13,10 +13,11 @@ local Urls = {
 	PlayerRoot = "/player/root",
 	PlayerController = "/player/root#controller",
 	--Inner
-	WeaponController = "weapon#controller"
+	WeaponController = "weapon#controller",
+	ShadowSprite = "shadow#sprite",
 }
 
-go.property("health", 10)
+go.property("health", 7)
 go.property("wave_id", 0)
 go.property("safe_distance", 150)
 go.property("velocity", 30)
@@ -132,6 +133,7 @@ end
 
 local function on_activate_enemy(self, message)
 	reset_store(self)
+	sprite.play_flipbook(Urls.ShadowSprite, "default")
 	self.stater:set_behavior_flag(true)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
 	msg.post(Urls.WeaponController, Msg.SHOW_ELEMENT)
@@ -149,6 +151,7 @@ local function on_dead(self, message)
 end
 
 local function on_despawned(self, message)
+	sprite.play_flipbook(Urls.ShadowSprite, "default")
 	Entity.hide_entity()
 	print("Enemy despawned => " .. go.get_id())
 	msg.post(Urls.LevelManager, Msg.Enemy.CONFIRM_ENEMY_DESPAWN, {
@@ -172,6 +175,14 @@ local function on_game_time_changed(self, message)
 	GameTime.on_change(message, self.stater.urls.VisualSprite, self.stater.urls.Body)
 end
 
+local function on_select_element(self, message)
+	sprite.play_flipbook(Urls.ShadowSprite, "selected")
+end
+
+local function on_unselect_element(self, message)
+	sprite.play_flipbook(Urls.ShadowSprite, "default")
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
@@ -181,6 +192,10 @@ function on_message(self, message_id, message, sender)
 		on_game_time_changed(self, message)
 	elseif message_id == Msg.Weapon.CONFIG_RECEIVED then
 		on_weapon_config_response(self, message)
+	elseif message_id == Msg.Enemy.SELECT then
+		on_select_element(self, message)
+	elseif message_id == Msg.Enemy.UNSELECT then
+		on_unselect_element(self, message)
 	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Dead then
 		on_dead(self, message)
 	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Despawn then

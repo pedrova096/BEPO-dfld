@@ -1,5 +1,12 @@
+local Msg = require("lib.msg")
+
+local Urls = {
+	ShadowSprite = "shadow#sprite",
+}
+
 function init(self)
 	-- Initialization for enemy 03
+	sprite.play_flipbook(Urls.ShadowSprite, "default")
 end
 
 function final(self)
@@ -11,9 +18,21 @@ end
 function fixed_update(self, dt)
 end
 
+local function on_select_element(self, message)
+	sprite.play_flipbook(Urls.ShadowSprite, "selected")
+end
+
+local function on_unselect_element(self, message)
+	sprite.play_flipbook(Urls.ShadowSprite, "default")
+end
+
 function on_message(self, message_id, message, sender)
+	if message_id == Msg.Enemy.SELECT then
+		on_select_element(self, message)
+	elseif message_id == Msg.Enemy.UNSELECT then
+		on_unselect_element(self, message)
+	end
 end
 
 function on_reload(self)
 end
-

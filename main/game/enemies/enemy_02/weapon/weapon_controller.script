@@ -68,6 +68,7 @@ local function set_place_from_direction(self, direction)
   })
   go.set(".", "position", weapon_position + self.offset)
   go.set(".", "rotation", weapon_rotation)
+  sprite.set_hflip(Urls.Sprite, direction.x > 0)
 end
 
 local function trigger_weapon_pipe(self, dt)
@@ -113,7 +114,8 @@ end
 
 local function on_reload_started(self, message)
   -- sprite.play_flipbook(Urls.Sprite, "reload")
-  go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.15, 0)
+  go.set(".", "euler.z", 0)
+  go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.25, 0)
 end
 
 local function on_reload_completed(self, message)
@@ -127,12 +129,12 @@ local function on_force_reload(self, message)
 end
 
 local function on_show_element(self, message)
-  -- Entity.show_sprite(Urls.Sprite)
+  Entity.show_sprite(Urls.Sprite)
 end
 
 local function on_hide_element(self, message)
   self.trigger_status = TriggerStatusEnum.Released
-  -- Entity.hide_sprite(Urls.Sprite)
+  Entity.hide_sprite(Urls.Sprite)
 end
 
 local function on_set_direction(self, message)

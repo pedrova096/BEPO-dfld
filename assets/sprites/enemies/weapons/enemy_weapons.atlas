@@ -5,3 +5,9 @@ images {
   image: "/assets/sprites/enemies/weapons/arrow_area.png"
   pivot_y: 0.0
 }
+images {
+  image: "/assets/sprites/enemies/weapons/weapon_02.png"
+}
+images {
+  image: "/assets/sprites/enemies/weapons/weapon_03.png"
+}

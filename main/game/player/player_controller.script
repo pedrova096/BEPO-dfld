@@ -67,8 +67,9 @@ function init(self)
 	})
 	self.special_action = nil
 	self.target_enemies = {}
+	self.selected_enemy_id = nil
 
-	enable_special_action(self, SpecialType.Bomb)
+	-- enable_special_action(self, SpecialType.Bomb)
 
 	msg.post(Urls.SessionManager, Msg.Player.LIFE_INITIALIZED, {
 		lives = self.lives,
@@ -96,8 +97,24 @@ local function get_target_enemy(self)
 	return nil
 end
 
+local function set_selected_enemy(self, enemy)
+	local enemy_id = enemy and enemy.id or nil
+	if self.selected_enemy_id == enemy_id then return end
+
+	if self.selected_enemy_id then
+		msg.post(self.selected_enemy_id, Msg.Enemy.UNSELECT)
+	end
+
+	self.selected_enemy_id = enemy_id
+
+	if self.selected_enemy_id then
+		msg.post(self.selected_enemy_id, Msg.Enemy.SELECT)
+	end
+end
+
 local function target_enemies_pipe(self, dt)
 	local enemy = get_target_enemy(self)
+	set_selected_enemy(self, enemy)
 
 	if not enemy then
 		local trigger_status = go.get(Urls.Weapon, "trigger_status")
@@ -122,6 +139,10 @@ end
 function fixed_update(self, dt)
 	self.stater:update(dt)
 	target_enemies_pipe(self, dt)
+end
+
+function final(self)
+	set_selected_enemy(self, nil)
 end
 
 local function on_move(self, message)

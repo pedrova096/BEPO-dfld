@@ -16,9 +16,10 @@ local Urls = {
 	--Inner
 	Attack = "attack",
 	AttackController = "attack#controller",
+	ShadowSprite = "shadow#sprite",
 }
 
-go.property("health", 6)
+go.property("health", 5)
 go.property("wave_id", 0)
 go.property("velocity", 40)
 
@@ -107,6 +108,7 @@ end
 
 local function on_activate_enemy(self, message)
 	reset_store(self)
+	sprite.play_flipbook(Urls.ShadowSprite, "default")
 	self.stater:set_behavior_flag(true)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
 	self.wave_id = message.wave_id
@@ -122,6 +124,7 @@ local function on_dead(self, message)
 end
 
 local function on_despawned(self, message)
+	sprite.play_flipbook(Urls.ShadowSprite, "default")
 	Entity.hide_entity()
 	print("Enemy despawned => " .. go.get_id())
 	msg.post(Urls.LevelManager, Msg.Enemy.CONFIRM_ENEMY_DESPAWN, {
@@ -133,6 +136,14 @@ local function on_game_time_changed(self, message)
 	GameTime.on_change(message, self.stater.urls.VisualSprite, self.stater.urls.Body)
 end
 
+local function on_select_element(self, message)
+	sprite.play_flipbook(Urls.ShadowSprite, "selected")
+end
+
+local function on_unselect_element(self, message)
+	sprite.play_flipbook(Urls.ShadowSprite, "default")
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.APPLY_DAMAGE then
 		on_apply_damage(self, message)
@@ -140,6 +151,10 @@ function on_message(self, message_id, message, sender)
 		on_activate_enemy(self, message)
 	elseif message_id == Msg.Game.GAME_TIME_CHANGED then
 		on_game_time_changed(self, message)
+	elseif message_id == Msg.Enemy.SELECT then
+		on_select_element(self, message)
+	elseif message_id == Msg.Enemy.UNSELECT then
+		on_unselect_element(self, message)
 	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Dead then
 		on_dead(self, message)
 	elseif message_id == Msg.STATE_CHANGED and message.next_state == StatesEnum.Despawn then

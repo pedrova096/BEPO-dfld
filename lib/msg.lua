@@ -47,6 +47,8 @@ local Camera = {
 local Enemy = {
   -- commands
   ACTIVATE_ENEMY = hash("activate_enemy"),
+  SELECT = hash("enemy_select"),
+  UNSELECT = hash("enemy_unselect"),
   -- events
   ENEMY_KILLED = hash("enemy_killed"),
   CONFIRM_ENEMY_DESPAWN = hash("confirm_enemy_despawn"),

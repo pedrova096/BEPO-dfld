@@ -100,7 +100,7 @@ embedded_instances {
   "}\\n"
   "\"\n"
   "  position {\n"
-  "    y: 16.0\n"
+  "    y: 14.0\n"
   "  }\n"
   "}\n"
   ""
@@ -122,7 +122,7 @@ embedded_instances {
   "  w: 8.0\\n"
   "}\\n"
   "size {\\n"
-  "  x: 24.0\\n"
+  "  x: 28.0\\n"
   "  y: 14.0\\n"
   "}\\n"
   "size_mode: SIZE_MODE_MANUAL\\n"
@@ -131,10 +131,13 @@ embedded_instances {
   "  texture: \\\"/assets/sprites/global/shadow.tilesource\\\"\\n"
   "}\\n"
   "\"\n"
+  "  position {\n"
+  "    x: -1.0\n"
+  "  }\n"
   "}\n"
   ""
   position {
-    x: 1.0
+    x: -1.0
     y: 2.0
   }
 }
