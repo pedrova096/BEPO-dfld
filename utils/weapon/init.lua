@@ -6,7 +6,7 @@ local BulletPool = require("utils.weapon.bullet_pool")
 return {
   Weapon = Weapon,
   ShotgunWeapon = ShotgunWeapon,
-  WeaponConfigs = Configs.WeaponConfigs,
+  WeaponConfigs = Configs.Configs,
   BulletConfigs = Configs.BulletConfigs,
   BulletPool = BulletPool,
 }

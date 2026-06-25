@@ -1,6 +1,6 @@
 components {
   id: "controller"
-  component: "/main/game/attacks/basic_attack_controller.script"
+  component: "/main/game/enemies/attacks/basic_attack_controller.script"
 }
 embedded_components {
   id: "area_sprite"

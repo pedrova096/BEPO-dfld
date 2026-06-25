@@ -8,7 +8,9 @@
 ---@field fire_interval number    -- seconds between shots
 ---@field ammo_capacity number?    -- magazine size
 ---@field reload_time number      -- seconds to fully reload
+---@field range number            -- effective weapon range
 ---@field accuracy number         -- 0..1 scalar that tightens base cone
+---@field bullet_damage number    -- damage dealt by each fired bullet or pellet
 ---@field bullet_config BulletConfig
 
 ---@class WeaponFirePayload
@@ -42,6 +44,9 @@
 ---@class WeaponProperties
 ---@field reload_time number?
 ---@field ammo_capacity number?
+---@field fire_interval number?
+---@field accuracy number?
+---@field bullet_damage number?
 ---@field pool_size number?
 ---@field bullet_config BulletConfig?
 
@@ -78,6 +83,7 @@
 ---@class ShotgunWeaponConfig : WeaponConfig
 ---@field pellets number          -- pellets per trigger pull
 ---@field spread number           -- spread angle in degrees
+---@field pellet_spawn_width number -- width of the pellet spawn line
 
 ---@class SniperBulletConfig : BulletConfig
 ---@field penetrate number

@@ -3,6 +3,7 @@ local Entity = require("utils.entity")
 local GameTime = require("modules.game_time")
 local VMath = require("utils.vmath")
 local Weapon = require("utils.weapon.weapon")
+local ShotgunWeapon = require("utils.weapon.shotgun_weapon")
 local WeaponConfigs = require("utils.weapon.configs")
 
 local TriggerStatusEnum = {
@@ -15,38 +16,68 @@ local Urls = {
   Sprite = "#sprite",
 }
 
-go.property("ammo_capacity", 1)
-go.property("bullet_damage", 1)
-go.property("bullet_force", 8)
-go.property("bullet_speed", 100)
-go.property("reload_time", 1.5)
+go.property("weapon_type", hash("Pistol"))
+go.property("ammo_capacity", 0)
+go.property("bullet_damage", 0)
+go.property("bullet_force", 0)
+go.property("bullet_speed", 0)
+go.property("reload_time", 0)
 go.property("offset", vmath.vector3(0, 8.0, 0))
 go.property("trigger_status", hash("released"))
 
+local SPRITE_MAP = {
+  [WeaponConfigs.WeaponIds.Pistol] = {
+    Idle = "weapon_01"
+  },
+  [WeaponConfigs.WeaponIds.Rifle] = {
+    Idle = "weapon_02"
+  },
+  [WeaponConfigs.WeaponIds.Shotgun] = {
+    Idle = "weapon_03"
+  },
+}
+
+local WEAPON_MAP = {
+  [WeaponConfigs.WeaponIds.Pistol] = Weapon,
+  [WeaponConfigs.WeaponIds.Rifle] = Weapon,
+  [WeaponConfigs.WeaponIds.Shotgun] = ShotgunWeapon,
+}
+
+local function get_mixed_weapon_properties(self)
+  local weapon_config = WeaponConfigs.Configs[self.weapon_type]
+
+  local bullet_config = weapon_config.bullet_config or {}
+  return {
+    ammo_capacity = self.ammo_capacity ~= 0 and self.ammo_capacity or weapon_config.ammo_capacity,
+    reload_time = self.reload_time ~= 0 and self.reload_time or weapon_config.reload_time,
+    bullet_damage = self.bullet_damage ~= 0 and self.bullet_damage or weapon_config.bullet_damage,
+    bullet_config = {
+      speed = self.bullet_speed ~= 0 and self.bullet_speed or bullet_config.speed,
+      force = self.bullet_force ~= 0 and self.bullet_force or bullet_config.force,
+    },
+  }
+end
+
 function init(self)
-  self.weapon = Weapon:new({
-    id = "pistol",
-    config = WeaponConfigs.WeaponConfigs.Pistol,
+  local weapon_config = WeaponConfigs.Configs[self.weapon_type]
+  local WeaponModule = WEAPON_MAP[self.weapon_type] or Weapon
+
+  self.weapon = WeaponModule:new({
+    id = self.weapon_type,
+    config = weapon_config,
     auto_reload = false,
     bullet = {
-      config = WeaponConfigs.BulletConfigs.Pistol,
+      config = weapon_config.bullet_config,
       factory_url = Urls.BulletSmFactory,
     },
     target = hash("player"),
-    bullet_props = {
-      theme = 2,
-    },
-  })
-  self.weapon:set_properties({
-    ammo_capacity = self.ammo_capacity,
-    pool_size = self.ammo_capacity,
-    reload_time = self.reload_time,
-    bullet_config = {
-      speed = self.bullet_speed,
-      force = self.bullet_force,
-    },
+    bullet_props = { theme = 2, },
   })
 
+  local weapon_properties = get_mixed_weapon_properties(self)
+  self.weapon:set_properties(weapon_properties)
+
+  sprite.play_flipbook(Urls.Sprite, SPRITE_MAP[self.weapon_type].Idle)
   Entity.hide_sprite(Urls.Sprite)
 
   self.original_position = go.get_position()
@@ -82,6 +113,7 @@ local function trigger_weapon_pipe(self, dt)
 end
 
 function fixed_update(self, dt)
+  -- TODO: check how to disable when hidden
   dt = GameTime.scale(dt)
   self.weapon:update(dt)
   trigger_weapon_pipe(self, dt)
@@ -96,6 +128,7 @@ local function on_trigger_weapon(self, message)
   self.trigger_status = TriggerStatusEnum.Pressed
   self.trigger_payload = message or {}
   self.trigger_payload.direction = self.trigger_payload.direction or vmath.vector3(0, -1, 0)
+  self.trigger_payload.damage = self.trigger_payload.damage or self.weapon.config.bullet_damage
   self.trigger_payload.position = VMath.z_one(go.get_world_position())
 end
 
@@ -105,7 +138,11 @@ local function on_release_weapon(self, message)
 end
 
 local function on_set_properties(self, message)
-  -- self.weapon:set_properties(message)
+  message = message or {}
+  if message.bullet_damage then
+    self.bullet_damage = message.bullet_damage
+  end
+  self.weapon:set_properties(message)
 end
 
 local function on_bullet_finished(self, message)
@@ -115,7 +152,7 @@ end
 local function on_reload_started(self, message)
   -- sprite.play_flipbook(Urls.Sprite, "reload")
   go.set(".", "euler.z", 0)
-  go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.25, 0)
+  go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.3, 0)
 end
 
 local function on_reload_completed(self, message)
@@ -146,6 +183,7 @@ local function on_weapon_config_query(self, message, sender)
   msg.post(sender, Msg.Weapon.CONFIG_RECEIVED, {
     config = self.weapon.config,
     bullet_config = self.weapon.bullet_config,
+    attack_duration = self.weapon:get_attack_duration(),
   })
 end
 

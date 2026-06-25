@@ -1,4 +1,4 @@
-name: "enemy_03"
+name: "enemy_05"
 instances {
   id: "weapon"
   prototype: "/main/game/enemies/ranged_enemy/weapon/weapon.go"
@@ -10,7 +10,7 @@ instances {
     id: "controller"
     properties {
       id: "weapon_type"
-      value: "Rifle"
+      value: "Shotgun"
       type: PROPERTY_TYPE_HASH
     }
   }
@@ -41,7 +41,7 @@ embedded_instances {
   "  shapes {\\n"
   "    shape_type: TYPE_BOX\\n"
   "    position {\\n"
-  "      y: 9.0\\n"
+  "      y: 10.0\\n"
   "    }\\n"
   "    rotation {\\n"
   "    }\\n"
@@ -49,8 +49,8 @@ embedded_instances {
   "    count: 3\\n"
   "    id: \\\"body\\\"\\n"
   "  }\\n"
-  "  data: 8.5\\n"
-  "  data: 7.0\\n"
+  "  data: 10.0\\n"
+  "  data: 8.0\\n"
   "  data: 10.0\\n"
   "}\\n"
   "locked_rotation: true\\n"
@@ -78,7 +78,7 @@ embedded_instances {
   "material: \\\"/builtins/fonts/label-df.material\\\"\\n"
   "\"\n"
   "  position {\n"
-  "    y: 31.0\n"
+  "    y: 32.0\n"
   "  }\n"
   "  scale {\n"
   "    x: 0.25\n"
@@ -103,7 +103,7 @@ embedded_instances {
   "}\\n"
   "textures {\\n"
   "  sampler: \\\"texture_sampler\\\"\\n"
-  "  texture: \\\"/assets/sprites/enemies/enemy_03.tilesource\\\"\\n"
+  "  texture: \\\"/assets/sprites/enemies/enemy_05.tilesource\\\"\\n"
   "}\\n"
   "\"\n"
   "  position {\n"

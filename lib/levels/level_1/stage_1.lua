@@ -7,8 +7,9 @@ local wave_1 = {
 		spawn_interval = 6,
 		spawn_concurrent = 2,
 		enemy_pool = {
-			{ id = "enemy_01", cost = 1, chance = 0.85 },
-			{ id = "enemy_02", cost = 2, chance = 0.15 },
+			{ id = "enemy_01", cost = 1, chance = 0.825 },
+			{ id = "enemy_02", cost = 2, chance = 0.125 },
+			{ id = "enemy_03", cost = 2, chance = 0.05 },
 		},
 		overlap_time = 18.0,
 	}
@@ -23,8 +24,9 @@ local wave_2 = {
 		spawn_interval = 2,
 		spawn_concurrent = 3,
 		enemy_pool = {
-			{ id = "enemy_01", cost = 1, chance = 0.65 },
-			{ id = "enemy_02", cost = 2, chance = 0.35 },
+			{ id = "enemy_01", cost = 1, chance = 0.625 },
+			{ id = "enemy_02", cost = 2, chance = 0.325 },
+			{ id = "enemy_03", cost = 2, chance = 0.05 },
 		},
 		overlap_time = 25,
 	}

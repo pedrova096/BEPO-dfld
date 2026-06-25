@@ -1,6 +1,8 @@
 local pool = {
-	{ id = "enemy_01", cost = 1, chance = 0.5 },
-	{ id = "enemy_02", cost = 2, chance = 0.5 },
+	{ id = "enemy_01", cost = 1, chance = 0.2 },
+	{ id = "enemy_02", cost = 2, chance = 0.35 },
+	{ id = "enemy_03", cost = 3, chance = 0.3 },
+	{ id = "enemy_05", cost = 3, chance = 0.15 },
 }
 
 --- @type BudgetWaveConfig

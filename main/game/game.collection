@@ -122,5 +122,11 @@ embedded_instances {
   "  data: \"prototype: \\\"/main/game/upgrader/upgrader.go\\\"\\n"
   "\"\n"
   "}\n"
+  "embedded_components {\n"
+  "  id: \"cfactory_enemy_05\"\n"
+  "  type: \"collectionfactory\"\n"
+  "  data: \"prototype: \\\"/main/game/enemies/enemy_05/enemy_05.collection\\\"\\n"
+  "\"\n"
+  "}\n"
   ""
 }

@@ -11,6 +11,9 @@ local Msg = require("lib.msg")
 local Urls = {
 	FactoryEnemy01 = "/level_manager#cfactory_enemy_01",
 	FactoryEnemy02 = "/level_manager#cfactory_enemy_02",
+	FactoryEnemy03 = "/level_manager#cfactory_enemy_03",
+	FactoryEnemy04 = "/level_manager#cfactory_enemy_04",
+	FactoryEnemy05 = "/level_manager#cfactory_enemy_05",
 	GameController = "/controller",
 	UIController = "/ui",
 	SessionManager = "/session_manager",
@@ -24,9 +27,25 @@ local Urls = {
 	ConnectionFactory = "/level_manager#door_factory"
 }
 
-local FACTORIES_MAP = {
-	enemy_01 = Urls.FactoryEnemy01,
-	enemy_02 = Urls.FactoryEnemy02,
+local ENEMY_DEFINITIONS = {
+	enemy_01 = {
+		factory_url = Urls.FactoryEnemy01,
+	},
+	enemy_02 = {
+		factory_url = Urls.FactoryEnemy02,
+		config = {
+		},
+	},
+	enemy_03 = {
+		factory_url = Urls.FactoryEnemy03,
+		config = {
+		},
+	},
+	enemy_05 = {
+		factory_url = Urls.FactoryEnemy05,
+		config = {
+		},
+	},
 }
 
 local TILEMAP_FACTORY_MAP = {
@@ -154,7 +173,7 @@ function init(self)
 		debug = self.debug,
 	})
 	self.enemies_pool = EnemyPool.new({
-		factory_map = FACTORIES_MAP,
+		enemy_definitions = ENEMY_DEFINITIONS,
 		position_generator = RandomPositionGenerator:new(200, -200),
 	})
 

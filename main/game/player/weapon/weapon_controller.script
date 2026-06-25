@@ -35,11 +35,12 @@ local function sync_bullet_count(self)
 end
 
 function init(self)
+	local pistol_config = WeaponConfigs.Configs[WeaponConfigs.WeaponIds.Pistol]
 	self.weapon = Weapon:new({
 		id = "pistol",
-		config = WeaponConfigs.WeaponConfigs.Pistol,
+		config = pistol_config,
 		bullet = {
-			config = WeaponConfigs.BulletConfigs.Pistol,
+			config = pistol_config.bullet_config,
 			factory_url = Urls.BulletSmFactory,
 		},
 		target = hash("enemy"),

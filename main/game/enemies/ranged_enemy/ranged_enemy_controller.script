@@ -22,6 +22,7 @@ go.property("wave_id", 0)
 go.property("safe_distance", 150)
 go.property("velocity", 30)
 go.property("bullet_damage", 2)
+go.property("preparation_time", 0.3)
 
 function init(self)
 	self.store = {
@@ -69,8 +70,6 @@ function init(self)
 	msg.post(Urls.WeaponController, Msg.Weapon.REQUEST_CONFIG)
 end
 
----@package
----@param self enemy_02_controller.script
 function final(self)
 	GameTime.unregister_id()
 end
@@ -126,16 +125,24 @@ local function on_apply_damage(self, message)
 	})
 end
 
-local function reset_store(self)
-	self.store.health = self.health
-	self.store.velocity = self.velocity
+local function reset_store(self, config)
+	config = config or {}
+	self.store.health = config.health or self.health
+	self.store.velocity = config.velocity or self.velocity
+	self.safe_distance = config.safe_distance or self.safe_distance
+	self.steer.config.safe_distance = self.safe_distance
 end
 
 local function on_activate_enemy(self, message)
-	reset_store(self)
+	local config = message.config or {}
+	reset_store(self, config)
 	sprite.play_flipbook(Urls.ShadowSprite, "default")
 	self.stater:set_behavior_flag(true)
 	self.stater:apply_transition(StatesEnum.Spawn, {})
+	if config.weapon then
+		msg.post(Urls.WeaponController, Msg.Weapon.SET_PROPERTIES, config.weapon)
+		msg.post(Urls.WeaponController, Msg.Weapon.REQUEST_CONFIG)
+	end
 	msg.post(Urls.WeaponController, Msg.SHOW_ELEMENT)
 	self.wave_id = message.wave_id
 end
@@ -162,10 +169,10 @@ end
 local function on_weapon_config_response(self, message)
 	local config = message.config
 	local cooldown = config.reload_time
-	local attack = config.fire_interval * config.ammo_capacity
+	local attack = message.attack_duration or config.fire_interval * config.ammo_capacity
 
 	self.attacker:set_time_config({
-		prepare = 0.3,
+		prepare = self.preparation_time,
 		attack = attack,
 		cooldown = cooldown,
 	})

@@ -1,48 +1,58 @@
 local Msg = require("lib.msg")
 local Pooler = require("utils.pooler.pooler")
-local VMathUtils = require("utils.vmath")
 local RandomPositionGenerator = require("utils.position_generator.random_position_generator")
 
 ---@class EnemyItem
 ---@field id userdata ID of the enemy object
 ---@field type string enemy type
+---@field config table|nil Enemy activation config
 
 ---@class CreateEnemyOptions
 ---@field type string enemy type
 ---@field wave_id number ID of the wave this enemy belongs to, if any
 
+---@class EnemyDefinition
+---@field factory_url string Collection factory URL used to create this enemy type
+---@field config table|nil Activation config sent to the enemy controller
+
 ---@class EnemyPoolOptions
----@field factory_map table<string, string> Map of enemy type to factory URL
+---@field enemy_definitions table<string, EnemyDefinition> Map of enemy type to factory/config data
 ---@field position_generator { next: fun(self: any): vector3 }? Provides the next spawn position
 ---@field reset (fun(enemy: EnemyItem))? Called when an enemy is returned to the pool
 
 ---@class EnemyPool
----@field factory_map table<string, string> Map of enemy type to factory URL
+---@field enemy_definitions table<string, EnemyDefinition> Map of enemy type to factory/config data
 ---@field position_generator { next: fun(self: any): vector3 }
 ---@field pool Pool
 ---@field pending EnemyItem[] Enemies waiting for despawn confirmation before reuse
 local M = {}
 M.__index = M
 
+local function activate_enemy(enemy, wave_id)
+  msg.post(enemy.id, Msg.Enemy.ACTIVATE_ENEMY, {
+    wave_id = wave_id,
+    config = enemy.config,
+  })
+end
+
 local function create_enemy(self)
   ---@param options CreateEnemyOptions
   return function(options)
-    local factory_url = self.factory_map[options.type]
-    if not factory_url then
-      error("No factory found for enemy type: " .. options.type)
+    local definition = self.enemy_definitions[options.type]
+    if not definition then
+      error("No enemy definition found for enemy type: " .. options.type)
     end
 
     local position = self.position_generator:next()
     position.z = 1
 
-    local ids = collectionfactory.create(factory_url, position)
+    local ids = collectionfactory.create(definition.factory_url, position)
     local enemy = {
       id = ids["/root"],
       type = options.type,
+      config = definition.config,
     }
-    msg.post(enemy.id, Msg.Enemy.ACTIVATE_ENEMY, {
-      wave_id = options.wave_id,
-    })
+    activate_enemy(enemy, options.wave_id)
     return enemy
   end
 end
@@ -51,7 +61,7 @@ end
 ---@return EnemyPool
 function M.new(options)
   local instance = setmetatable({}, M)
-  instance.factory_map = options.factory_map
+  instance.enemy_definitions = options.enemy_definitions
   instance.position_generator = options.position_generator or RandomPositionGenerator:new(200, -200)
   instance.pending = {}
   instance.pool = Pooler.new({
@@ -98,13 +108,16 @@ local function find_pending_index_by_id(self, id)
 end
 
 local function on_post_acquire(self, enemy, options)
+  local definition = self.enemy_definitions[options.type]
+  if not definition then
+    error("No enemy definition found for enemy type: " .. options.type)
+  end
+
   local position = self.position_generator:next()
   position.z = 1
   go.set(enemy.id, "position", position)
-  --go.set(msg.url(nil, enemy.id, "controller"), "wave_id", options.wave_id)
-  msg.post(enemy.id, Msg.Enemy.ACTIVATE_ENEMY, {
-    wave_id = options.wave_id,
-  })
+  enemy.config = definition.config
+  activate_enemy(enemy, options.wave_id)
 end
 
 ---Acquire a recycled enemy of the given type. Extends the pool if none are available.

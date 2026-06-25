@@ -211,6 +211,12 @@ function M:get_reload_ratio()
   return self.state.reload_timer / self.config.reload_time
 end
 
+---Return how long this weapon should stay in its firing attack phase.
+---@return number
+function M:get_attack_duration()
+  return self.config.fire_interval * self.config.ammo_capacity
+end
+
 ---Check if the weapon is reloading.
 ---@return boolean
 function M:is_reloading()
@@ -220,7 +226,10 @@ end
 ---Set the properties of the weapon.
 ---@param properties WeaponProperties
 function M:set_properties(properties)
+  self.config.fire_interval = properties.fire_interval or self.config.fire_interval
   self.config.reload_time = properties.reload_time or self.config.reload_time
+  self.config.accuracy = properties.accuracy or self.config.accuracy
+  self.config.bullet_damage = properties.bullet_damage or self.config.bullet_damage
   if properties.ammo_capacity then
     self.config.ammo_capacity = properties.ammo_capacity
     self.state.ammo = properties.ammo_capacity

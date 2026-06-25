@@ -1,6 +1,6 @@
 components {
   id: "controller"
-  component: "/main/game/enemies/enemy_02/weapon/weapon_controller.script"
+  component: "/main/game/enemies/ranged_enemy/weapon/weapon_controller.script"
 }
 embedded_components {
   id: "bullet_sm_factory"
@@ -26,6 +26,6 @@ embedded_components {
 embedded_components {
   id: "area_factory"
   type: "factory"
-  data: "prototype: \"/main/game/enemies/enemy_02/weapon/arrow_area/arrow_area.go\"\n"
+  data: "prototype: \"/main/game/enemies/ranged_enemy/weapon/arrow_area/arrow_area.go\"\n"
   ""
 }
