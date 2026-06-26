@@ -64,6 +64,7 @@ function init(self)
 
   self.weapon = WeaponModule:new({
     id = self.weapon_type,
+    pool_size = weapon_config.ammo_capacity + 1,
     config = weapon_config,
     auto_reload = false,
     bullet = {

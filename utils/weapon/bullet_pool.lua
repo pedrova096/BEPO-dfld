@@ -86,11 +86,24 @@ function M:active()
   return self.pool:count_active()
 end
 
+function M:_trim_free()
+  local state = self.pool.state
+
+  while state.size > self.pool_size and #state.free > 0 do
+    local bullet = table.remove(state.free)
+    bullet:final()
+    state.size = state.size - 1
+  end
+end
+
 function M:set_pool_size(pool_size)
   self.pool_size = pool_size
+
   while self.pool.state.size < pool_size do
     self.pool:extend()
   end
+
+  self:_trim_free()
 end
 
 function M:get_bullet_by_id(id)

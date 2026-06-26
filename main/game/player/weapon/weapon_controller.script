@@ -39,6 +39,7 @@ function init(self)
 	self.weapon = Weapon:new({
 		id = "pistol",
 		config = pistol_config,
+		pool_size = self.ammo_capacity + 1,
 		bullet = {
 			config = pistol_config.bullet_config,
 			factory_url = Urls.BulletSmFactory,
@@ -51,7 +52,7 @@ function init(self)
 
 	self.weapon:set_properties({
 		ammo_capacity = self.ammo_capacity,
-		pool_size = self.ammo_capacity + 2,
+		pool_size = self.ammo_capacity + 1,
 		bullet_config = {
 			speed = self.bullet_speed,
 			force = self.bullet_force,
