@@ -18,6 +18,7 @@ local Player = {
   RELEASE_SPECIAL_ACTION = hash("release_special_action"),
   CANCEL_SPECIAL_ACTION = hash("cancel_special_action"),
   MOVE_SPECIAL_ACTION = hash("move_special_action"),
+  UPDATE_RECHARGE_PROGRESS = hash("update_recharge_progress"),
 }
 
 local Weapon = {

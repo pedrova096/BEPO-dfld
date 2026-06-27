@@ -42,6 +42,7 @@
 ---@field ricochet_check_obstacles boolean?    -- whether ricochet target rays are blocked by obstacle groups
 
 ---@class WeaponProperties
+---@field auto_reload boolean?
 ---@field reload_time number?
 ---@field ammo_capacity number?
 ---@field fire_interval number?

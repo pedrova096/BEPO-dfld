@@ -26,9 +26,6 @@ embedded_instances {
   "  texture: \\\"/assets/sprites/global/global.atlas\\\"\\n"
   "}\\n"
   "\"\n"
-  "  position {\n"
-  "    y: 28.0\n"
-  "  }\n"
   "}\n"
   ""
   position {
@@ -51,10 +48,9 @@ embedded_instances {
   "  texture: \\\"/assets/sprites/global/global.atlas\\\"\\n"
   "}\\n"
   "\"\n"
-  "  position {\n"
-  "    x: -8.5\n"
-  "    y: 28.0\n"
-  "  }\n"
   "}\n"
   ""
+  position {
+    x: -8.5
+  }
 }

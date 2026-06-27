@@ -86,6 +86,12 @@ embedded_instances {
   "}\\n"
   "\"\n"
   "}\n"
+  "embedded_components {\n"
+  "  id: \"reload_indicator_factory\"\n"
+  "  type: \"collectionfactory\"\n"
+  "  data: \"prototype: \\\"/assets/sprites/player/reload_indicator/reload_indicator_composer.collection\\\"\\n"
+  "\"\n"
+  "}\n"
   ""
   position {
     y: -1.0

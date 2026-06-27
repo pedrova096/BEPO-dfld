@@ -46,6 +46,7 @@ function M:new(opts)
 
   instance.id = opts.id or "weapon"
   instance.config = Table.copy(opts.config)
+  instance.auto_reload = opts.auto_reload ~= false
   instance.bullet_config = Table.merge_right(DEFAULT_BULLET_CONFIG, opts.bullet.config or {})
   instance.target = opts.target
 
@@ -111,7 +112,7 @@ end
 
 ---@param dt number
 function M:_reload_timer_pipe(dt)
-  if not self.state.reloading then return end
+  if not self.state.reloading or not self.auto_reload then return end
 
   self.state.reload_timer = self.state.reload_timer + dt
   if self.state.reload_timer < self.config.reload_time then return end
@@ -175,7 +176,16 @@ function M:start_reload(force)
 
   self.state.reloading = true
   self.state.reload_timer = 0
-  msg.post(".", Msg.Weapon.RELOAD_STARTED)
+  msg.post(".", Msg.Weapon.RELOAD_STARTED, {
+    time = self.config.reload_time,
+  })
+  return true
+end
+
+function M:force_reload()
+  if self.state.ammo >= (self.config.ammo_capacity or 0) then return false end
+
+  self:_complete_reload()
   return true
 end
 
@@ -230,6 +240,9 @@ function M:set_properties(properties)
   self.config.reload_time = properties.reload_time or self.config.reload_time
   self.config.accuracy = properties.accuracy or self.config.accuracy
   self.config.bullet_damage = properties.bullet_damage or self.config.bullet_damage
+  if properties.auto_reload ~= nil then
+    self.auto_reload = properties.auto_reload
+  end
   if properties.ammo_capacity then
     self.config.ammo_capacity = properties.ammo_capacity
     self.state.ammo = properties.ammo_capacity

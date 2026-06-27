@@ -39,6 +39,7 @@ function init(self)
 	self.weapon = Weapon:new({
 		id = "pistol",
 		config = pistol_config,
+		auto_reload = false,
 		pool_size = self.ammo_capacity + 1,
 		bullet = {
 			config = pistol_config.bullet_config,
@@ -146,13 +147,22 @@ local function on_reload_started(self, message)
 
 	sprite.play_flipbook(Urls.Sprite, "reload")
 	go.animate(".", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INQUAD, 0.15, 0)
+
+	msg.post(Urls.PlayerController, Msg.Weapon.RELOAD_STARTED, {
+		time = message.time or self.weapon.config.reload_time,
+	})
 end
 
 local function on_reload_completed(self, message)
 	go.cancel_animations(".", "euler.z")
 	go.set(".", "euler.z", 0)
 	sprite.play_flipbook(Urls.Sprite, "idle")
+	msg.post(Urls.PlayerController, Msg.Weapon.RELOAD_COMPLETED, message)
 	sync_bullet_count(self)
+end
+
+local function on_force_reload(self, message)
+	self.weapon:force_reload()
 end
 
 local function show_muzzle_flash()
@@ -185,5 +195,7 @@ function on_message(self, message_id, message, sender)
 		on_reload_started(self, message)
 	elseif message_id == Msg.Weapon.RELOAD_COMPLETED then
 		on_reload_completed(self, message)
+	elseif message_id == Msg.Weapon.FORCE_RELOAD then
+		on_force_reload(self, message)
 	end
 end

@@ -1,5 +1,6 @@
 local PlayerStater = require("lib.stater.player_stater")
 local Msg = require("lib.msg")
+local ManualTimer = require("utils.manual_timer")
 local SpecialType = require("lib.rewards.special.special_type")
 local EnhancementType = require("lib.rewards.enhancement.enhancement_type")
 
@@ -11,6 +12,7 @@ local Urls = {
 	SessionManager = "/session_manager",
 	SoundController = "/sound_controller",
 	-- Internal
+	ReloadIndicatorFactory = "#reload_indicator_factory",
 	SpecialActions = {
 		Bomb = "go#bomb"
 	}
@@ -18,6 +20,12 @@ local Urls = {
 local TriggerStatusEnum = {
 	Pressed = hash("pressed"),
 	Released = hash("released"),
+}
+
+local SpecialActionStates = {
+	Idle = hash("idle"),
+	Started = hash("started"),
+	Running = hash("running"),
 }
 
 local MAP_SPECIAL_ACTIONS = {
@@ -47,6 +55,7 @@ end
 
 ---@class PlayerStore
 ---@field velocity number
+---@field is_recharging boolean
 ---@field lives number
 ---@field input vector3
 
@@ -61,20 +70,30 @@ function init(self)
 		velocity = self.velocity,
 		lives = self.lives,
 		input = vmath.vector3(0),
+		is_recharging = false
 	}
 	self.stater = PlayerStater:new({
 		store = self.store
 	})
+	self.recharge_timer = nil
 	self.special_action = nil
+	self.special_action_state = SpecialActionStates.Idle
 	self.target_enemies = {}
 	self.selected_enemy_id = nil
 
+	local reload_ids = collectionfactory.create(Urls.ReloadIndicatorFactory, vmath.vector3(0, 24, 1))
+	self.reload_indicator_id = reload_ids["/root"]
+	go.set_parent(self.reload_indicator_id, ".")
+	--go.set_position(vmath.vector3(0, 24, 1), self.reload_indicator_id)
+
 	-- enable_special_action(self, SpecialType.Bomb)
 
+	msg.post(self.reload_indicator_id, Msg.HIDE_ELEMENT)
 	msg.post(Urls.SessionManager, Msg.Player.LIFE_INITIALIZED, {
 		lives = self.lives,
 	})
 	msg.post(Urls.Weapon, Msg.Weapon.SET_PROPERTIES, {
+		auto_reload = false,
 		bullet_config = {
 			ricochets = self.bullet_ricochets,
 		}
@@ -113,16 +132,27 @@ local function set_selected_enemy(self, enemy)
 	end
 end
 
+local function is_special_action_active(self)
+	return self.special_action_state ~= SpecialActionStates.Idle
+end
+
+local function stop_weapon_firing(self)
+	local trigger_status = go.get(Urls.Weapon, "trigger_status")
+	if trigger_status == TriggerStatusEnum.Pressed then
+		msg.post(Urls.Weapon, Msg.Weapon.STOP_FIRING)
+	end
+
+	set_selected_enemy(self, nil)
+end
+
 local function target_enemies_pipe(self, dt)
+	if is_special_action_active(self) then return end
+
 	local enemy = get_target_enemy(self)
 	set_selected_enemy(self, enemy)
 
 	if not enemy then
-		local trigger_status = go.get(Urls.Weapon, "trigger_status")
-		if trigger_status == TriggerStatusEnum.Pressed then
-			msg.post(Urls.Weapon, Msg.Weapon.STOP_FIRING)
-		end
-
+		stop_weapon_firing(self)
 		return
 	end
 
@@ -137,9 +167,30 @@ local function has_input(store)
 	return input.x ~= 0 or input.y ~= 0 or input.z ~= 0
 end
 
+local function recharge_pipe(self, dt)
+	if not self.store.is_recharging then return end
+
+	local is_moving = has_input(self.store)
+
+	if not is_moving then return end
+
+	self.recharge_timer:update(dt)
+
+	local progress = self.recharge_timer:get_progress()
+
+	msg.post(self.reload_indicator_id, Msg.Player.UPDATE_RECHARGE_PROGRESS, { progress = progress })
+
+	if self.recharge_timer:is_done() then
+		self.store.is_recharging = false
+		self.recharge_timer = nil
+		msg.post(Urls.Weapon, Msg.Weapon.FORCE_RELOAD)
+	end
+end
+
 function fixed_update(self, dt)
 	self.stater:update(dt)
 	target_enemies_pipe(self, dt)
+	recharge_pipe(self, dt)
 end
 
 function final(self)
@@ -215,9 +266,17 @@ local function on_set_special_action(self, message)
 	set_special_action(self, message.id)
 end
 
+local function on_start_special_action(self, message)
+	if not self.special_action then return end
+
+	self.special_action_state = SpecialActionStates.Started
+	stop_weapon_firing(self)
+end
+
 local function on_run_special_action(self, message)
 	if not self.special_action then return end
 
+	self.special_action_state = SpecialActionStates.Running
 	msg.post(self.special_action.id, Msg.SpecialAction.PREPARE)
 end
 
@@ -232,20 +291,38 @@ local function on_release_special_action(self, message)
 
 	msg.post(self.special_action.id, Msg.SpecialAction.LAUNCHED)
 	msg.post(Urls.SessionManager, Msg.Player.SPECIAL_ACTION_USED)
+	self.special_action_state = SpecialActionStates.Idle
 end
 
 local function on_cancel_special_action(self, message)
 	if not self.special_action then return end
 	msg.post(self.special_action.id, Msg.SpecialAction.CANCELED)
+	self.special_action_state = SpecialActionStates.Idle
 end
 
 local function on_fire_weapon(self, message)
+	if is_special_action_active(self) then return end
 	if has_input(self.store) then return end
 
 	self.stater:set_facing(message.direction.x)
 	sprite.play_flipbook(self.stater.urls.VisualSprite, "shot", function()
 		sprite.play_flipbook(self.stater.urls.VisualSprite, "idle")
 	end)
+end
+
+local function on_reload_started(self, message)
+	self.recharge_timer = ManualTimer:new({ interval = message.time or 0 })
+	self.recharge_timer:start()
+	self.store.is_recharging = true
+
+	msg.post(self.reload_indicator_id, Msg.SHOW_ELEMENT)
+	msg.post(self.reload_indicator_id, Msg.Player.UPDATE_RECHARGE_PROGRESS, { progress = 0 })
+end
+
+local function on_reload_completed(self, message)
+	self.recharge_timer = nil
+	self.store.is_recharging = false
+	msg.post(self.reload_indicator_id, Msg.HIDE_ELEMENT, { animated = true })
 end
 
 function on_message(self, message_id, message, sender)
@@ -263,6 +340,8 @@ function on_message(self, message_id, message, sender)
 		on_apply_upgrade(self, message)
 	elseif message_id == Msg.Player.SET_SPECIAL_ACTION then
 		on_set_special_action(self, message)
+	elseif message_id == Msg.Player.START_SPECIAL_ACTION then
+		on_start_special_action(self, message)
 	elseif message_id == Msg.Player.RUN_SPECIAL_ACTION then
 		on_run_special_action(self, message)
 	elseif message_id == Msg.Player.MOVE_SPECIAL_ACTION then
@@ -273,6 +352,10 @@ function on_message(self, message_id, message, sender)
 		on_cancel_special_action(self, message)
 	elseif message_id == Msg.Weapon.FIRED then
 		on_fire_weapon(self, message)
+	elseif message_id == Msg.Weapon.RELOAD_STARTED then
+		on_reload_started(self, message)
+	elseif message_id == Msg.Weapon.RELOAD_COMPLETED then
+		on_reload_completed(self, message)
 	end
 end
 
