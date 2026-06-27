@@ -79,6 +79,7 @@ function init(self)
 			ricochets = self.bullet_ricochets,
 		}
 	})
+	msg.post(Urls.Camera, Msg.Camera.FOLLOW)
 end
 
 local function get_target_enemy(self)

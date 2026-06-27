@@ -4,27 +4,27 @@ layers {
   z: 0.0
   cell {
     x: 6
-    y: -12
+    y: -10
     tile: 0
   }
   cell {
     x: 3
-    y: -11
+    y: -9
     tile: 0
   }
   cell {
     x: 4
-    y: -11
+    y: -9
     tile: 0
   }
   cell {
     x: 5
-    y: -11
+    y: -9
     tile: 0
   }
   cell {
     x: 6
-    y: -11
+    y: -9
     tile: 2
   }
 }
@@ -33,32 +33,32 @@ layers {
   z: 0.0
   cell {
     x: 4
-    y: -13
+    y: -12
     tile: 4
   }
   cell {
     x: 1
-    y: -9
+    y: -8
     tile: 5
   }
   cell {
     x: 8
-    y: -9
+    y: -8
+    tile: 5
+  }
+  cell {
+    x: 3
+    y: -6
     tile: 5
   }
   cell {
     x: 4
-    y: -8
+    y: -6
     tile: 6
   }
   cell {
-    x: 3
-    y: -7
-    tile: 5
-  }
-  cell {
     x: 6
-    y: -7
+    y: -6
     tile: 5
   }
   cell {

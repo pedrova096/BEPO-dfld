@@ -1,19 +1,19 @@
 local Msg = require("lib.msg")
 local GameTime = require("modules.game_time")
+local ManualTimer = require("utils.manual_timer")
 local VMath = require("utils.vmath")
+local Math = require("utils.math")
+local DebugDraw = require("utils.debug_draw")
 
 local Urls = {
 	Camera = "#camera",
 }
 
-local CameraStates = {
-	Idle = hash("idle"),
-	Follow = hash("follow"),
-	Shake = hash("shake"),
-}
+local EMPTY_OFFSET = vmath.vector3()
+local POSITION_EPSILON = 0.001
 
 local function cap_zoom_step(zoom)
-	return math.max(1.0, math.floor(zoom + 0.25))
+	return math.max(1.0, math.floor(zoom + 0.5))
 end
 
 local function get_window_zoom()
@@ -28,9 +28,9 @@ local function get_window_zoom()
 	return cap_zoom_step(math.min(zoom_y, zoom_x))
 end
 
-local function get_bounds_zoom(bounds)
+local function get_bounds_zoom(size)
 	local windows_width, windows_height = window.get_size()
-	local zoom = math.min(windows_width / bounds.width, windows_height / bounds.height)
+	local zoom = windows_width / size.width --math.min(windows_width / size.width, windows_height / size.height)
 
 	return cap_zoom_step(zoom)
 end
@@ -39,127 +39,182 @@ local function setup_camera(self)
 	local display_width = sys.get_config_int("display.width")
 	local display_height = sys.get_config_int("display.height")
 	local window_width, window_height = window.get_size()
-	local zoom = self.bounds and get_bounds_zoom(self.bounds) or get_window_zoom()
+	local zoom = self.bounds_size and get_bounds_zoom(self.bounds_size) or get_window_zoom()
 
 	print(
 		"[camera] zoom:", zoom,
 		"display:", display_width, display_height,
 		"window:", window_width, window_height,
-		"bounds:", self.bounds and self.bounds.width or nil, self.bounds and self.bounds.height or nil
+		"bounds:", self.bounds_size and self.bounds_size.width or nil, self.bounds_size and self.bounds_size.height or nil
 	)
 	go.set(Urls.Camera, "orthographic_zoom", zoom)
+end
+
+go.property("follow_lerp", 2.5)
+
+local function get_camera_view_size(self)
+	local window_width, window_height = window.get_size()
+	local zoom = go.get(Urls.Camera, "orthographic_zoom")
+
+	return {
+		width = window_width / zoom,
+		height = window_height / zoom,
+	}
+end
+
+local function clamp_axis(value, min, max, view_size)
+	local half_size = view_size / 2
+
+	if max - min <= view_size then
+		return (min + max) / 2
+	end
+
+	return Math.clamp(value, min + half_size, max - half_size)
+end
+
+local function clamp_camera_position(self, position)
+	if not self.bounds then return position end
+
+	local view_size = get_camera_view_size(self)
+
+	return vmath.vector3(
+		clamp_axis(position.x, self.bounds.min_x, self.bounds.max_x, view_size.width),
+		clamp_axis(position.y, self.bounds.min_y, self.bounds.max_y, view_size.height),
+		position.z
+	)
 end
 
 function init(self)
 	msg.post(Urls.Camera, "acquire_camera_focus")
 	msg.post("@render:", "use_camera_projection")
 
+	self.base_position = go.get_position()
 	self.bounds = nil
+	self.follow_payload = nil
+	self.shake_payload = nil
+	self.moved = false
+
 	setup_camera(self)
 	-- On mount, the screen size is not ready yet, so we wait for the render script to be ready
 	timer.delay(0.1, false, function()
 		setup_camera(self)
 	end)
 
-	window.set_listener(function(self, event, data)
+	window.set_listener(function(_, event, _data)
 		if event == window.WINDOW_EVENT_RESIZED then
 			setup_camera(self)
 		end
 	end)
+end
 
-	self.state = CameraStates.Idle
+local function follow_pipe(self, dt)
+	if not self.follow_payload then return false end
+
+	---@type vector3
+	local position = self.base_position
+	local target_position = go.get_world_position(self.follow_payload.target)
+
+	if vmath.length(position - target_position) <= POSITION_EPSILON then return false end
+
+	local target_camera_position = clamp_camera_position(self, VMath.z_extends(target_position, position.z))
+
+	local lerp_amount = Math.clamp(self.follow_lerp * dt, 0, 1)
+	local next_base_position = vmath.lerp(lerp_amount, position, target_camera_position)
+
+	self.base_position = next_base_position
+
+	return true
 end
 
 local function shake_pipe(self, dt)
-	if self.state ~= CameraStates.Shake then return end
+	if not self.shake_payload then return false end
 
-	self.shake_payload.duration = self.shake_payload.duration - dt
+	local shake_payload = self.shake_payload
+	shake_payload.timer:update(dt)
 
-	local original_position = self.shake_payload.original_position
-	local prev_state = self.shake_payload.prev_state
-
-	if self.shake_payload.duration <= 0 then
-		self.state = prev_state
+	if shake_payload.timer:is_done() then
 		self.shake_payload = nil
-		go.set_position(original_position)
-		return
+		return true
 	end
 
-	local shake_magnitude = self.shake_payload.magnitude
+	local shake_magnitude = shake_payload.magnitude
+	shake_payload.offset = VMath.random_vector3(-shake_magnitude, shake_magnitude)
 
-	local shake_offset = original_position + VMath.random_vector3(-shake_magnitude, shake_magnitude)
-
-	go.set_position(shake_offset)
+	return true
 end
 
----@package
----@param self camera.script
----@param dt number
+local function draw_rect(rect, color)
+	local min_x = math.min(rect.min_x, rect.max_x)
+	local max_x = math.max(rect.min_x, rect.max_x)
+	local min_y = math.min(rect.min_y, rect.max_y)
+	local max_y = math.max(rect.min_y, rect.max_y)
+
+	local bottom_left = vmath.vector3(min_x, min_y, 0)
+	local bottom_right = vmath.vector3(max_x, min_y, 0)
+	local top_right = vmath.vector3(max_x, max_y, 0)
+	local top_left = vmath.vector3(min_x, max_y, 0)
+
+	DebugDraw.draw_line(bottom_left, bottom_right, color)
+	DebugDraw.draw_line(bottom_right, top_right, color)
+	DebugDraw.draw_line(top_right, top_left, color)
+	DebugDraw.draw_line(top_left, bottom_left, color)
+end
+
 function fixed_update(self, dt)
 	dt = GameTime.scale(dt)
-	shake_pipe(self, dt)
+	local base_moved = follow_pipe(self, dt)
+	local shake_active = shake_pipe(self, dt)
+
+	if base_moved or shake_active then
+		local offset = self.shake_payload and self.shake_payload.offset or EMPTY_OFFSET
+		go.set_position(self.base_position + offset)
+	end
 end
 
-local function on_camera_follow(self, sender)
-	go.set_parent(".", sender)
-	self.state = CameraStates.Follow
+local function on_camera_follow(self, _, sender)
+	self.follow_payload = { target = sender }
 end
 
 local function on_camera_unfollow(self, sender)
-	go.set_parent("camera", nil, true)
-	self.state = CameraStates.Idle
-end
-
-local function on_camera_shake(self, sender, message)
-	local shake_duration = message.shake_duration
-	local shake_magnitude = message.shake_magnitude
-
-	if self.state == CameraStates.Shake then
-		self.shake_payload.duration = shake_duration
-		self.shake_payload.magnitude = shake_magnitude
-		return
-	end
-
-	self.shake_payload = {
-		duration = shake_duration,
-		magnitude = shake_magnitude,
-		prev_state = self.state,
-		original_position = go.get_position(),
-	}
-
-	self.state = CameraStates.Shake
-end
-
-local function on_camera_shake_interrupt(self, sender, message)
-	if self.state ~= CameraStates.Shake then return end
-
-	local original_position = self.shake_payload.original_position
-	local prev_state = self.shake_payload.prev_state
-
-	self.state = prev_state
-	go.set_position(original_position)
-	self.shake_payload = nil
+	self.follow_payload = nil
 end
 
 local function on_camera_set_bounds(self, message)
-	self.bounds = {
-		width = message.width,
-		height = message.height,
-	}
+	self.bounds = message.bounds
+	self.bounds_size = message.size
 	setup_camera(self)
+end
+
+local function on_camera_shake(self, sender, message)
+	local timer = ManualTimer:new({ interval = message.shake_duration or 0 })
+	timer:start()
+
+	self.shake_payload = {
+		magnitude = message.shake_magnitude,
+		offset = EMPTY_OFFSET,
+		timer = timer,
+	}
+end
+
+local function on_camera_shake_interrupt(self, sender, message)
+	if not self.shake_payload then return end
+
+	self.shake_payload = nil
+	go.set_position(self.base_position)
+	self.moved = true
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Camera.FOLLOW then
-		on_camera_follow(self, sender)
+		on_camera_follow(self, message, sender)
 	elseif message_id == Msg.Camera.UNFOLLOW then
 		on_camera_unfollow(self, sender)
+	elseif message_id == Msg.Camera.SET_BOUNDS then
+		on_camera_set_bounds(self, message)
 	elseif message_id == Msg.Camera.SHAKE then
 		on_camera_shake(self, sender, message)
 	elseif message_id == Msg.Camera.STOP_SHAKE then
 		on_camera_shake_interrupt(self, sender, message)
-	elseif message_id == Msg.Camera.SET_BOUNDS then
-		on_camera_set_bounds(self, message)
 	end
 end
 

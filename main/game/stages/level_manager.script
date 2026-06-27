@@ -26,6 +26,7 @@ local Urls = {
 	UpgraderFactory = "/level_manager#upgrader_factory",
 	ConnectionFactory = "/level_manager#door_factory"
 }
+Urls.Camera = "/camera"
 
 local ENEMY_DEFINITIONS = {
 	enemy_01 = {
@@ -152,17 +153,15 @@ end
 
 local function parse_stage_info(self)
 	local tiles_sm_url = msg.url(nil, self.current_tilemap.tiles_sm, "tileset")
-	local tiles_lg_url = msg.url(nil, self.current_tilemap.tiles_lg, "tileset")
 
 	tilemap.set_visible(tiles_sm_url, "landmarks", false)
 
-	local stage_size = TilesInfo.get_lg_size(tiles_lg_url)
 
 	return TilesInfo.get_landmark_info({
 		offset = go.get_position(self.current_tilemap.id),
 		landmarks_tiles = tilemap.get_tiles(tiles_sm_url, "landmarks"),
 		bounds = TilesInfo.get_bounds(tiles_sm_url),
-	}), stage_size
+	})
 end
 
 go.property("debug", false)
@@ -231,6 +230,32 @@ local function on_confirm_enemy_despawn(self, message)
 	drain_runtime_events(self)
 end
 
+local function get_tilemap_world_bounds(self)
+	local tiles_lg_url = msg.url(nil, self.current_tilemap.tiles_lg, "tileset")
+	local bounds = TilesInfo.get_bounds(tiles_lg_url)
+
+	local tile_size = TilesInfo.TILE_LG_SIZE
+	local wall_size = tile_size / 4
+	local offset = go.get_position(self.current_tilemap.id)
+
+	local padding_top = 1.5 * tile_size
+	local padding_bottom = 2.5 * tile_size
+
+	return {
+		bounds = {
+			min_x = offset.x + bounds.left * tile_size - wall_size,
+			max_x = offset.x + (bounds.left + bounds.columns_count - 2) * tile_size + wall_size, -- We subtract the walls
+			min_y = offset.y + (bounds.bottom - 1) * tile_size - padding_bottom,
+			max_y = offset.y + (bounds.bottom + bounds.rows_count - 1) * tile_size + padding_top,
+		},
+		size = {
+			-- width = (bounds.columns_count - 2) * tile_size,
+			width = bounds.columns_count * tile_size,
+			height = bounds.rows_count * tile_size,
+		}
+	}
+end
+
 local function on_load_stage(self, message)
 	self.enemies_pool:reset()
 	clear_stage_objects(self)
@@ -253,11 +278,12 @@ local function on_load_stage(self, message)
 		tiles_lg = ids["/tiles_lg"],
 	}
 
-	local stage_info, stage_size = parse_stage_info(self)
+	local stage_info = parse_stage_info(self)
 	self.stage_info = {
 		connections = {},
 		upgrader_position = stage_info.upgrader_position
 	}
+
 	if next_connections then
 		spawn_connections(self, next_connections)
 	end
@@ -276,10 +302,12 @@ local function on_load_stage(self, message)
 		duration = message.duration,
 		player_position = stage_info.player_position
 	})
-	msg.post(Urls.Camera, Msg.Camera.SET_BOUNDS, {
-		width = stage_size.width - TilesInfo.TILE_LG_SIZE, -- TODO: this is because the tiles "padding"
-		height = stage_size.height,
-	})
+
+	msg.post(Urls.Camera, Msg.Camera.SET_BOUNDS, get_tilemap_world_bounds(self))
+	-- msg.post(Urls.Camera, Msg.Camera.SET_BOUNDS, {
+	-- 	width = stage_size.width - TilesInfo.TILE_LG_SIZE, -- TODO: this is because the tiles "padding"
+	-- 	height = stage_size.height,
+	-- })
 end
 
 local function on_start_stage(self, _message)
